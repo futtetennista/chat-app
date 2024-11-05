@@ -1,6 +1,7 @@
-import { Model, models } from "@/types";
-import { Chat } from "@/components/Chat";
 import React, { useState } from "react";
+
+import { Chat } from "@/components/Chat";
+import { Model, models } from "@/types";
 
 const App: React.FC = () => {
   const [defaultModel, setDefaultModel] = useState<Model>(models[0]);

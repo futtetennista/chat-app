@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-import { Model } from "@/types";
 import { useChat } from "@/hooks/useChat";
+import { Model } from "@/types";
 
 interface Props {
   defaultModel: Model;

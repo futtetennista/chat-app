@@ -1,7 +1,8 @@
 import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import importPlugin from "eslint-plugin-import";
+import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -21,24 +22,29 @@ export default tseslint.config(
       ],
     },
   },
-  // {
-  //   rules: {
-  //     "import/order": [
-  //       "error",
-  //       {
-  //         groups: [
-  //           ["builtin", "external"],
-  //           ["internal"],
-  //           ["parent", "sibling", "index"],
-  //         ],
-  //         "newlines-between": "always",
-  //       },
-  //     ],
-  //     "import/newline-after-import": "error",
-  //     "import/no-duplicates": "error",
-  //   },
-  // },
   {
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
+    rules: {
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
+      "import/first": "error",
+      "import/newline-after-import": "error",
+      "import/no-duplicates": "error",
+    },
+  },
+  {
+    rules: {
+      "import/order": [
+        "error",
+        {
+          "newlines-between": "always",
+        },
+      ],
+      "import/newline-after-import": "error",
+      "import/no-duplicates": "error",
+    },
     settings: {
       "import/resolver": {
         typescript: true,
@@ -46,6 +52,21 @@ export default tseslint.config(
       react: {
         version: "detect",
       },
+    },
+  },
+  {
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["./*", "../*", "\\."],
+              message: 'Please use "@/*" path as defined in tsconfig.json',
+            },
+          ],
+        },
+      ],
     },
   },
 );
