@@ -1,7 +1,7 @@
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { Message, Model } from "@/types";
 import api from "@/api";
+import { Message, Model } from "@/types";
 
 export function useChat(defaultModel: Model) {
   const [messages, setMessages] = useState<Message[]>([]);
