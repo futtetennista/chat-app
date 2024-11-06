@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { v4 } from "uuid";
 
 import { Chat } from "@/components/Chat";
 import { Model } from "@/types";
-import { v4 } from "uuid";
 
 const App: React.FC = () => {
   console.log("App component rendered");
@@ -10,7 +10,7 @@ const App: React.FC = () => {
   const [chatId, setChatId] = useState<string>(v4());
 
   useEffect(() => {
-    let storedChatId = sessionStorage.getItem("app.currentChatId");
+    const storedChatId = sessionStorage.getItem("app.currentChatId");
     if (!storedChatId) {
       console.log("No chatId found in sessionStorage, generating a new one");
       sessionStorage.setItem("app.currentChatId", chatId);
