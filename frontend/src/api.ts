@@ -4,20 +4,19 @@ export default {
   async sendMessage({
     model,
     message,
-    history: _3,
+    history,
   }: {
     model: Model;
     message: string;
     history: Message[];
   }): Promise<string> {
-    // const response = await fetch(`/api?model=${model}`, {
-    //   method: "POST",
-    //   body: JSON.stringify({ message, history }),
-    // });
-    // const data = await response.json();
-    // return data.response;
     console.log(`Sending message "${message}"" to model "${model}"`);
 
-    return "Hello, world!";
+    const response = await fetch("/api", {
+      method: "POST",
+      body: JSON.stringify({ message, history, model }),
+    });
+    const data = await response.json();
+    return data.response;
   },
 };
