@@ -12,7 +12,7 @@ export function Chat({ modelState, chatId }: Props) {
   console.log("Chat component rendered");
 
   const [input, setInput] = useState("");
-  const { messages, isLoading, sendMessage } = useChat({
+  const { messages, isLoading, errorMessage, sendMessage } = useChat({
     modelState,
     chatId,
   });
@@ -24,7 +24,6 @@ export function Chat({ modelState, chatId }: Props) {
       setInput("");
     }
   };
-
   return (
     <div className="flex flex-col h-screen p-4">
       <div className="flex-1 overflow-y-auto space-y-4 mb-4">
@@ -55,6 +54,9 @@ export function Chat({ modelState, chatId }: Props) {
             </div>
           </div>
         ))}
+        {errorMessage && (
+          <div className="text-red-500 text-center mt-2">{errorMessage}</div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="flex gap-2">

@@ -1,12 +1,12 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import api from "@/api";
-import { Message, Model } from "@/types";
+import { Message, Model, models } from "@/types";
 
 type ChatHistory = { messages: Message[] };
 
 export function useChat({
-  modelState,
+  modelState: [model, setModel],
   chatId,
 }: {
   modelState: [Model, React.Dispatch<React.SetStateAction<Model>>];
@@ -16,6 +16,9 @@ export function useChat({
     messages: [],
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     console.log("useEffect chatId", chatId);
@@ -42,10 +45,22 @@ export function useChat({
     async (content: string) => {
       setIsLoading(true);
 
-      const match = content.match(/@(?<model>\w+)/);
-      // TODO check if model is valid
-      const model = (match?.groups?.model as Model) || modelState;
+      function isModel(name: string): name is Model {
+        return models.includes(name as Model);
+      }
 
+      const modelTarget = content.match(/@(?<model>\w+)/);
+      const currentModel = modelTarget?.groups?.model || model;
+      if (!isModel(currentModel)) {
+        setErrorMessage(
+          `Model "${currentModel}" not supported. Valid models are: ${models.join(", ")}`,
+        );
+        setIsLoading(false);
+        return;
+      }
+
+      console.log(`Setting model to ${currentModel}`);
+      setModel(currentModel);
       const strippedContent = content.replace(/@\w+/, "").trim();
       const userMessage: Message = {
         role: "user",
@@ -61,7 +76,7 @@ export function useChat({
 
       try {
         const response = await api.sendMessage({
-          model: model,
+          model: currentModel,
           message: strippedContent,
           history: chatHistory.messages,
         });
@@ -81,8 +96,13 @@ export function useChat({
         setIsLoading(false);
       }
     },
-    [chatHistory, modelState],
+    [chatHistory, model, setModel],
   );
 
-  return { messages: chatHistory.messages, isLoading, sendMessage };
+  return {
+    messages: chatHistory.messages,
+    isLoading,
+    sendMessage,
+    errorMessage,
+  };
 }
