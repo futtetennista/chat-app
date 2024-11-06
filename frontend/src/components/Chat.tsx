@@ -4,12 +4,18 @@ import { useChat } from "@/hooks/useChat";
 import { Model } from "@/types";
 
 interface Props {
-  defaultModel: Model;
+  chatId: string;
+  modelState: [Model, React.Dispatch<React.SetStateAction<Model>>];
 }
 
-export function Chat({ defaultModel: defaultProvider }: Props) {
+export function Chat({ modelState, chatId }: Props) {
+  console.log("Chat component rendered");
+
   const [input, setInput] = useState("");
-  const { messages, isLoading, sendMessage } = useChat(defaultProvider);
+  const { messages, isLoading, sendMessage } = useChat({
+    modelState,
+    chatId,
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,18 +31,27 @@ export function Chat({ defaultModel: defaultProvider }: Props) {
         {messages.map((message, _) => (
           <div
             key={message.timestamp}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
+              className={`max-w-[80%] rounded-lg p-3 flex items-center ${
                 message.role === "user"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200"
+                  ? "bg-blue-500 text-white self-end"
+                  : "bg-gray-200 self-start"
               }`}
             >
-              {message.content}
+              <div className="mr-2 order-1">
+                <img
+                  src={
+                    message.role === "user"
+                      ? "/assets/user-icon.svg"
+                      : "/assets/model-icon.svg"
+                  }
+                  alt="icon"
+                  className="w-6 h-6"
+                />
+              </div>
+              <div className="order-2">{message.content}</div>
             </div>
           </div>
         ))}

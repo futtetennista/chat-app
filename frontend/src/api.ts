@@ -2,8 +2,8 @@ import { Message, Model } from "@/types";
 
 export default {
   async sendMessage({
-    model: _1,
-    message: _2,
+    model,
+    message,
     history: _3,
   }: {
     model: Model;
@@ -16,6 +16,8 @@ export default {
     // });
     // const data = await response.json();
     // return data.response;
+    console.log(`Sending message "${message}"" to model "${model}"`);
+
     return "Hello, world!";
   },
 };
