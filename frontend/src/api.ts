@@ -1,16 +1,9 @@
-import type { Message, Model } from "@/shared";
-import { apiPath } from "@/shared";
+import type { Request, Response } from "@contracts/index";
+
+import { apiPath } from "@/constants";
 
 export default {
-  async sendMessage({
-    model,
-    message,
-    history,
-  }: {
-    model: Model;
-    message: string;
-    history: Message[];
-  }): Promise<string> {
+  async sendMessage({ model, message, history }: Request): Promise<Response> {
     console.log(`Sending message "${message}"" to model "${model}"`);
 
     const response = await fetch(apiPath, {

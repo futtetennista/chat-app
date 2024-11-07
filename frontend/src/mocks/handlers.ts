@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 
-import { apiPath } from "@/shared";
+import { apiPath } from "@/constants";
 
 export const handlers = [
   http.post(apiPath, async ({ request }) => {
