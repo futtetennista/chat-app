@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import api from "@/api";
-import { Message, Model, models } from "@/types";
+import type { Message, Model } from "@/shared";
+import { models } from "@/shared";
 
 type ChatHistory = { messages: Message[] };
 
@@ -15,6 +16,7 @@ export function useChat({
   const [chatHistory, setChatHistory] = useState<ChatHistory>({
     messages: [],
   });
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | undefined>(
     undefined,
