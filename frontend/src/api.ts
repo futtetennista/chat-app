@@ -1,4 +1,5 @@
-import { Message, Model } from "@/types";
+import type { Message, Model } from "@/shared";
+import { apiPath } from "@/shared";
 
 export default {
   async sendMessage({
@@ -12,7 +13,7 @@ export default {
   }): Promise<string> {
     console.log(`Sending message "${message}"" to model "${model}"`);
 
-    const response = await fetch("/api", {
+    const response = await fetch(apiPath, {
       method: "POST",
       body: JSON.stringify({ message, history, model }),
     });

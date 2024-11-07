@@ -2,7 +2,7 @@ import { setupServer } from "msw/node";
 
 import api from "@/api";
 import { handlers } from "@/mocks/handlers";
-import { Message, Model } from "@/types";
+import type { Message, Model } from "@/shared/index";
 
 const server = setupServer(...handlers);
 

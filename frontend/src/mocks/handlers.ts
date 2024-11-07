@@ -1,7 +1,9 @@
 import { http, HttpResponse } from "msw";
 
+import { apiPath } from "@/shared";
+
 export const handlers = [
-  http.post("/api", async ({ request }) => {
+  http.post(apiPath, async ({ request }) => {
     const requestBody = (await request.json()) ?? {};
     if (typeof requestBody !== "object") {
       return HttpResponse.json(
