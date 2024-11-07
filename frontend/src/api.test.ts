@@ -1,8 +1,8 @@
+import type { Message, Model } from "@contracts/index";
 import { setupServer } from "msw/node";
 
 import api from "@/api";
 import { handlers } from "@/mocks/handlers";
-import type { Message, Model } from "@/shared/index";
 
 const server = setupServer(...handlers);
 

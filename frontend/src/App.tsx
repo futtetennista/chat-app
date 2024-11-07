@@ -1,8 +1,8 @@
+import type { Model } from "@contracts/index";
 import React, { useEffect, useState } from "react";
 import { v4 } from "uuid";
 
 import { Chat } from "@/components/Chat";
-import type { Model } from "@/shared/index";
 
 const App: React.FC = () => {
   console.log("App component rendered");

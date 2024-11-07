@@ -1,7 +1,7 @@
+import type { Model } from "@contracts/index";
 import React, { useState } from "react";
 
 import { useChat } from "@/hooks/useChat";
-import type { Model } from "@/shared/index";
 
 interface Props {
   chatId: string;

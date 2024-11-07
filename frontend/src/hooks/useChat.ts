@@ -1,8 +1,8 @@
+import type { Message, Model } from "@contracts/index";
 import { useCallback, useEffect, useState } from "react";
 
 import api from "@/api";
-import type { Message, Model } from "@/shared";
-import { models } from "@/shared";
+import { models } from "@/constants";
 
 type ChatHistory = { messages: Message[] };
 
@@ -82,16 +82,29 @@ export function useChat({
           message: strippedContent,
           history: chatHistory.messages,
         });
-        const assistantMessage: Message = {
-          role: "assistant",
-          content: response,
-          timestamp: Date.now(),
-        };
-        setChatHistory((prev: ChatHistory) => {
-          const updatedMessages = [...prev.messages, assistantMessage];
-          persistMessages(updatedMessages);
-          return { messages: updatedMessages };
-        });
+        switch (response.status) {
+          case "error": {
+            setErrorMessage(`${response.error} (code: ${response.code})`);
+            break;
+          }
+          case "success": {
+            const assistantMessage: Message = {
+              role: "assistant",
+              content: response.message,
+              timestamp: Date.now(),
+            };
+            setChatHistory((prev: ChatHistory) => {
+              const updatedMessages = [...prev.messages, assistantMessage];
+              persistMessages(updatedMessages);
+              return { messages: updatedMessages };
+            });
+            break;
+          }
+          default: {
+            const _exhaustiveCheck: never = response;
+            return _exhaustiveCheck;
+          }
+        }
       } catch (error) {
         console.error("Error sending message:", error);
       } finally {
