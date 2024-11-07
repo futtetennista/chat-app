@@ -1,5 +1,2 @@
 packages:
-  - 'backend'
-  - 'frontend'
-  - 'infrastructure'
-  - 'contracts'
+  - 'packages/*'

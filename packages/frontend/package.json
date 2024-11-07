@@ -8,7 +8,7 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "lint": "eslint --flag unstable_ts_config --config eslint.config.mts"
+    "lint": "eslint --flag unstable_ts_config --config eslint.config.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -17,7 +17,7 @@
     "uuid": "^11.0.2"
   },
   "devDependencies": {
-    "@eslint/js": "^9.14.0",
+    "@eslint/js": "^8.0.0",
     "@swc/jest": "^0.2.37",
     "@types/eslint__js": "^8.42.3",
     "@types/jest": "^29.5.14",
