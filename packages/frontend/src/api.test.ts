@@ -1,8 +1,8 @@
-import type { Message, Model } from "@contracts/index";
+import type { Message, Model } from "@chat-app/contracts/index";
 import { setupServer } from "msw/node";
 
-import api from "@/api";
-import { handlers } from "@/mocks/handlers";
+import api from "./api";
+import { handlers } from "./mocks/handlers";
 
 const server = setupServer(...handlers);
 

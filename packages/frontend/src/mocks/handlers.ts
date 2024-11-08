@@ -1,10 +1,10 @@
-// import type { Response } from "@contracts/index";
-import { http, HttpResponse } from "msw";
+import type { Response } from "@chat-app/contracts/index";
+import { http, HttpResponse, StrictResponse } from "msw";
 
-import { apiPath } from "@/constants";
+import { apiPath } from "../constants";
 
 export const handlers = [
-  http.post(apiPath, async ({ request }) => {
+  http.post(apiPath, async ({ request }): Promise<StrictResponse<Response>> => {
     const requestBody = (await request.json()) ?? {};
     if (typeof requestBody !== "object") {
       return HttpResponse.json(

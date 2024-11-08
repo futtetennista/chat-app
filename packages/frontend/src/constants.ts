@@ -1,4 +1,4 @@
-import type { Model } from "@contracts/index";
+import type { Model } from "@chat-app/contracts/index";
 
 export const models = ["claude", "chatgpt", "perplexity"] as Model[];
 

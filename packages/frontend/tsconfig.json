@@ -1,9 +1,14 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": [
+    "../tsconfig-base.json",
+    "@tsconfig/create-react-app/tsconfig.json"
+  ],
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "isolatedDeclarations": false,
     "baseUrl": ".",
     "module": "NodeNext",
+    "target": "ES2022",
     "lib": [
       "ES2022",
       "DOM"
@@ -11,12 +16,9 @@
     "jsx": "react-jsx",
     "moduleResolution": "NodeNext",
     "noEmit": true,
-    "resolveJsonModule": true,
+    "outDir": "./build",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@contracts/*": [
+      "@chat-app/contracts/*": [
         "../contracts/src/*"
       ],
     },
@@ -26,6 +28,13 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "./build",
+    "./src/**/*.test.ts",
+    "./src/**/*.test.tsx",
+  ],
+  "references": [
+    {
+      "path": "../contracts"
+    }
   ]
 }

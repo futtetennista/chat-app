@@ -1,8 +1,8 @@
-import type { Message, Model } from "@contracts/index";
+import type { Message, Model } from "@chat-app/contracts/index";
 import { useCallback, useEffect, useState } from "react";
 
-import api from "@/api";
-import { models } from "@/constants";
+import api from "../api";
+import { models } from "../constants";
 
 type ChatHistory = { messages: Message[] };
 
