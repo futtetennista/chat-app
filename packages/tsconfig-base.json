@@ -5,8 +5,8 @@
     "declarationMap": true,
     "sourceMap": true,
     "composite": true,
-    "emitDeclarationOnly": true,
-    "isolatedDeclarations": true,
+    "emitDeclarationOnly": false,
+    "isolatedDeclarations": false,
     "target": "ES2022",
     "lib": [
       "ES2020",

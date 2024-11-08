@@ -1,4 +1,5 @@
-import type { Message, Model } from "@chat-app/contracts/index";
+import type { Message, Vendor } from "@chat-app/contracts/index";
+
 import { setupServer } from "msw/node";
 
 import api from "./api";
@@ -12,7 +13,7 @@ afterAll(() => server.close());
 
 describe("sendMessage", () => {
   it("should send a message and return the response", async () => {
-    const model: Model = "chatgpt";
+    const model: Vendor = "openai";
     const message = "Hello, world!";
     const history: Message[] = [
       { role: "user", content: "Hi", timestamp: Date.now() },
@@ -30,7 +31,7 @@ describe("sendMessage", () => {
     //   }),
     // );
 
-    const model: Model = "chatgpt";
+    const model: Vendor = "openai";
     const message = "Hello, world!";
     const history: Message[] = [
       { role: "user", content: "Hi", timestamp: Date.now() },

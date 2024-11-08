@@ -1,12 +1,12 @@
-import type { Model } from "@chat-app/contracts/index";
+import type { Vendor } from "@chat-app/contracts/index";
 import React, { useEffect, useState } from "react";
 import { v4 } from "uuid";
 
-import { Chat } from "./components/Chat";
+import Chat  from "./components/Chat_";
 
 const App: React.FC = () => {
   console.log("App component rendered");
-  const [model, setModel] = useState<Model>("chatgpt");
+  const [model, setModel] = useState<Vendor>("openai");
   const [chatId, setChatId] = useState<string>(v4());
 
   useEffect(() => {
