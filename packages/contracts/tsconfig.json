@@ -4,16 +4,17 @@
     "@tsconfig/recommended/tsconfig.json"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
+    // "baseUrl": ".",
+    "rootDir": "./src",
     "resolveJsonModule": true,
-    "outDir": "./dist"
+    "outDir": "./build"
   },
   "include": [
-    "src/**/*"
+    "./src/**/*"
   ],
   "exclude": [
-    "node_modules",
-    "dist"
+    "./node_modules",
+    "./build"
   ],
   "ts-node": {
     "require": [

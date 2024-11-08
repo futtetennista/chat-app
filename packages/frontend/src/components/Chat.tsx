@@ -1,36 +1,39 @@
-import type { Model } from "@chat-app/contracts/index";
+import type { Vendor } from "@chat-app/contracts/index";
 import React, { useState } from "react";
 
 import { useChat } from "../hooks/useChat";
 
 interface Props {
   chatId: string;
-  modelState: [Model, React.Dispatch<React.SetStateAction<Model>>];
+  modelState: [Vendor, React.Dispatch<React.SetStateAction<Vendor>>];
 }
 
-export function Chat({ modelState, chatId }: Props) {
+export default function Chat({ modelState, chatId }: Props) {
   console.log("Chat component rendered");
 
   const [input, setInput] = useState("");
-  const { messages, isLoading, errorMessage, sendMessage } = useChat({
+  const { messages, isLoading, error, sendMessage } = useChat({
     modelState,
     chatId,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const onSubmit = async function (e: React.FormEvent): Promise<void> {
     e.preventDefault();
     if (input.trim() && !isLoading) {
-      sendMessage(input);
+      await sendMessage(input.trim());
       setInput("");
     }
   };
+
   return (
-    <div className="flex flex-col h-screen p-4">
+    <div className="flex flex-col h-screen p-4 pb-20">
       <div className="flex-1 overflow-y-auto space-y-4 mb-4">
         {messages.map((message, _) => (
           <div
             key={message.timestamp}
-            className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex ${
+              message.role === "user" ? "justify-end" : "justify-start"
+            }`}
           >
             <div
               className={`max-w-[80%] rounded-lg p-3 flex items-center ${
@@ -54,16 +57,15 @@ export function Chat({ modelState, chatId }: Props) {
             </div>
           </div>
         ))}
-        {errorMessage && (
-          <div className="text-red-500 text-center mt-2">{errorMessage}</div>
-        )}
+        {error && <div className="text-red-500 text-center mt-2">{error}</div>}
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={e => { void onSubmit(e)}} className={`fixed bottom-0 left-0 right-0 flex gap-2 bg-white p-4 border-t`}>
         <input
           type="text"
+          ref={(input) => { input?.focus() }}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => { setInput(e.target.value); }}
           placeholder="Type your message..."
           className="flex-1 p-2 border rounded"
           disabled={isLoading}
