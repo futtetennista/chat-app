@@ -1,5 +1,8 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": [
+    "../tsconfig-base.json",
+    "@tsconfig/recommended/tsconfig.json"
+  ],
   "compilerOptions": {
     "baseUrl": ".",
     "resolveJsonModule": true,

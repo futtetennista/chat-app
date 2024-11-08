@@ -10,6 +10,7 @@ pkgs.mkShell {
     pkgs.nodejs_20
     pkgs.pnpm
     pkgs.shellcheck
+    # pkgs.aws-sam-cli.override { doChecks = false; }
     # pkgs.husky
   ];
 }

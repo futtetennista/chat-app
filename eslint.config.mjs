@@ -51,7 +51,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.{ts,tsx}"],
+    files: ["packages/backend/**/*.ts"],
     rules: {
       "no-restricted-imports": [
         "error",

@@ -5,11 +5,11 @@ import {
   Context,
   Handler,
 } from "aws-lambda";
-import OpenAI from "openai";
+// import OpenAI from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// const openai = new OpenAI({
+//   apiKey: process.env.OPENAI_API_KEY,
+// });
 
 // async function chat(
 //   message: string,
@@ -24,45 +24,68 @@ const openai = new OpenAI({
 //   return response.choices[0].message;
 // }
 
-async function chat(body: string): Promise<Response> {
-  if (!body) {
-    return {
-      status: "error",
-      statusCode: 400,
-      errorMessage: "Invalid request body (empty)",
-      errorCode: "empty_request_body",
-    };
-  }
-
-  let request;
-  try {
-    request = JSON.parse(body);
-    if (!request.message || typeof request.message !== "string") {
+async function chat(rawBody: string | null): Promise<Response> {
+  function validateBody(
+    x: string | null,
+  ):
+    | { result: "valid"; value: Request }
+    | { result: "invalid"; value: Response } {
+    if (!x) {
       return {
-        status: "error",
-        statusCode: 400,
-        errorMessage:
-          "Invalid request format: message property must be a string",
-        errorCode: "invalid_message",
+        result: "invalid",
+        value: {
+          status: "error",
+          statusCode: 400,
+          error: "Invalid request body (empty)",
+          code: "empty_request_body",
+        },
       };
     }
-  } catch (_: unknown) {
-    return {
-      status: "error",
-      statusCode: 400,
-      errorMessage: "Invalid JSON in request body",
-      errorCode: "invalid_json",
-    };
+
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(x);
+      if (!parsedBody.message || typeof parsedBody.message !== "string") {
+        return {
+          result: "invalid",
+          value: {
+            statusCode: 400,
+            error: "Invalid request format: message property must be a string",
+            code: "invalid_message",
+          },
+        };
+      }
+      return { result: "valid", value: parsedBody };
+    } catch (_: unknown) {
+      return {
+        result: "invalid",
+        value: {
+          status: "error",
+          statusCode: 400,
+          error: "Invalid JSON in request body",
+          code: "invalid_json",
+        },
+      };
+    }
   }
 
-  const request = JSON.parse(body) as Request;
-  const response = await openai.chat.completions.create({
-    model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: request.message }],
-    stream: false,
-  });
+  const { result, value } = validateBody(rawBody);
+  if (result === "invalid") {
+    return value;
+  }
 
-  return response.choices[0].message;
+  const request = JSON.parse(value) as Request;
+  void request;
+  // const response = await openai.chat.completions.create({
+  //   model: "gpt-3.5-turbo",
+  //   messages: [{ role: "user", content: request.message }],
+  //   stream: false,
+  // });
+
+  return {
+    status: "success",
+    message: "To be implemented",
+  };
 }
 
 export const handler: Handler = async (
@@ -89,7 +112,7 @@ export const handler: Handler = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        errorMessage: "Hello",
+        error: "Hello",
         statusCode: 500,
       }),
     };

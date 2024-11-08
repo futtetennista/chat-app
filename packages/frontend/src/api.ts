@@ -1,6 +1,6 @@
-import type { Request, Response } from "@contracts/index";
+import type { Request, Response } from "@chat-app/contracts/index";
 
-import { apiPath } from "@/constants";
+import { apiPath } from "./constants";
 
 export default {
   async sendMessage({ model, message, history }: Request): Promise<Response> {
