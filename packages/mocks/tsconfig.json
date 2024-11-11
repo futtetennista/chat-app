@@ -4,16 +4,31 @@
     "@tsconfig/recommended/tsconfig.json"
   ],
   "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "module": "preserve",
     "rootDir": "./src",
-    "resolveJsonModule": true,
-    "outDir": "./build"
+    "outDir": "./build",
+    "paths": {
+      "@chat-app/contracts/*": [
+        "../contracts/src/*"
+      ],
+    },
   },
   "include": [
     "./src/**/*"
   ],
   "exclude": [
     "./node_modules",
-    "./build"
+    "./build/**/*",
+    "./dist/**/*",
+  ],
+  "references": [
+    {
+      "path": "../contracts"
+    }
   ],
   "ts-node": {
     "require": [

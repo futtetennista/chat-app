@@ -13,11 +13,13 @@
       "DOM"
     ],
     "jsx": "react-jsx",
-    "noEmit": true,
     "outDir": "./build",
     "paths": {
       "@chat-app/contracts/*": [
         "../contracts/src/*"
+      ],
+      "@chat-app/mocks/*": [
+        "../mocks/src/*"
       ],
     },
   },
@@ -33,6 +35,9 @@
   "references": [
     {
       "path": "../contracts"
+    },
+    {
+      "path": "../mocks"
     }
   ]
 }

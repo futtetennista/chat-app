@@ -48,6 +48,9 @@ importers:
         specifier: ^4.71.1
         version: 4.71.1(zod@3.23.8)
     devDependencies:
+      '@chat-app/mocks':
+        specifier: workspace:*
+        version: link:../mocks
       '@tsconfig/node20':
         specifier: ^20.1.4
         version: 20.1.4
@@ -121,6 +124,9 @@ importers:
         specifier: ^11.0.2
         version: 11.0.2
     devDependencies:
+      '@chat-app/mocks':
+        specifier: workspace:*
+        version: link:../mocks
       '@swc/jest':
         specifier: ^0.2.37
         version: 0.2.37(@swc/core@1.9.1)
@@ -145,6 +151,31 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.9.0)(babel-plugin-macros@3.1.0)
+      msw:
+        specifier: ^2.6.0
+        version: 2.6.2(@types/node@22.9.0)(typescript@5.6.3)
+      typescript:
+        specifier: ^5.6.3
+        version: 5.6.3
+
+  packages/mocks:
+    dependencies:
+      '@chat-app/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+    devDependencies:
+      '@tsconfig/create-react-app':
+        specifier: ^2.0.5
+        version: 2.0.5
+      '@tsconfig/recommended':
+        specifier: ^1.0.8
+        version: 1.0.8
+      fp-ts:
+        specifier: ^2.16.9
+        version: 2.16.9
+      io-ts:
+        specifier: ^2.2.21
+        version: 2.2.21(fp-ts@2.16.9)
       msw:
         specifier: ^2.6.0
         version: 2.6.2(@types/node@22.9.0)(typescript@5.6.3)

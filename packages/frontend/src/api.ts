@@ -1,5 +1,4 @@
 import { ChatRequest, ChatResponse } from "@chat-app/contracts";
-import { Either, isLeft } from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
@@ -54,24 +53,5 @@ export default {
         );
       }),
     );
-  },
-
-  async sendMessage({
-    model,
-    message,
-    history,
-  }: ChatRequest): Promise<Either<D.DecodeError, ChatResponse>> {
-    console.log(`Sending message "${message}"" to model "${model}"`);
-
-    const response = await fetch(apiPath, {
-      method: "POST",
-      body: ChatRequest.encode({ model, message, history }),
-    });
-    const result = await response.json().then(ChatResponse.decode);
-    if (isLeft(result)) {
-      console.error("Invalid response format", D.draw(result.left));
-    }
-
-    return result;
   },
 };
