@@ -1,4 +1,5 @@
 {
+  "typescript.tsdk": "node_modules/typescript/lib"
   // "eslint.useFlatConfig": true,
   // "eslint.options": {
   //   "overrideConfigFile": "eslint.config.mjs"
