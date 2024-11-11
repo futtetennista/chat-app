@@ -7,8 +7,7 @@
     "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
     "test": "react-app-rewired test",
-    "eject": "react-scripts eject",
-    "lint": "eslint --flag unstable_ts_config --config ../../eslint.config.mjs"
+    "eject": "react-scripts eject"
   },
   "dependencies": {
     "@chat-app/contracts": "workspace:*",
