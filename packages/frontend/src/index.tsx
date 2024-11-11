@@ -3,17 +3,23 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 
 async function enableMocking() {
-  // if (typeof process === "undefined") {
-  //   console.log("process is undefined");
-  //   return undefined;
-  // }
   console.log("NODE_ENV", process.env.NODE_ENV);
   if (process.env.NODE_ENV === "production") {
     return undefined;
   }
 
-  const { worker } = await import("./mocks/browser.ts");
-  return worker.start();
+  try {
+    const { handlers } = await import("@chat-app/mocks");
+    const { setupWorker } = await import("msw/browser");
+    const worker = setupWorker(...handlers);
+    const res = await worker.start({
+      onUnhandledRequest: "warn",
+    });
+    return res;
+  } catch (error) {
+    console.error("Failed to import mocks", error);
+    return undefined;
+  }
 }
 
 enableMocking()
@@ -22,7 +28,6 @@ enableMocking()
     if (!container) {
       throw new Error("Element with id 'root' not found");
     }
-
     const root = createRoot(container);
     root.render(<App />);
   })

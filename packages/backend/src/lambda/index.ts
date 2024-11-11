@@ -508,6 +508,17 @@ export const handler: Handler = async (
 ): Promise<APIGatewayProxyResult> => {
   logger.addContext(context);
   logger.logEventIfEnabled(event);
+
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.USE_MOCKS === "true"
+  ) {
+    const { setupServer } = await import("msw/node");
+    const { handlers } = await import("@mocks/index.js");
+    const server = setupServer(...handlers);
+    server.listen();
+  }
+
   return pipe(
     TE.fromEither(validateBody(event.body)),
     TE.flatMap(chatTE),
