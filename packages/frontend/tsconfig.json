@@ -7,14 +7,12 @@
     "allowImportingTsExtensions": true,
     "isolatedDeclarations": false,
     "baseUrl": ".",
-    "module": "NodeNext",
     "target": "ES2022",
     "lib": [
       "ES2022",
       "DOM"
     ],
     "jsx": "react-jsx",
-    "moduleResolution": "NodeNext",
     "noEmit": true,
     "outDir": "./build",
     "paths": {
