@@ -1,5 +1,5 @@
 {
-  "entry": ["src/**/*.{js,jsx,ts,tsx}", "eslint.config.mts"],
-  "ignore": ["config-overrides.js", "eslint.config.mts"],
-  "ignoreDependencies": ["eslint-import-resolver-typescript"],
+  "entry": ["src/**/*.{js,jsx,ts,tsx}"],
+  "ignore": [],
+  "ignoreDependencies": ["eslint-import-resolver-typescript"]
 }
