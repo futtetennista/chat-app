@@ -3,6 +3,7 @@ import {
   ChatResponse,
   RFC9457ErrorResponse,
 } from "@chat-app/contracts";
+import * as C from "fp-ts/Console";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
@@ -21,10 +22,17 @@ export const handlers = [
           title: "Empty request body",
           status: "400",
           detail: "",
-        })
+        }),
+      ),
+      TE.tapIO((requestBody) =>
+        C.log(
+          `requestBody=${
+            requestBody ? JSON.stringify(requestBody) : "undefined"
+          }`,
+        ),
       ),
       TE.flatMap((requestBody) =>
-        TE.fromEither(ChatRequest.decode(requestBody))
+        TE.fromEither(ChatRequest.decode(requestBody)),
       ),
       TE.match(
         (error) => {
@@ -42,7 +50,7 @@ export const handlers = [
                       detail: D.draw(error),
                     },
                   },
-                  { status: 400 }
+                  { status: 400 },
                 ),
               (error) =>
                 HttpResponse.json<ChatResponse>(
@@ -52,9 +60,9 @@ export const handlers = [
                   },
                   {
                     status: Number(error.status),
-                  }
-                )
-            )
+                  },
+                ),
+            ),
           );
         },
         (data) => {
@@ -64,8 +72,8 @@ export const handlers = [
               message: `Your message to ${data.model}: "${data.message}"`,
             },
           });
-        }
-      )
+        },
+      ),
     )();
   }),
 ];
