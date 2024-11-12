@@ -1,0 +1,26 @@
+name: Repo checks
+
+on:
+  # push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  repo-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # 4.1.7
+        # with:
+          # Fetch all branches to make a diff between HEAD and master to check
+          # all changes in the current branch.
+          # fetch-depth: 0
+      - uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python3 -m pip install pre-commit pylint shellcheck-py==0.10.0.1
+      - name: Run checks
+        env:
+          TERM: dumb
+        run: pre-commit run --config=.pre-commit-config.yml --all-files
