@@ -9,7 +9,7 @@ async function enableMocking() {
   }
 
   try {
-    const { handlers } = await import("@chat-app/mocks");
+    const { internal: handlers } = await import("@chat-app/mocks");
     const { setupWorker } = await import("msw/browser");
     const worker = setupWorker(...handlers);
     const res = await worker.start({

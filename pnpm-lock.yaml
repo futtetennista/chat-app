@@ -163,6 +163,9 @@ importers:
       '@chat-app/contracts':
         specifier: workspace:*
         version: link:../contracts
+      openai:
+        specifier: ^4.71.1
+        version: 4.71.1(zod@3.23.8)
     devDependencies:
       '@tsconfig/create-react-app':
         specifier: ^2.0.5

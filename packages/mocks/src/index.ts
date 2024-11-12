@@ -1,3 +1,4 @@
-import handlers from "./handlers";
+import internal from "./handlers/internal";
+import openai from "./handlers/openai";
 
-export { handlers };
+export { internal, openai };
