@@ -4,11 +4,12 @@
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "dependencies": {
-    "@chat-app/contracts": "workspace:*"
+    "@chat-app/contracts": "workspace:*",
+    "openai": "^4.71.1"
   },
   "devDependencies": {
-    "@tsconfig/recommended": "^1.0.8",
     "@tsconfig/create-react-app": "^2.0.5",
+    "@tsconfig/recommended": "^1.0.8",
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.21",
     "msw": "^2.6.0",
