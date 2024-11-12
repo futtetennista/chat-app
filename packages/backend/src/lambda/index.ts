@@ -514,8 +514,8 @@ export const handler: Handler = async (
     process.env.USE_MOCKS === "true"
   ) {
     const { setupServer } = await import("msw/node");
-    const { internal: handlers } = await import("@mocks/index.js");
-    const server = setupServer(...handlers);
+    const { internalHandlers } = await import("@mocks/index.js");
+    const server = setupServer(...internalHandlers);
     server.listen();
   }
 
