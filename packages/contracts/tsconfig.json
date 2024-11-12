@@ -4,9 +4,9 @@
     "@tsconfig/recommended/tsconfig.json"
   ],
   "compilerOptions": {
-    "rootDir": "./src",
-    "resolveJsonModule": true,
-    "outDir": "./build"
+    "module": "preserve",
+    "outDir": "./build",
+    "rootDir": "./src"
   },
   "include": [
     "./src/**/*"
