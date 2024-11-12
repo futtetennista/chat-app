@@ -3,6 +3,7 @@ import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 
+import { config } from "./config";
 import { apiPath } from "./constants";
 
 export type APIError =
@@ -19,7 +20,7 @@ export type APIError =
       error: D.DecodeError;
     };
 
-export default {
+const api = {
   sendMessageTE({
     model,
     message,
@@ -30,9 +31,9 @@ export default {
     return pipe(
       TE.tryCatch(
         () => {
-          return fetch(apiPath, {
-            method: "POST",
+          return fetch(new URL(apiPath, config.apiBaseURL), {
             body: ChatRequest.encode({ model, message, history }),
+            method: "POST",
           });
         },
         (reason): APIError => ({ _tag: "network", error: reason }),
@@ -55,3 +56,7 @@ export default {
     );
   },
 };
+
+export type API = typeof api;
+
+export default api;

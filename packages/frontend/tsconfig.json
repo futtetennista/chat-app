@@ -6,7 +6,6 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "isolatedDeclarations": false,
-    "baseUrl": ".",
     "target": "ES2022",
     "lib": [
       "ES2022",
@@ -29,8 +28,8 @@
   "exclude": [
     "node_modules",
     "./build",
-    "**/*.test.ts",
-    "**/*.test.tsx",
+    // "**/*.test.ts",
+    // "**/*.test.tsx",
   ],
   "references": [
     {

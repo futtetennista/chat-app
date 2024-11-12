@@ -4,9 +4,11 @@
   "private": true,
   "packageManager": "pnpm@9.0.0",
   "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
-    "test": "react-app-rewired test",
+    "start": "REACT_APP_API_BASE_URL=http://localhost DISABLE_ESLINT_PLUGIN=true react-scripts start",
+    "build": "REACT_APP_API_BASE_URL=http://localhost DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "build:prod": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "test": "jest",
+    "test_": "react-scripts test --watchAll=false",
     "eject": "react-scripts eject"
   },
   "dependencies": {
@@ -28,6 +30,7 @@
     "io-ts": "^2.2.21",
     "jest": "^29.7.0",
     "msw": "^2.6.0",
+    "serve": "^14.2.4",
     "typescript": "^5.6.3"
   },
   "browserslist": {
@@ -44,7 +47,7 @@
   },
   "msw": {
     "workerDirectory": [
-      "public"
+      "mocks"
     ]
   }
 }

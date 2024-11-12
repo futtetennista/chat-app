@@ -10,12 +10,14 @@ import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 import { http, HttpResponse, passthrough, StrictResponse } from "msw";
 
+import { baseURL } from "../constants";
+
 const handlers = [
-  http.get("/assets", () => {
+  http.get(new URL("/assets", baseURL).toString(), () => {
     return passthrough();
   }),
   http.post(
-    "/api/chat",
+    new URL("/api/chat", baseURL).toString(),
     ({ request }): Promise<StrictResponse<ChatResponse>> => {
       return pipe(
         TE.tryCatch(

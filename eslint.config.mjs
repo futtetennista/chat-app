@@ -1,5 +1,5 @@
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import reactPlugin from "eslint-plugin-react";
 
@@ -17,11 +17,17 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.{js, jsx, mjs, cjs}'],
+    files: ["**/*.{js, jsx, mjs, cjs}"],
     ...tseslint.configs.disableTypeChecked,
   },
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/build/**', '**/public/**'],
+    ignores: [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/public/**",
+      "eslint.config.mjs",
+    ],
   },
   {
     rules: {
@@ -42,28 +48,28 @@ export default tseslint.config(
       "simple-import-sort/exports": "error",
     },
   },
-//   importPlugin.flatConfigs.recommended,
-//   {
-//     rules: {
-//       "import/order": [
-//         "error",
-//         {
-//           "newlines-between": "always",
-//         },
-//       ],
-//       "import/newline-after-import": "error",
-//       "import/no-duplicates": "error",
-//       "import/first": "error",
-//     },
-//     settings: {
-//       "import/resolver": {
-//         typescript: true,
-//       },
-//     },
-//   },
+  //   importPlugin.flatConfigs.recommended,
+  //   {
+  //     rules: {
+  //       "import/order": [
+  //         "error",
+  //         {
+  //           "newlines-between": "always",
+  //         },
+  //       ],
+  //       "import/newline-after-import": "error",
+  //       "import/no-duplicates": "error",
+  //       "import/first": "error",
+  //     },
+  //     settings: {
+  //       "import/resolver": {
+  //         typescript: true,
+  //       },
+  //     },
+  //   },
   reactPlugin.configs.flat.recommended,
   reactPlugin.configs.flat["jsx-runtime"],
   {
-    settings: { react: { version: "detect" } },
+    settings: { react: { version: "18" } },
   },
 );

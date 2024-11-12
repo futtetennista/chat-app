@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --passWithNoTests",
     "type-check": "tsc --noEmit"
   },
   "license": "UNLICENSED",

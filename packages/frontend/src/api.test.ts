@@ -1,27 +1,43 @@
-import type { Message, Vendor } from "@chat-app/contracts/index";
-
+import type { Message, Vendor } from "@chat-app/contracts";
+import { baseURL, internalHandlers } from "@chat-app/mocks";
 import { setupServer } from "msw/node";
 
-import api from "./api";
-import { handlers } from "./mocks/handlers";
+import type { API } from "./api";
 
-const server = setupServer(...handlers);
+const server = setupServer(...internalHandlers);
 
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+let api: API;
+
+beforeAll(() => {
+  server.listen();
+  process.env.REACT_APP_API_BASE_URL = baseURL;
+});
+
+beforeEach(async () => {
+  api = (await import("./api")).default;
+});
+
+afterEach(() => {
+  server.resetHandlers();
+});
+
+afterAll(() => {
+  server.close();
+});
 
 describe("sendMessage", () => {
-  it("should send a message and return the response", async () => {
-    const model: Vendor = "openai";
-    const message = "Hello, world!";
+  it("should send a message and return the response", async function () {
     const history: Message[] = [
       { role: "user", content: "Hi", timestamp: Date.now() },
     ];
 
-    const response = await api.sendMessage({ model, message, history });
+    const response = await api.sendMessageTE({
+      model: "openai",
+      message: "Hello, world!",
+      history,
+    })();
 
-    expect(response).toBe("Mocked response");
+    expect(response._tag).toBe("Right");
   });
 
   it.skip("should handle server error", async () => {
@@ -38,7 +54,7 @@ describe("sendMessage", () => {
     ];
 
     await expect(
-      api.sendMessage({ model, message, history }),
+      api.sendMessageTE({ model, message, history })(),
     ).rejects.toThrow();
   });
 });
