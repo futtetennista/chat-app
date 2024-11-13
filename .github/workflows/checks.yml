@@ -1,0 +1,140 @@
+name: checks
+
+on:
+  # pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.ref }}'
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  compile-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - id: checkout-repo
+        name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+      - name: Run type checker
+        working-directory: backend
+        run: pnpm tsc -b -v
+  compile-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - id: checkout-repo
+        name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+      - name: Run type checker
+        working-directory: frontend
+        run: pnpm tsc -b -v tsconfig-dev.json
+  build-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      # This is needed only when images are not pushed to remote registries.
+      # There's no way to optionally start a service in a job, so we need to always start it.
+      # See https://docs.docker.com/build/ci/github-actions/local-registry/
+      registry:
+        image: registry:2.8.3
+        ports:
+          - 5000:5000
+    steps:
+      - id: checkout-repo
+        name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+      - name: Build frontend
+        working-directory: frontend
+        run: pnpm run build
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set up BuildX with local registry
+        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
+        with:
+          driver-opts: network=host
+      - name: Build and push Docker image
+        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
+        with:
+          context: ./frontend/build
+          file: ./frontend/build/Dockerfile
+          push: true
+          tags: localhost:5000/frontend-app:${{ github.sha }}
+  test-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    services:
+      registry:
+        image: registry:2.8.3
+        ports:
+          - 5000:5000
+      app:
+        image: localhost:5000/frontend-app:${{ github.sha }}
+        ports:
+          - 80:80
+    steps:
+      - run: nc -zv localhost 80
+      - name: Set up Playwright
+        uses: microsoft/playwright-github-action@v1
+      - name: Run Playwright tests
+        run: |
+          pnpx playwright test --config=./src/__tests__/playwright.config.ts
+        env:
+          CI: true
+          REACT_APP_PORT: 80
+
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - id: checkout-repo
+        name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+      - name: Run linter
+        id: lint
+        run: pnpm run lint --fix
+      - name: Commit and push fixed files
+        uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
+        if: steps.lint.outcome == 'failure' && github.event_name == 'pull_request'
+        with:
+          add: ./src
+          message: Fix lint issues
+
+  test:
+    runs-on: self-hosted
+    timeout-minutes: 5
+    steps:
+      - id: checkout-repo
+        name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+      - name: Run tests
+        run: pnpm -r run test
+
+  knip:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - id: checkout-repo
+        name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+      - name: Knip code
+        run: pnpm knip

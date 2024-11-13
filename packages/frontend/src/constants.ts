@@ -1,4 +1,4 @@
-import type { Vendor } from "@chat-app/contracts/index";
+import type { Vendor } from "@chat-app/contracts";
 import * as O from "fp-ts/Option";
 
 const anthropicHandles = ["c", "claude", "cld"];

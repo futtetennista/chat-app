@@ -1,4 +1,4 @@
-import type { Vendor } from "@chat-app/contracts/index";
+import type { Vendor } from "@chat-app/contracts";
 import React from "react";
 
 import { useChat } from "../hooks/useChat";
@@ -60,12 +60,21 @@ export default function Chat({ modelState, chatId }: Props) {
         {error && <div className="text-red-500 text-center mt-2">{error}</div>}
       </div>
 
-      <form onSubmit={e => { void onSubmit(e)}} className={`fixed bottom-0 left-0 right-0 flex gap-2 bg-white p-4 border-t`}>
+      <form
+        onSubmit={(e) => {
+          void onSubmit(e);
+        }}
+        className={`fixed bottom-0 left-0 right-0 flex gap-2 bg-white p-4 border-t`}
+      >
         <input
           type="text"
-          ref={(input) => { input?.focus() }}
+          ref={(input) => {
+            input?.focus();
+          }}
           value={input}
-          onChange={(e) => { setInput(e.target.value); }}
+          onChange={(e) => {
+            setInput(e.target.value);
+          }}
           placeholder="Type your message..."
           className="flex-1 p-2 border rounded"
           disabled={isLoading}
