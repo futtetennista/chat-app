@@ -23,13 +23,12 @@
     },
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "playwright.config.ts"
   ],
   "exclude": [
     "node_modules",
     "./build",
-    "**/*.test.ts",
-    "**/*.test.tsx",
   ],
   "references": [
     {
