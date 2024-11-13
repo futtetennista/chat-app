@@ -38,9 +38,9 @@ runs:
       if: ${{ inputs.prod == 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm -r install --prod
+      run: pnpm recursive install --prod
     - name: Install dependencies
       if: ${{ inputs.prod != 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm -r install
+      run: pnpm recursive install
