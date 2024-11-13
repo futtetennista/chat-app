@@ -1,7 +1,7 @@
 name: checks
 
 on:
-  # pull_request:
+  push:
   workflow_dispatch:
 
 concurrency:
@@ -22,7 +22,7 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Run type checker
-        working-directory: packages/backend
+        working-directory: ./packages/backend
         run: pnpm tsc -b -v
   compile-frontend:
     runs-on: ubuntu-latest
@@ -34,8 +34,10 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Run type checker
-        working-directory: packages/frontend
-        run: pnpm tsc -b -v tsconfig-dev.json
+        working-directory: ./packages/frontend
+        run: |
+          pnpm precompile:tsconfig dev
+          pnpm exec tsc -b -v
   build-frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -54,10 +56,10 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Build frontend
-        working-directory: packages/frontend
+        working-directory: ./packages/frontend
         run: pnpm run build
         env:
-          REACT_APP_API_URL: http://localhost
+          REACT_APP_API_BASE_URL: http://localhost
       - name: Set up BuildX with local registry
         uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
         with:
@@ -65,11 +67,11 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ./packages/frontend/build
-          file: ./packages/frontend/build/Dockerfile
+          context: ./packages/frontend/
+          file: ./packages/frontend/ci/Dockerfile
           push: true
           tags: localhost:5000/frontend-app:${{ github.sha }}
-  test-frontend:
+  test-e2e-frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: build-frontend
@@ -87,10 +89,11 @@ jobs:
       - name: Set up Playwright
         uses: microsoft/playwright-github-action@v1
       - name: Run Playwright tests
+        working-directory: ./packages/frontend
         run: |
-          pnpx playwright test --config=./packages/frontend/playwright.config.ts
+          pnpm exec playwright test --config=playwright.config.ts
         env:
-          CI: true
+          REACT_APP_API_BASE_URL: http://localhost
           REACT_APP_PORT: 80
       - name: Upload Playwright report
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
@@ -110,16 +113,16 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Run linter
-        id: lint
+        id: run-linter
         run: pnpm run lint --fix
       - name: Commit and push fixed files
         uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
-        if: steps.lint.outcome == 'failure' && github.event_name == 'pull_request'
+        if: steps.run-linter.outcome == 'failure' && github.event_name == 'pull_request'
         with:
-          add: ./src
-          message: Fix lint issues
+          add: .
+          message: Fix eslint issues
 
-  test:
+  test-unit:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
