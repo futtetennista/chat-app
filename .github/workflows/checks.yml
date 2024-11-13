@@ -86,7 +86,7 @@ jobs:
         name: Set up node.js with pnpm
       - name: Restore Playwright browser binaries
         id: restore-playwright-browsers-binaries
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a #v4.1.2
         with:
           path: |
             ${{ github.workspace }}/ms-playwright-browsers
@@ -104,7 +104,7 @@ jobs:
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
       - name: Cache Playwright browser binaries
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@6849a6489940f00c2f30c0fb92c6274307ccb58a #v4.1.2
         with:
           key: ${{ steps.restore-playwright-browsers-binaries.outputs.cache-primary-key }}
           path: |
