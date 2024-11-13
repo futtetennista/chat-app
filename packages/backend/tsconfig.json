@@ -11,12 +11,6 @@
       "@/*": [
         "./src/*"
       ],
-      "@contracts/*": [
-        "../contracts/src/*"
-      ],
-      "@mocks/*": [
-        "../mocks/src/*"
-      ],
     },
     "tsBuildInfoFile": "tsconfig.tsbuildinfo"
   },

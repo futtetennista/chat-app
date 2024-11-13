@@ -4,7 +4,7 @@ import {
   ChatRequest,
   RFC9457ErrorResponse,
   SuccessResponse,
-} from "@contracts/index";
+} from "@chat-app/contracts";
 import {
   APIGatewayEvent,
   APIGatewayProxyResult,
@@ -514,7 +514,7 @@ export const handler: Handler = async (
     process.env.USE_MOCKS === "true"
   ) {
     const { setupServer } = await import("msw/node");
-    const { internalHandlers } = await import("@mocks/index.js");
+    const { internalHandlers } = await import("@chat-app/mocks");
     const server = setupServer(...internalHandlers);
     server.listen();
   }

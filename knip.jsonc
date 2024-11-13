@@ -1,5 +1,6 @@
 {
-  "entry": ["src/**/*.{js,jsx,ts,tsx}"],
-  "ignore": [],
-  "ignoreDependencies": ["eslint-import-resolver-typescript"]
+  "entry": ["packages/backend/src/lambda/index.ts"],
+  "ignore": ["packages/frontend/src/index.dev.tsx"],
+  "ignoreDependencies": ["serve"],
+  "ignoreBinaries": ["compile:before", "f"]
 }
