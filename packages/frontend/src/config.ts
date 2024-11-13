@@ -1,12 +1,16 @@
 export const config: {
-  apiBaseURL: string;
-  apiChatPath: string;
+  api: {
+    baseURL: string;
+    chatPath: string;
+  };
 } = {
-  apiBaseURL: (function () {
-    if (!process.env.REACT_APP_API_BASE_URL) {
-      throw new Error("REACT_APP_API_BASE_URL is not set");
-    }
-    return process.env.REACT_APP_API_BASE_URL;
-  })(),
-  apiChatPath: process.env.REACT_APP_API_CHAT_PATH ?? "/api/chat",
+  api: {
+    baseURL: (function () {
+      if (!process.env.REACT_APP_API_BASE_URL) {
+        throw new Error("REACT_APP_API_BASE_URL is not set");
+      }
+      return process.env.REACT_APP_API_BASE_URL;
+    })(),
+    chatPath: process.env.REACT_APP_API_CHAT_PATH ?? "/api/chat",
+  },
 } as const;

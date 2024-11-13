@@ -30,14 +30,14 @@ export interface API {
 }
 
 const api: API = {
-  baseURL: config.apiBaseURL,
+  baseURL: config.api.baseURL,
 
   sendMessageTE({ model, message, history }) {
     console.log(`Sending message "${message}" to model "${model}"`);
     return pipe(
       TE.tryCatch(
         () => {
-          return fetch(new URL(config.apiChatPath, config.apiBaseURL), {
+          return fetch(new URL(config.api.chatPath, this.baseURL), {
             body: ChatRequest.encode({ model, message, history }),
             method: "POST",
           });
