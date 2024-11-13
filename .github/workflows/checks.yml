@@ -75,8 +75,8 @@ jobs:
     needs: frontend-build
     services:
       frontend-app:
-        image: ghcr.io/${{ github.repository }}/frontend-app:main
-        # image: ghcr.io/${{ github.repository }}/frontend-app:${{ github.sha }}
+        # image: ghcr.io/${{ github.repository }}/frontend-app:main
+        image: ghcr.io/${{ github.repository }}/frontend-app:${{ github.sha }}
         ports:
           - 8080:8080
     steps:
