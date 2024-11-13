@@ -4,11 +4,11 @@ import * as O from "fp-ts/Option";
 const anthropicHandles = ["c", "claude", "cld"];
 const openaiHandles = ["chatgpt", "gpt"];
 const perplexityHandles = ["p", "ppx"];
-export const modelHandles = [
-  ...anthropicHandles,
-  ...openaiHandles,
-  ...perplexityHandles,
-];
+// export const modelHandles = [
+//   ...anthropicHandles,
+//   ...openaiHandles,
+//   ...perplexityHandles,
+// ];
 export function modelHandleToModel(handle: string): O.Option<Vendor> {
   if (anthropicHandles.includes(handle)) {
     return O.some("anthropic");
