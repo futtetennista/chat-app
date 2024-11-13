@@ -76,6 +76,7 @@ jobs:
   test-frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: build-frontend
     services:
       registry:
         image: registry:2.8.3
@@ -91,7 +92,7 @@ jobs:
         uses: microsoft/playwright-github-action@v1
       - name: Run Playwright tests
         run: |
-          pnpx playwright test --config=./packages/frontend/src/__tests__/playwright.config.ts
+          pnpx playwright test --config=./packages/frontend/playwright.config.ts
         env:
           CI: true
           REACT_APP_PORT: 80
