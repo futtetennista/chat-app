@@ -13,7 +13,7 @@ permissions:
   packages: read
 
 jobs:
-  compile-backend:
+  backend-compile:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -24,7 +24,7 @@ jobs:
       - name: Run type checker
         working-directory: ./packages/backend
         run: pnpm tsc -b -v
-  compile-frontend:
+  frontend-compile:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -37,7 +37,7 @@ jobs:
         run: |
           pnpm compile:before dev
           pnpm tsc -b -v
-  build-frontend:
+  frontend-build:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -68,10 +68,10 @@ jobs:
           tags: ghcr.io/${{ github.repository }}/frontend-app:${{ github.sha }},ghcr.io/${{ github.repository }}/frontend-app:${{ github.ref_name }}
           cache-from: type=registry,ref=ghcr.io/${{ github.repository }}/frontend-app:main
           cache-to: type=inline
-  test-e2e-frontend:
+  frontend-test-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: build-frontend
+    needs: frontend-build
     services:
       frontend-app:
         image: ghcr.io/${{ github.repository }}/frontend-app:${{ github.sha }}
@@ -102,7 +102,7 @@ jobs:
           path: ./playwright-report/
           retention-days: 7
 
-  lint:
+  project-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -124,7 +124,7 @@ jobs:
           add: .
           message: Fix eslint issues
 
-  test-unit:
+  project-test-unit:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -133,9 +133,9 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Run tests
-        run: pnpm -r run test
+        run: pnpm recursive run test
 
-  knip:
+  project-knip:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
