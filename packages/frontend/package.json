@@ -12,7 +12,7 @@
     "build:before": "pnpm run build:ensure-config && pnpm run build:prepare-files && pnpm run precompile:tsconfig prod && pnpm run build:compile",
     "build:compile": "tsc -b -v --force",
     "build:ensure-config": "if [ -z \"$REACT_APP_API_BASE_URL\" ]; then exit 1; fi",
-    "build:prepare-files": "if [[ \"$CI\" =~ /(true|1)/ ]]; then mv ./public/index.prod.html ./public/index.html && rm ./public/index.dev.html; else cp ./public/index.prod.html ./public/index.html; fi && pnpm run symlink-tsconfig prod",
+    "build:prepare-files": "if [ \"$CI\" = 'true' ]; then mv ./public/index.prod.html ./public/index.html && rm ./public/index.dev.html; else cp ./public/index.prod.html ./public/index.html; fi && pnpm run precompile:tsconfig prod",
     "test:unit": "jest",
     "test:e2e": "playwright test",
     "test:rs": "react-scripts test --watchAll=false",
