@@ -2,6 +2,7 @@
   "name": "@chat-app/base",
   "version": "1.0.0",
   "description": "",
+  "packageManager": "pnpm@9.12.2",
   "scripts": {
     "lint": "eslint .",
     "prepare": "husky"

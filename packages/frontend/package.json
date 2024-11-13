@@ -2,7 +2,7 @@
   "name": "@chat-app/frontend",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "pnpm@9.12.2",
   "scripts": {
     "symlink-tsconfig": "f() { ln --force --symbolic ./tsconfig-\"$1\".json ./tsconfig.json; }; f $@",
     "start": "pnpm run symlink-tsconfig dev && REACT_APP_API_BASE_URL=http://localhost DISABLE_ESLINT_PLUGIN=true react-scripts start",
