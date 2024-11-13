@@ -26,5 +26,3 @@ export function modelHandleToModel(handle: string): O.Option<Vendor> {
 }
 
 export const models = ["anthropic", "openai", "perplexity"] as Vendor[];
-
-export const apiPath = "/api/chat";

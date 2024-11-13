@@ -133,14 +133,17 @@ export function useChat({
                 break;
               }
               case "network": {
-                setError(`Network error occurred: ${e.error}`);
+                console.error(e.error);
+                setError("Network error occurred");
                 break;
               }
               case "parse": {
-                setError(`Parsing JSON response failed: ${e.error}`);
+                console.error(e.error);
+                setError("Parsing JSON response failed");
                 break;
               }
               case "decode": {
+                console.error(D.draw(e.error));
                 setError(`Decoding JSON response failed: ${D.draw(e.error)}`);
                 break;
               }
