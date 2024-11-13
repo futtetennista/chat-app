@@ -94,6 +94,7 @@ jobs:
         env:
           REACT_APP_API_BASE_URL: http://localhost
           REACT_APP_PORT: 8080
+          REACT_APP_HOST: frontend-app
       - name: Upload Playwright report
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         if: ${{ ! cancelled() }}
