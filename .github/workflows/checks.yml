@@ -22,7 +22,7 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Run type checker
-        working-directory: backend
+        working-directory: packages/backend
         run: pnpm tsc -b -v
   compile-frontend:
     runs-on: ubuntu-latest
@@ -34,7 +34,7 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Run type checker
-        working-directory: frontend
+        working-directory: packages/frontend
         run: pnpm tsc -b -v tsconfig-dev.json
   build-frontend:
     runs-on: ubuntu-latest
@@ -54,7 +54,7 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Build frontend
-        working-directory: frontend
+        working-directory: packages/frontend
         run: pnpm run build
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v2
@@ -69,8 +69,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5.1.0
         with:
-          context: ./frontend/build
-          file: ./frontend/build/Dockerfile
+          context: ./packages/frontend/build
+          file: ./packages/frontend/build/Dockerfile
           push: true
           tags: localhost:5000/frontend-app:${{ github.sha }}
   test-frontend:
@@ -91,7 +91,7 @@ jobs:
         uses: microsoft/playwright-github-action@v1
       - name: Run Playwright tests
         run: |
-          pnpx playwright test --config=./src/__tests__/playwright.config.ts
+          pnpx playwright test --config=./packages/frontend/src/__tests__/playwright.config.ts
         env:
           CI: true
           REACT_APP_PORT: 80
