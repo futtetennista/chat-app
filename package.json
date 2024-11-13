@@ -6,6 +6,8 @@
   "scripts": {
     "lint": "pnpm run lint:before && eslint .",
     "lint:before": "cd ./packages/frontend && pnpm run compile:before dev && cd -",
+    "knip:before": "cd ./packages/frontend && pnpm run compile:before dev && cd -",
+    "knip": "pnpm run knip:before && knip",
     "prepare": "husky"
   },
   "license": "UNLICENSED",

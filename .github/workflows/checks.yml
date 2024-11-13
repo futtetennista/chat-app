@@ -144,4 +144,4 @@ jobs:
         with:
           install-recursive: false
       - name: Knip code
-        run: pnpm knip
+        run: pnpm run knip
