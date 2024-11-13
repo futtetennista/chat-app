@@ -7,6 +7,7 @@
 pkgs.mkShellNoCC {
   packages = [
     pkgs.git
+    pkgs.gh
     pkgs.nodejs_20
     pkgs.pnpm
     pkgs.shellcheck
