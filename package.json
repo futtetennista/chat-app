@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.12.2",
   "scripts": {
     "lint": "pnpm run lint:before && eslint .",
-    "lint:before": "pushd packages/frontend && pnpm run compile:before dev && popd",
+    "lint:before": "cd ./packages/frontend && pnpm run compile:before dev && cd -",
     "prepare": "husky"
   },
   "license": "UNLICENSED",
