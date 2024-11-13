@@ -1,6 +1,6 @@
 {
   "extends": [
-    "../tsconfig-base.json",
+    "../tsconfig.base.json",
     "@tsconfig/create-react-app/tsconfig.json"
   ],
   "compilerOptions": {
@@ -21,6 +21,7 @@
         "../mocks/src/*"
       ],
     },
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo"
   },
   "include": [
     "src/**/*",

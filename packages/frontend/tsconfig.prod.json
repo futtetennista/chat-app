@@ -1,11 +1,13 @@
 {
   "extends": [
-    "./tsconfig-dev.json",
+    "./tsconfig.dev.json",
   ],
   "exclude": [
     "node_modules",
     "./build",
     "./test",
+    "**/*.dev.ts",
+    "**/*.dev.tsx",
     "**/*.spec.ts",
     "**/*.spec.tsx",
     "**/*.test.ts",
