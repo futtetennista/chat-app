@@ -3,6 +3,7 @@ declare namespace NodeJSLike {
     NODE_ENV: string;
     CI: string | undefined;
     REACT_APP_API_BASE_URL: string | undefined;
+    REACT_APP_API_CHAT_PATH: string | undefined;
     REACT_APP_PORT: string | undefined;
   }
 

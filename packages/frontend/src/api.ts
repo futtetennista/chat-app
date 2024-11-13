@@ -37,7 +37,7 @@ const api: API = {
     return pipe(
       TE.tryCatch(
         () => {
-          return fetch(new URL("/api/chat", config.apiBaseURL), {
+          return fetch(new URL(config.apiChatPath, config.apiBaseURL), {
             body: ChatRequest.encode({ model, message, history }),
             method: "POST",
           });
