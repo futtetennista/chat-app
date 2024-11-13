@@ -13,7 +13,7 @@ import { http, HttpResponse, passthrough, StrictResponse } from "msw";
 import { baseURL } from "../constants";
 
 const handlers = [
-  http.get(new URL("/assets", baseURL).toString(), () => {
+  http.get(new URL("/assets/*", baseURL).toString(), () => {
     return passthrough();
   }),
   http.post(
@@ -27,17 +27,17 @@ const handlers = [
             title: "Empty request body",
             status: "400",
             detail: "",
-          }),
+          })
         ),
         TE.tapIO((requestBody) =>
           C.log(
             `requestBody=${
               requestBody ? JSON.stringify(requestBody) : "undefined"
-            }`,
-          ),
+            }`
+          )
         ),
         TE.flatMap((requestBody) =>
-          TE.fromEither(ChatRequest.decode(requestBody)),
+          TE.fromEither(ChatRequest.decode(requestBody))
         ),
         TE.match(
           (error) => {
@@ -55,7 +55,7 @@ const handlers = [
                         detail: D.draw(error),
                       },
                     },
-                    { status: 400 },
+                    { status: 400 }
                   ),
                 (error) =>
                   HttpResponse.json<ChatResponse>(
@@ -65,22 +65,39 @@ const handlers = [
                     },
                     {
                       status: Number(error.status),
-                    },
-                  ),
-              ),
+                    }
+                  )
+              )
             );
           },
           (data) => {
+            if (data.message === "teapot418") {
+              return HttpResponse.json<ChatResponse>(
+                {
+                  _t: "ko",
+                  error: {
+                    type: "i_am_a_teapot",
+                    title: "I'm a teapot",
+                    status: "418",
+                    detail: "This is a test error",
+                  },
+                },
+                {
+                  status: 418,
+                }
+              );
+            }
+
             return HttpResponse.json<ChatResponse>({
               _t: "ok",
               data: {
                 message: `Your message to ${data.model}: "${data.message}"`,
               },
             });
-          },
-        ),
+          }
+        )
       )();
-    },
+    }
   ),
 ];
 
