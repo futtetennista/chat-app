@@ -1,6 +1,6 @@
 {
   "extends": [
-    "../tsconfig-base.json",
+    "../tsconfig.base.json",
     "@tsconfig/recommended/tsconfig.json"
   ],
   "compilerOptions": {

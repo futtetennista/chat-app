@@ -17,7 +17,8 @@
       "@mocks/*": [
         "../mocks/src/*"
       ],
-    }
+    },
+    "tsBuildInfoFile": "tsconfig.tsbuildinfo"
   },
   "include": [
     "./src/**/*"

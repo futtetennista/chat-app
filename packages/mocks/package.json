@@ -17,6 +17,7 @@
     "typescript": "^5.6.3"
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc -b",
+    "clean": "rm -rf ./build tsconfig.tsbuildinfo"
   }
 }
