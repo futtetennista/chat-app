@@ -84,6 +84,7 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Install Playwright browsers
+        working-directory: ./packages/frontend
         run: pnpm playwright install --with-deps
       - name: Run Playwright tests
         working-directory: ./packages/frontend
