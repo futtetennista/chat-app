@@ -2,5 +2,5 @@
   "entry": ["packages/backend/src/lambda/index.ts"],
   "ignore": ["packages/frontend/src/index.dev.tsx"],
   "ignoreDependencies": ["serve"],
-  "ignoreBinaries": ["compile:before", "f"]
+  "ignoreBinaries": ["compile:before", "f", "recursive"]
 }
