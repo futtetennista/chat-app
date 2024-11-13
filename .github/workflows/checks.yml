@@ -112,7 +112,6 @@ jobs:
       - name: Run linter
         id: run-linter
         run: pnpm run lint --fix
-        shell: bash
       - name: Commit and push fixed files
         uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
         if: steps.run-linter.outcome == 'failure' && github.event_name == 'pull_request'
