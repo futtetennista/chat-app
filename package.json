@@ -4,7 +4,8 @@
   "description": "",
   "packageManager": "pnpm@9.12.2",
   "scripts": {
-    "lint": "eslint .",
+    "lint": "pnpm run lint:before && eslint .",
+    "lint:before": "pushd packages/frontend && pnpm run compile:before dev && popd",
     "prepare": "husky"
   },
   "license": "UNLICENSED",
