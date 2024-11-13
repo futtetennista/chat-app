@@ -16,6 +16,10 @@ inputs:
     description: "Whether to install production dependencies only"
     required: false
     default: "false"
+  install-recursive:
+    description: "Whether to install dependencies recursively"
+    required: false
+    default: "true"
 
 runs:
   using: composite
@@ -38,9 +42,9 @@ runs:
       if: ${{ inputs.prod == 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm recursive install --prod
+      run: pnpm ${{ inputs.install-recursive && 'recursive' || '' }} install
     - name: Install dependencies
       if: ${{ inputs.prod != 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm recursive install
+      run: pnpm ${{ inputs.install-recursive && 'recursive' || '' }} install
