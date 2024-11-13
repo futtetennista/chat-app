@@ -83,10 +83,10 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Install Playwright browsers
-        run: pnpx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
       - name: Run Playwright tests
         working-directory: ./packages/frontend
-        run: pnpx playwright test --config=playwright.config.ts
+        run: pnpm exec playwright test --config=playwright.config.ts
         env:
           REACT_APP_API_BASE_URL: http://localhost
           REACT_APP_PORT: 8080
