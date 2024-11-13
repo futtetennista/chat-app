@@ -77,14 +77,17 @@ jobs:
         image: ghcr.io/${{ github.repository }}/frontend-app:${{ github.sha }}
         ports:
           - 8080:8080
+    container:
+      image: mcr.microsoft.com/playwright:v1.48.2
+      options: --user 1001
     steps:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
-      - name: Install Playwright browsers
-        working-directory: ./packages/frontend
-        run: pnpm playwright install --with-deps
+      # - name: Install Playwright browsers
+      #   working-directory: ./packages/frontend
+      #   run: pnpm playwright install --with-deps
       - name: Run Playwright tests
         working-directory: ./packages/frontend
         run: pnpm playwright test --config=playwright.config.ts
