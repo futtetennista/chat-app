@@ -1,5 +1,5 @@
 import type { Vendor } from "@chat-app/contracts/index";
-import React, { useState } from "react";
+import React from "react";
 
 import { useChat } from "../hooks/useChat";
 
@@ -11,7 +11,7 @@ interface Props {
 export default function Chat({ modelState, chatId }: Props) {
   console.log("Chat component rendered");
 
-  const [input, setInput] = useState("");
+  const [input, setInput] = React.useState("");
   const { messages, isLoading, error, sendMessage } = useChat({
     modelState,
     chatId,

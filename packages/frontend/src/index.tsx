@@ -28,8 +28,8 @@ enableMocking()
     if (!container) {
       throw new Error("Element with id 'root' not found");
     }
-    const root = createRoot(container);
-    root.render(<App />);
+
+    createRoot(container).render(<App />);
   })
   .catch((error: unknown) => {
     console.error("Failed to enable mocking", error);

@@ -1,15 +1,37 @@
 import type { Vendor } from "@chat-app/contracts/index";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import styled from 'styled-components';
 import { v4 } from "uuid";
 
-import Chat from "./components/Chat";
+import Chat from "./components/ChatV2";
+
+const AppContainer = styled.div`
+  display: flex;
+  // flex-direction: column;
+  // overflow: hidden;
+  // height: 100%;
+  // width: 100%;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // width: 100%;
+  // height: 100vh;
+  overflow: hidden;
+
+  justify-content: space-between;
+  padding: 30px;
+  background-color: #f0f0f0;
+`;
 
 const App: React.FC = () => {
   console.log("App component rendered");
-  const [model, setModel] = useState<Vendor>("openai");
-  const [chatId, setChatId] = useState<string>(v4());
+  const [model, setModel] =   React.useState<Vendor>("openai");
+  const [chatId, setChatId] = React.useState<string>(v4());
 
-  useEffect(() => {
+  React.useEffect(() => {
     const storedChatId = sessionStorage.getItem("app.currentChatId");
     if (!storedChatId) {
       console.log("No chatId found in sessionStorage, generating a new one");
@@ -22,27 +44,9 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-screen">
-      {/* <div className="bg-gray-100 p-4"> */}
-      {/* <select
-          value={defaultModel}
-          onChange={(e) => {
-            const model = models.find((name) => name === e.target.value);
-            if (model) {
-              setDefaultModel(model);
-            }
-          }}
-          className="p-2 rounded"
-        >
-          {models.map((model) => (
-            <option key={model} value={model}>
-              {model}
-            </option>
-          ))}
-        </select>
-      </div> */}
-      {chatId && <Chat modelState={[model, setModel]} chatId={chatId} />}
-    </div>
+      <AppContainer>
+        {chatId && <Chat modelState={[model, setModel]} chatId={chatId} />}
+      </AppContainer>
   );
 };
 

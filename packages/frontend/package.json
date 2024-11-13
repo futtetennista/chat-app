@@ -17,6 +17,7 @@
     "react-dom": "^18.3.1",
     "react-icons": "^5.3.0",
     "react-scripts": "5.0.1",
+    "styled-components": "^6.1.13",
     "uuid": "^11.0.2"
   },
   "devDependencies": {
@@ -47,7 +48,7 @@
   },
   "msw": {
     "workerDirectory": [
-      "mocks"
+      "./public"
     ]
   }
 }
