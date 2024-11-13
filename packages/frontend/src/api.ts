@@ -4,7 +4,6 @@ import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 
 import { config } from "./config";
-import { apiPath } from "./constants";
 
 export type APIError =
   | {
@@ -20,18 +19,25 @@ export type APIError =
       error: D.DecodeError;
     };
 
-const api = {
+export interface API {
+  readonly baseURL: string;
+
   sendMessageTE({
     model,
     message,
     history,
-  }: ChatRequest): TE.TaskEither<APIError, ChatResponse> {
-    console.log(`Sending message "${message}" to model "${model}"`);
+  }: ChatRequest): TE.TaskEither<APIError, ChatResponse>;
+}
 
+const api: API = {
+  baseURL: config.apiBaseURL,
+
+  sendMessageTE({ model, message, history }) {
+    console.log(`Sending message "${message}" to model "${model}"`);
     return pipe(
       TE.tryCatch(
         () => {
-          return fetch(new URL(apiPath, config.apiBaseURL), {
+          return fetch(new URL("/api/chat", config.apiBaseURL), {
             body: ChatRequest.encode({ model, message, history }),
             method: "POST",
           });
@@ -57,6 +63,43 @@ const api = {
   },
 };
 
-export type API = typeof api;
+export const api_ = {
+  sendMessageTE({
+    model,
+    message,
+    history,
+  }: ChatRequest): TE.TaskEither<APIError, ChatResponse> {
+    console.log(`Sending message "${message}" to model "${model}"`);
+
+    return pipe(
+      TE.tryCatch(
+        () => {
+          return fetch(new URL("/api/chat", config.apiBaseURL), {
+            body: ChatRequest.encode({ model, message, history }),
+            method: "POST",
+          });
+        },
+        (reason): APIError => ({ _tag: "network", error: reason }),
+      ),
+      TE.flatMap((response) =>
+        TE.tryCatch(
+          () => response.json(),
+          (reason): APIError => ({ _tag: "parse", error: reason }),
+        ),
+      ),
+      TE.flatMap((json) => {
+        return pipe(
+          TE.fromEither(ChatResponse.decode(json)),
+          TE.mapLeft((error): APIError => ({ _tag: "decode", error })),
+          TE.map((data) => {
+            return data;
+          }),
+        );
+      }),
+    );
+  },
+};
+
+export type API_ = typeof api_;
 
 export default api;
