@@ -72,7 +72,7 @@ jobs:
   frontend-test-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # needs: frontend-build
+    needs: frontend-build
     services:
       frontend-app:
         image: ghcr.io/${{ github.repository }}/frontend-app:main
