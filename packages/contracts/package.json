@@ -1,6 +1,7 @@
 {
   "name": "@chat-app/contracts",
   "version": "1.0.0",
+  "packageManager": "pnpm@9.12.2",
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "devDependencies": {
