@@ -1,4 +1,4 @@
-import { Message, Vendor } from "@chat-app/contracts/src/index";
+import { Message, Vendor } from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -49,7 +49,7 @@ export function useChat({
       JSON.stringify({
         ...chatHistory,
         messages,
-      } as ChatHistory)
+      } as ChatHistory),
     );
   }
 
@@ -71,15 +71,15 @@ export function useChat({
                       return E.left<{ _tag: "validation"; error: string }>({
                         _tag: "validation",
                         error: `Model "${modelTarget}" not supported. Valid models are: ${models.join(
-                          ", "
+                          ", ",
                         )}`,
                       });
                     },
-                    (model) => E.right(model)
-                  )
-                )
-            )
-          )
+                    (model) => E.right(model),
+                  ),
+                ),
+            ),
+          ),
         ),
         TE.tap((model) => {
           setModel(model);
@@ -105,7 +105,7 @@ export function useChat({
           return TE.right({ model, message, history });
         }),
         TE.flatMap(({ model, message, history }) =>
-          api.sendMessageTE({ model, message, history })
+          api.sendMessageTE({ model, message, history }),
         ),
         TE.flatMap((response) => {
           if (response._t === "ko") {
@@ -121,7 +121,7 @@ export function useChat({
             e:
               | { _tag: "api"; error: string }
               | { _tag: "validation"; error: string }
-              | APIError
+              | APIError,
           ) => {
             switch (e._tag) {
               case "api": {
@@ -151,7 +151,7 @@ export function useChat({
             }
 
             return TE.left(e);
-          }
+          },
         ),
         TE.tapIO((data) => {
           const assistantMessage: Message = {
@@ -167,19 +167,19 @@ export function useChat({
 
           if (data.stopReason) {
             setError(
-              `⚠️ ${model} did not respond with a complete message (${data.stopReason})`
+              `⚠️ ${model} did not respond with a complete message (${data.stopReason})`,
             );
           } else {
             setError(undefined);
           }
 
           return TE.right(data);
-        })
+        }),
       )().finally(() => {
         setIsLoading(false);
       });
     },
-    [chatHistory, chatId, model, setModel, setError]
+    [chatHistory, chatId, model, setModel, setError],
   );
 
   return {

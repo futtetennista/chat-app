@@ -1,0 +1,7 @@
+pnpm exec lint-staged
+
+if git diff --cached --name-only | grep -E '\.tsx?$' >/dev/null; then
+  pnpm -r run test
+else
+  echo "No staged files have .{ts,tsx} suffix."
+fi

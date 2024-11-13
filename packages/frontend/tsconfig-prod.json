@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "./tsconfig-dev.json",
+  ],
+  "exclude": [
+    "node_modules",
+    "./build",
+    "./test",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+  ],
+  "references": [
+    {
+      "path": "../contracts"
+    }
+  ]
+}

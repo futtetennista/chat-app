@@ -1,6 +1,6 @@
-import type { Vendor } from "@chat-app/contracts/index";
+import type { Vendor } from "@chat-app/contracts";
 import React from "react";
-import styled from 'styled-components';
+import styled from "styled-components";
 import { v4 } from "uuid";
 
 import Chat from "./components/ChatV2";
@@ -28,7 +28,7 @@ const AppContainer = styled.div`
 
 const App: React.FC = () => {
   console.log("App component rendered");
-  const [model, setModel] =   React.useState<Vendor>("openai");
+  const [model, setModel] = React.useState<Vendor>("openai");
   const [chatId, setChatId] = React.useState<string>(v4());
 
   React.useEffect(() => {
@@ -44,9 +44,9 @@ const App: React.FC = () => {
   }, []);
 
   return (
-      <AppContainer>
-        {chatId && <Chat modelState={[model, setModel]} chatId={chatId} />}
-      </AppContainer>
+    <AppContainer>
+      {chatId && <Chat modelState={[model, setModel]} chatId={chatId} />}
+    </AppContainer>
   );
 };
 
