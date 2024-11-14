@@ -72,51 +72,53 @@ jobs:
   frontend-test-e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: frontend-build
+    # needs: frontend-build
+    container: mcr.microsoft.com/playwright:v1.48.2-noble
     services:
       frontend-app:
-        # image: ghcr.io/${{ github.repository }}/frontend-app:main
-        image: ghcr.io/${{ github.repository }}/frontend-app:${{ github.sha }}
+        image: ghcr.io/${{ github.repository }}/frontend-app:main
+        # image: ghcr.io/${{ github.repository }}/frontend-app:${{ github.sha }}
         ports:
           - 8080:8080
     steps:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - uses: ./.github/actions/setup-nodejs-pnpm
-        name: Set up node.js with pnpm
-      - name: Restore Playwright browser binaries
-        id: restore-playwright-browsers-binaries
-        uses: actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a #v4.1.2
-        with:
-          path: |
-            ${{ github.workspace }}/ms-playwright-browsers
-          key: ms-playwright-browsers-cache-${{ runner.os }}
-      - name: Install Playwright without browsers
-        working-directory: ./packages/frontend
-        if: ${{ steps.restore-playwright-browsers-binaries.outputs.cache-hit == 'true' }}
-        run: pnpm playwright install-deps
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
-      - name: Install Playwright with browsers
-        if: ${{ steps.restore-playwright-browsers-binaries.outputs.cache-hit != 'true' }}
-        working-directory: ./packages/frontend
-        run: pnpm playwright install --with-deps
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
-      - name: Cache Playwright browser binaries
-        uses: actions/cache/save@6849a6489940f00c2f30c0fb92c6274307ccb58a #v4.1.2
-        with:
-          key: ${{ steps.restore-playwright-browsers-binaries.outputs.cache-primary-key }}
-          path: |
-            ${{ github.workspace }}/ms-playwright-browsers
+      # - uses: ./.github/actions/setup-nodejs-pnpm
+      #   name: Set up node.js with pnpm
+      # - name: Restore Playwright browser binaries
+      #   id: restore-playwright-browsers-binaries
+      #   uses: actions/cache/restore@6849a6489940f00c2f30c0fb92c6274307ccb58a #v4.1.2
+      #   with:
+      #     path: |
+      #       ${{ github.workspace }}/ms-playwright-browsers
+      #     key: ms-playwright-browsers-cache-${{ runner.os }}
+      # - name: Install Playwright without browsers
+      #   working-directory: ./packages/frontend
+      #   if: ${{ steps.restore-playwright-browsers-binaries.outputs.cache-hit == 'true' }}
+      #   run: pnpm playwright install-deps
+      #   env:
+      #     PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
+      # - name: Install Playwright with browsers
+      #   if: ${{ steps.restore-playwright-browsers-binaries.outputs.cache-hit != 'true' }}
+      #   working-directory: ./packages/frontend
+      #   run: pnpm playwright install --with-deps
+      #   env:
+      #     PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
+      # - name: Cache Playwright browser binaries
+      #   uses: actions/cache/save@6849a6489940f00c2f30c0fb92c6274307ccb58a #v4.1.2
+      #   with:
+      #     key: ${{ steps.restore-playwright-browsers-binaries.outputs.cache-primary-key }}
+      #     path: |
+      #       ${{ github.workspace }}/ms-playwright-browsers
       - name: Run Playwright tests
         working-directory: ./packages/frontend
-        run: pnpm playwright test --config=playwright.config.ts
+        run: playwright test --config=playwright.config.ts
+        # run: pnpm playwright test --config=playwright.config.ts
         env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
+          # PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/ms-playwright-browsers
           REACT_APP_API_BASE_URL: http://localhost
           REACT_APP_PORT: 8080
-          # REACT_APP_HOST: frontend-app
+          REACT_APP_HOST: http://frontend-app
       - name: Upload Playwright report
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         if: ${{ ! cancelled() }}
