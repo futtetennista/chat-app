@@ -6,6 +6,8 @@ declare namespace NodeJSLike {
     REACT_APP_API_CHAT_PATH: string | undefined;
     REACT_APP_HOST: string | undefined;
     REACT_APP_PORT: string | undefined;
+    // Test only
+    PLAYWRIGHT_WEBSERVER_URL: string | undefined;
   }
 
   interface Process {
