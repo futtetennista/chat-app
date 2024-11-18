@@ -40,7 +40,28 @@ export const handler: Handler = async (
     server.listen();
   }
 
-  const service = mkService();
+  const service = mkService({
+    callback: {
+      onError: (error) => {
+        switch (error._t) {
+          case "config": {
+            logger.error(error.error.message);
+            break;
+          }
+          case "decode": {
+            logger.error("JSON config decode error", {
+              details: D.draw(error.error),
+            });
+            break;
+          }
+          default: {
+            const _exhaustiveCheck: never = error;
+            return _exhaustiveCheck;
+          }
+        }
+      },
+    },
+  });
 
   return pipe(
     TE.fromEither(
@@ -59,7 +80,9 @@ export const handler: Handler = async (
               break;
             }
             case "decode": {
-              logger.error("Decode error", D.draw(error.error));
+              logger.error("Body decode error", {
+                details: D.draw(error.error),
+              });
               break;
             }
             case "unknown": {

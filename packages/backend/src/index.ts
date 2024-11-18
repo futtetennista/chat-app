@@ -54,8 +54,22 @@ interface ChatService {
  *
  * @returns {ChatService} The ChatService instance.
  */
-export function mkService(): ChatService {
-  plugins.registerPlugins(config.mkConfig());
+export function mkService({
+  callback,
+}: {
+  callback?: {
+    onError: (
+      error:
+        | { _t: "config"; error: Error }
+        | { _t: "decode"; error: D.DecodeError },
+    ) => void;
+  };
+}): ChatService {
+  plugins.registerPlugins(
+    config.mkConfig({
+      callback,
+    }),
+  );
 
   return {
     chatTE,
