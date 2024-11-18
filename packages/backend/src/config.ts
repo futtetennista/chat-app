@@ -29,7 +29,17 @@ const ConfigD = D.partial({
 
 export type Config = D.TypeOf<typeof ConfigD>;
 
-export function mkConfig(): Config {
+export function mkConfig({
+  callback,
+}: {
+  callback?: {
+    onError: (
+      error:
+        | { _t: "config"; error: Error }
+        | { _t: "decode"; error: D.DecodeError },
+    ) => void;
+  };
+} = {}): Config {
   return pipe(
     E.fromNullable(new Error("CHAT_APP_CONFIG_JSON is not set"))(
       process.env.CHAT_APP_CONFIG_JSON,
@@ -53,11 +63,11 @@ export function mkConfig(): Config {
     E.match(
       (e) => {
         if (e instanceof Error) {
-          logger.error(e.message, e);
+          callback?.onError({ _t: "config", error: e });
           throw e;
         }
 
-        logger.error("Failed to decode JSON configuration", D.draw(e));
+        callback?.onError({ _t: "decode", error: e });
         throw new Error("Failed to decode JSON configuration");
       },
       (config) => config,
