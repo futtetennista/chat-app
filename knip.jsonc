@@ -7,7 +7,7 @@
     "**/build/**",
     "**/*.test.{js,jsx,ts,tsx}"
   ],
-  "ignoreBinaries": ["compile:before", "f", "recursive"],
+  "ignoreBinaries": ["compile:before", "f"],
   "workspaces": {
     "packages/backend": {
       "entry": ["src/lambda/index.ts"]

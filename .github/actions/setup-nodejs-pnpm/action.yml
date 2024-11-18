@@ -42,9 +42,9 @@ runs:
       if: ${{ inputs.prod == 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm ${{ inputs.install-recursive && 'recursive' || '' }} install
+      run: pnpm ${{ inputs.install-recursive && '--recursive' || '' }} install
     - name: Install dependencies
       if: ${{ inputs.prod != 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm ${{ inputs.install-recursive && 'recursive' || '' }} install
+      run: pnpm ${{ inputs.install-recursive && '--recursive' || '' }} install

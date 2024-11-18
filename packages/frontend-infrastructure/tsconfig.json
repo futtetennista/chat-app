@@ -1,0 +1,24 @@
+{
+  "extends": [
+    "../tsconfig.base.json",
+    "@tsconfig/recommended/tsconfig.json"
+  ],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "types": [
+      "jest"
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./node_modules",
+    "./dist"
+  ]
+}
