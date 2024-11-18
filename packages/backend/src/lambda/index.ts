@@ -14,7 +14,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 
-import { mkService } from "@/index";
+import { mkService } from "@/service";
 
 // https://docs.powertools.aws.dev/lambda/typescript/latest/core/logger
 const logger = new Logger();
