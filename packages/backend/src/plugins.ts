@@ -70,6 +70,7 @@ function registerPlugin(
  * Registers plugins based on the provided configuration.
  *
  * @param {Config} config - The configuration object containing API keys and settings for various plugins.
+ * @param {Object} [callback] - Optional callbacks for handling errors and unsupported features.
  *
  * @throws {Error} Throws an error if the required API key or other configuration is missing for any plugin.
  *
@@ -78,7 +79,13 @@ function registerPlugin(
  * - Perplexity: Requires `config.perplexity.apiKey` and `config.perplexity.baseURL`.
  * - Anthropic: Requires `config.anthropic.apiKey`. Logs a warning if streaming is enabled as it is not supported.
  */
-export function registerPlugins(config: Config) {
+export function registerPlugins(
+  config: Config,
+  callback?: {
+    onError: (error: { _t: "apiKey" | "baseURL"; error: Error }) => void;
+    onUnsupported: (message: string) => void;
+  },
+) {
   if (config.openai) {
     registerPlugin(
       "openai",
@@ -86,11 +93,11 @@ export function registerPlugins(config: Config) {
         const apiKey = config.openai.apiKey;
         if (!apiKey) {
           const error = new Error("Missing configuration: openai.apiKey");
-          logger.error("Missing configuration error", error);
+          callback?.onError({ _t: "apiKey", error });
           throw error;
         }
         if (config.openai.stream) {
-          logger.warn("Streaming not supported for OpenAI API");
+          callback?.onUnsupported("Streaming not supported for OpenAI API");
         }
         return {
           client: new OpenAI({ apiKey }),
@@ -108,12 +115,12 @@ export function registerPlugins(config: Config) {
         const apiKey = config.perplexity.apiKey;
         if (!apiKey) {
           const error = new Error("Missing configuration: perplexity.apiKey");
-          logger.error("Missing configuration error", error);
+          callback?.onError({ _t: "apiKey", error });
           throw error;
         }
         if (!config.perplexity.baseURL) {
           const error = new Error("Missing configuration: perplexity.baseURL");
-          logger.error("Missing configuration error", error);
+          callback?.onError({ _t: "baseURL", error });
           throw error;
         }
 
@@ -133,11 +140,11 @@ export function registerPlugins(config: Config) {
         const apiKey = config.anthropic.apiKey;
         if (!apiKey) {
           const error = new Error("Missing configuration: anthropic.apiKey");
-          logger.error("Missing configuration error", error);
+          callback?.onError({ _t: "apiKey", error });
           throw error;
         }
         if (config.anthropic.stream) {
-          logger.warn("Streaming not supported for Anthropic API");
+          callback?.onUnsupported("Streaming not supported for Anthropic API");
         }
 
         return {

@@ -42,8 +42,19 @@ export const handler: Handler = async (
 
   const service = mkService({
     callback: {
+      onUnsupported(message) {
+        logger.warn(message);
+      },
       onError: (error) => {
         switch (error._t) {
+          case "apiKey": {
+            logger.error(error.error.message);
+            break;
+          }
+          case "baseURL": {
+            logger.error(error.error.message);
+            break;
+          }
           case "config": {
             logger.error(error.error.message);
             break;
