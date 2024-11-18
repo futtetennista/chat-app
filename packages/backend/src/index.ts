@@ -61,8 +61,10 @@ export function mkService({
     onError: (
       error:
         | { _t: "config"; error: Error }
-        | { _t: "decode"; error: D.DecodeError },
+        | { _t: "decode"; error: D.DecodeError }
+        | { _t: "apiKey" | "baseURL"; error: Error },
     ) => void;
+    onUnsupported: (message: string) => void;
   };
 }): ChatService {
   plugins.registerPlugins(
