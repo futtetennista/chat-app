@@ -9,7 +9,7 @@ const perplexityHandles = ["p", "ppx"];
 //   ...openaiHandles,
 //   ...perplexityHandles,
 // ];
-export function modelHandleToModel(handle: string): O.Option<Vendor> {
+export function modelHandleToVendor(handle: string): O.Option<Vendor> {
   if (anthropicHandles.includes(handle)) {
     return O.some("anthropic");
   }

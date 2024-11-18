@@ -23,7 +23,7 @@ export interface API {
   readonly baseURL: string;
 
   sendMessageTE({
-    model,
+    vendor,
     message,
     history,
   }: ChatRequest): TE.TaskEither<APIError, ChatResponse>;
@@ -32,13 +32,13 @@ export interface API {
 const api: API = {
   baseURL: config.api.baseURL,
 
-  sendMessageTE({ model, message, history }) {
-    console.log(`Sending message "${message}" to model "${model}"`);
+  sendMessageTE({ vendor, message, history }) {
+    console.log(`Sending message "${message}" to model "${vendor}"`);
     return pipe(
       TE.tryCatch(
         () => {
           return fetch(new URL(config.api.chatPath, this.baseURL), {
-            body: ChatRequest.encode({ model, message, history }),
+            body: ChatRequest.encode({ vendor, message, history }),
             method: "POST",
           });
         },

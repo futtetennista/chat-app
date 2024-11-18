@@ -7,7 +7,7 @@ import * as D from "io-ts/Decoder";
 import { useCallback, useEffect, useState } from "react";
 
 import api, { APIError } from "../api";
-import { modelHandleToModel, models } from "../constants";
+import { modelHandleToVendor, models } from "../constants";
 
 interface ChatHistory {
   messages: Message[];
@@ -60,12 +60,13 @@ export function useChat({
       await pipe(
         TE.fromEither(
           pipe(
+            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             O.fromNullable(/@(?<model>\w+)/.exec(content)?.groups?.model),
             O.match(
               () => E.right(model),
               (modelTarget) =>
                 pipe(
-                  modelHandleToModel(modelTarget),
+                  modelHandleToVendor(modelTarget),
                   O.match(
                     () => {
                       return E.left<{ _tag: "validation"; error: string }>({
@@ -105,7 +106,7 @@ export function useChat({
           return TE.right({ model, message, history });
         }),
         TE.flatMap(({ model, message, history }) =>
-          api.sendMessageTE({ model, message, history }),
+          api.sendMessageTE({ vendor: model, message, history }),
         ),
         TE.flatMap((response) => {
           if (response._t === "ko") {
