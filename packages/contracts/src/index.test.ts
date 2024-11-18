@@ -6,7 +6,7 @@ describe("ChatRequest", () => {
       const chatRequest: ChatRequest = {
         message: "Hello, world!",
         history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-        model: "openai",
+        vendor: "openai",
       };
 
       const encoded = ChatRequest.encode(chatRequest);
@@ -14,7 +14,7 @@ describe("ChatRequest", () => {
         JSON.stringify({
           message: "Hello, world!",
           history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-          model: "openai",
+          vendor: "openai",
         }),
       );
     });
@@ -25,7 +25,7 @@ describe("ChatRequest", () => {
       const o = {
         message: "Hello, world!",
         history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-        model: "openai",
+        vendor: "openai",
       };
 
       const decoded = ChatRequest.decode(o);
@@ -34,7 +34,7 @@ describe("ChatRequest", () => {
         expect(decoded.right).toEqual({
           message: "Hello, world!",
           history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-          model: "openai",
+          vendor: "openai",
         });
       }
     });
@@ -45,7 +45,7 @@ describe("ChatRequest", () => {
         history: [
           { role: "user", content: "Hi", timestamp: "invalid-timestamp" },
         ],
-        model: "openai",
+        vendor: "openai",
       };
 
       const decoded = ChatRequest.decode(o);

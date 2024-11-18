@@ -70,7 +70,7 @@ function chatTE(
   RFC9457ErrorResponse,
   { message: string; stopReason?: string }
 > {
-  switch (data.model) {
+  switch (data.vendor) {
     case "anthropic": {
       return chatAnthropic(data, callback);
     }
@@ -81,7 +81,7 @@ function chatTE(
       return chatPerplexity(data, callback);
     }
     default: {
-      const _exhaustiveCheck = data.model;
+      const _exhaustiveCheck = data.vendor;
       return _exhaustiveCheck;
     }
   }
@@ -354,10 +354,10 @@ function validateBody(
         title: "Invalid request format",
       });
     }
-    if (!supportedModels.includes(validationResult.right.model)) {
+    if (!supportedModels.includes(validationResult.right.vendor)) {
       callback?.onInvalid({
         _t: "unsupported_vendor",
-        message: `Unsupported vendor: ${validationResult.right.model}`,
+        message: `Unsupported vendor: ${validationResult.right.vendor}`,
       });
       return E.left({
         type: "tag:@chat-app:unsupported_model",

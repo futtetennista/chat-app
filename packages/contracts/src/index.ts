@@ -28,7 +28,7 @@ export const Message: C.Codec<unknown, string, Message> = C.make(
 const ChatRequestD = D.struct({
   message: D.string,
   history: D.array(Message),
-  model: D.union(
+  vendor: D.union(
     D.literal("openai"),
     D.literal("perplexity"),
     D.literal("anthropic"),

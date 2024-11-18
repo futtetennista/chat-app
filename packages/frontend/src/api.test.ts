@@ -32,7 +32,7 @@ describe("sendMessage", () => {
     ];
 
     const response = await api.sendMessageTE({
-      model: "openai",
+      vendor: "openai",
       message: "Hello, world!",
       history,
     })();
@@ -47,14 +47,14 @@ describe("sendMessage", () => {
     //   }),
     // );
 
-    const model: Vendor = "openai";
+    const vendor: Vendor = "openai";
     const message = "Hello, world!";
     const history: Message[] = [
       { role: "user", content: "Hi", timestamp: Date.now() },
     ];
 
     await expect(
-      api.sendMessageTE({ model, message, history })(),
+      api.sendMessageTE({ vendor, message, history })(),
     ).rejects.toThrow();
   });
 });
