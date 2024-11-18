@@ -34,6 +34,7 @@ export const handler: Handler = async (
     process.env.NODE_ENV !== "production" &&
     process.env.USE_MOCKS === "true"
   ) {
+    // https://www.webdevtutor.net/blog/typescript-dynamic-import-javascript
     const { setupServer } = await import("msw/node");
     const { internalHandlers } = await import("@chat-app/mocks");
     const server = setupServer(...internalHandlers);

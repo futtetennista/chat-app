@@ -5,15 +5,16 @@
 }:
 
 pkgs.mkShellNoCC {
-  packages = [
-    pkgs.git
-    pkgs.gh
-    pkgs.nodejs_20
-    pkgs.pnpm
-    pkgs.shellcheck
-    (pkgs.aws-sam-cli.overrideAttrs (oldAttrs: {
+  packages = with pkgs; [
+    git
+    gh
+    nodejs_20
+    pnpm
+    shellcheck
+    (aws-sam-cli.overrideAttrs (oldAttrs: {
       doInstallCheck = false;
     }))
-    # pkgs.husky
+    terraform
+    nodePackages.cdktf-cli
   ];
 }

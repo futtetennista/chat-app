@@ -1,0 +1,14 @@
+{
+  "language": "typescript",
+  "app": "pnpm ts-node --swc main.ts",
+  "projectId": "@chat-app/frontend-infrastructure",
+  "sendCrashReports": false,
+  "terraformProviders": [
+    "aws@~>5.0"
+  ],
+  "terraformModules": [],
+  "context": {
+    "excludeStackIdFromLogicalIds": "true",
+    "allowSepCharsInLogicalIds": "true"
+  }
+}
