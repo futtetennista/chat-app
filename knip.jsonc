@@ -1,6 +1,22 @@
 {
-  "entry": ["packages/backend/src/lambda/index.ts"],
-  "ignore": ["packages/frontend/src/index.dev.tsx"],
-  "ignoreDependencies": ["serve"],
-  "ignoreBinaries": ["compile:before", "f", "recursive"]
+  "$schema": "https://unpkg.com/knip/schema.json",
+  "project": "**/*.{js,jsx,ts,tsx}",
+  "ignore": [
+    "packages/frontend/src/index.dev.tsx",
+    "**/dist/**",
+    "**/build/**",
+    "**/*.test.{js,jsx,ts,tsx}"
+  ],
+  "ignoreBinaries": ["compile:before", "f", "recursive"],
+  "workspaces": {
+    "packages/backend": {
+      "entry": ["src/lambda/index.ts"]
+    },
+    "packages/frontend": {
+      "entry": ["src/index.tsx"]
+    },
+    "packages/*": {
+      "entry": ["src/index.ts"]
+    }
+  }
 }
