@@ -22,7 +22,7 @@ const MessageE: E.Encoder<string, Message> = {
 
 export const Message: C.Codec<unknown, string, Message> = C.make(
   MessageD,
-  MessageE
+  MessageE,
 );
 
 const ChatRequestD = D.struct({
@@ -31,7 +31,7 @@ const ChatRequestD = D.struct({
   model: D.union(
     D.literal("openai"),
     D.literal("perplexity"),
-    D.literal("anthropic")
+    D.literal("anthropic"),
   ),
 });
 
@@ -43,14 +43,14 @@ const ChatRequestE: E.Encoder<string, ChatRequest> = {
 
 export const ChatRequest: C.Codec<unknown, string, ChatRequest> = C.make(
   ChatRequestD,
-  ChatRequestE
+  ChatRequestE,
 );
 
 const SuccessResponseD = pipe(
   D.struct({
     message: D.string,
   }),
-  D.intersect(D.partial({ stopReason: D.string }))
+  D.intersect(D.partial({ stopReason: D.string })),
 );
 
 export type SuccessResponse = D.TypeOf<typeof SuccessResponseD>;
@@ -72,8 +72,8 @@ const RFC9457ErrorResponseD = pipe(
   D.intersect(
     D.partial({
       instance: D.string,
-    })
-  )
+    }),
+  ),
 );
 
 export type RFC9457ErrorResponse = D.TypeOf<typeof RFC9457ErrorResponseD>;
@@ -108,13 +108,13 @@ const ChatResponseE: E.Encoder<string, ChatResponseT> = {
 
 export const ChatResponse: C.Codec<unknown, string, ChatResponse> = C.make(
   ChatResponseD,
-  ChatResponseE
+  ChatResponseE,
 );
 
 export const VendorD = D.union(
   D.literal("openai"),
   D.literal("perplexity"),
-  D.literal("anthropic")
+  D.literal("anthropic"),
 );
 
 export type Vendor = D.TypeOf<typeof VendorD>;
@@ -125,5 +125,5 @@ const VendorE: E.Encoder<string, Vendor> = {
 
 export const Vendor: C.Codec<unknown, string, Vendor> = C.make(
   VendorD,
-  VendorE
+  VendorE,
 );
