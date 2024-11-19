@@ -2,7 +2,7 @@ import type { Message, Vendor } from "@chat-app/contracts";
 import { baseURL, internalHandlers } from "@chat-app/mocks";
 import { setupServer } from "msw/node";
 
-import type { API } from "./api";
+import { API } from "./api";
 
 const server = setupServer(...internalHandlers);
 

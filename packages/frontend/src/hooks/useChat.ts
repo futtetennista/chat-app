@@ -60,7 +60,6 @@ export function useChat({
       await pipe(
         TE.fromEither(
           pipe(
-            // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             O.fromNullable(/@(?<model>\w+)/.exec(content)?.groups?.model),
             O.match(
               () => E.right(model),

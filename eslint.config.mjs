@@ -79,8 +79,10 @@ export default tseslint.config(
       "**/*.spec.{js,jsx,ts,tsx}",
       "__tests__/**/*",
     ],
-    globals: {
-      ...globals.jest,
+    languageOptions: {
+      globals: {
+        ...globals.jest,
+      },
     },
   },
 );

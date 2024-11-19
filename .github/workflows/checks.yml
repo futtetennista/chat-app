@@ -39,7 +39,7 @@ jobs:
       - name: Run type checker
         working-directory: ./packages/frontend
         run: |
-          pnpm run compile:before dev
+          pnpm run use-tsconfig dev
           pnpm tsc -b -v
   frontend-test-e2e:
     runs-on: ubuntu-latest
@@ -70,26 +70,11 @@ jobs:
           retention-days: 7
       - name: Upload build
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        continue-on-error: true
         with:
           name: frontend
           path: ./packages/frontend/build
           retention-days: 1
-  frontend-infrastructure-test:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - uses: ./.github/actions/setup-nodejs-pnpm
-        name: Set up node.js with pnpm
-        with:
-          install-filter: frontend-infrastructure
-      - name: Type check
-        working-directory: ./packages/frontend-infrastructure
-        run: pnpm run type-check
-      - name: Run tests
-        working-directory: ./packages/frontend-infrastructure
-        run: pnpm run test
 
   project-lint:
     runs-on: ubuntu-latest

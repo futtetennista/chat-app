@@ -9,7 +9,6 @@ module.exports = {
       : undefined,
   resetMocks: true,
   transform: {
-    // "^.+\\.(t|j)sx?$": "ts-jest",
     "^.+\\.(t|j)sx?$": "@swc/jest",
   },
 };
