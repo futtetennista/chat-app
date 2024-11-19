@@ -1,3 +1,4 @@
+import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
@@ -6,7 +7,6 @@ import { Testing } from "cdktf";
 
 import type { Config } from "@/config";
 import { Frontend } from "@/stacks/frontend";
-import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
 
 describe("Frontend", () => {
   const config: Config = {
@@ -24,6 +24,7 @@ describe("Frontend", () => {
     const stack = new Frontend(app, "frontend", config);
     const result = Testing.synth(stack);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveProvider(AwsProvider);
   });
 
@@ -32,9 +33,11 @@ describe("Frontend", () => {
     const stack = new Frontend(app, "frontend", config);
     const result = Testing.synth(stack);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3Bucket, {
       bucket: "some-bucket-name",
     });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3BucketWebsiteConfiguration, {
       index_document: { suffix: "index.html" },
       error_document: { key: "index.html" },
@@ -47,6 +50,7 @@ describe("Frontend", () => {
     const stack = new Frontend(app, "frontend", config);
     const result = Testing.synth(stack);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(CloudfrontDistribution, {
       price_class: "PriceClass_100",
       // origin: expect.arrayContaining([

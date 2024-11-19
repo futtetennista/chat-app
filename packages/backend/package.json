@@ -12,6 +12,7 @@
     "@anthropic-ai/sdk": "^0.32.1",
     "@aws-lambda-powertools/logger": "^2.10.0",
     "@chat-app/contracts": "workspace:*",
+    "@swc/jest": "^0.2.37",
     "aws-lambda": "^1.0.7",
     "openai": "^4.71.1"
   },

@@ -5,9 +5,11 @@
     "packages/frontend/src/index.dev.tsx",
     "**/dist/**",
     "**/build/**",
-    "**/*.test.{js,jsx,ts,tsx}"
+    "**/*.test.{js,jsx,ts,tsx}",
+    "packages/frontend-infrastructure/src/main.ts"
   ],
-  "ignoreBinaries": ["compile:before", "f"],
+  "ignoreBinaries": ["build", "cdktf-cli", "f"],
+  "ignoreDependencies": ["husky", "ts-node"],
   "workspaces": {
     "packages/backend": {
       "entry": ["src/lambda/index.ts"]

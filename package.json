@@ -5,8 +5,8 @@
   "packageManager": "pnpm@9.12.2",
   "scripts": {
     "lint": "pnpm run lint:before && eslint .",
-    "lint:before": "pnpm --filter frontend run compile:before dev",
-    "knip:before": "pnpm --fiter frontend run compile:before dev",
+    "lint:before": "pnpm --filter frontend run use-tsconfig dev",
+    "knip:before": "pnpm --filter frontend run use-tsconfig dev",
     "knip": "pnpm run knip:before && knip"
   },
   "license": "UNLICENSED",
