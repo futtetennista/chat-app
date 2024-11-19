@@ -1,0 +1,26 @@
+changed_files=$(git diff HEAD origin/main --name-only | grep -E '\.tsx?$' | sort -u)
+if [ -z "$changed_packages" ]; then
+  echo "Changed TS files from HEAD to origin/main: none"
+else
+  echo "Changed TS files from HEAD to origin/main: ${changed_files[*]}"
+fi
+
+if [ -n "$changed_files" ]; then
+  echo "Running ESLint on changed files..."
+  pnpm exec eslint $changed_files
+else
+  echo "No changed files to lint."
+fi
+
+changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
+if [ -z "$changed_packages" ]; then
+  echo "Changed packages: none"
+else
+  echo "Changed packages: ${changed_packages[*]}"
+fi
+for package in $changed_packages; do
+  if [ -d "packages/$package" ]; then
+    echo "Running tests for package: $package"
+    pnpm --filter "$package" run test:unit
+  fi
+done
