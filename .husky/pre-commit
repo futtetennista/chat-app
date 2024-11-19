@@ -2,16 +2,14 @@ pnpm exec lint-staged
 
 changed_packages=$(git diff --cached --name-only | grep -E '\.tsx?$' | cut -d'/' -f2 | sort -u)
 if [ -z "$changed_packages" ]; then
-  echo "Changed packages: none"
+  echo "[pre-commit] Changed packages: none"
 else
-  echo "Changed packages: ${changed_packages[*]}"
+  echo "[pre-commit] Changed packages: ${changed_packages[*]}"
 fi
 
 for package in $changed_packages; do
   if [ -d "packages/$package" ]; then
-    echo "Running tests for package: $package"
+    echo "[pre-commit] Running tests for package: $package"
     pnpm --filter "$package" run test:unit
-  else
-    echo "No staged files for package '$package' have .{ts,tsx} suffix."
   fi
 done
