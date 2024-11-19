@@ -19,6 +19,7 @@
     "@chat-app/mocks": "workspace:*",
     "@tsconfig/node20": "^20.1.4",
     "@types/aws-lambda": "^8.10.145",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.9.0",
     "fp-ts": "^2.16.9",
     "io-ts": "^2.2.21",

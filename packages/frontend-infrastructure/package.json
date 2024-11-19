@@ -17,6 +17,7 @@
     "@swc/core": "^1.9.2",
     "@swc/jest": "^0.2.37",
     "@tsconfig/recommended": "^1.0.8",
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.9.0",
     "cdktf": "^0.20.10",
     "cdktf-cli": "^0.20.10",
