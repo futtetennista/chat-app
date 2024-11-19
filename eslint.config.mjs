@@ -2,6 +2,7 @@ import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import reactPlugin from "eslint-plugin-react";
+import globals from "globals";
 
 export default tseslint.config(
   eslint.configs.recommended,
@@ -78,8 +79,8 @@ export default tseslint.config(
       "**/*.spec.{js,jsx,ts,tsx}",
       "__tests__/**/*",
     ],
-    env: {
-      jest: true,
+    globals: {
+      ...globals.jest,
     },
   },
 );
