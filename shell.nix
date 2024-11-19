@@ -17,4 +17,9 @@ pkgs.mkShellNoCC {
     terraform
     nodePackages.cdktf-cli
   ];
+
+  shellHook = ''
+    # Install git hooks
+    pnpm husky
+  '';
 }
