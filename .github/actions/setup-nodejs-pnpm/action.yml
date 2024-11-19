@@ -53,9 +53,9 @@ runs:
       if: ${{ inputs.prod == 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm ${{ inputs.install-recursive && '--recursive' || '' }} ${{ inputs.install-filter && '--filter inputs.install-filter' || '' }} install --prod
+      run: pnpm ${{ inputs.install-recursive && '--recursive' || '' }} ${{ inputs.install-filter && format('--fail-if-no-match --filter {0}...', inputs.install-filter) || '' }} install --prod
     - name: Install dependencies
       if: ${{ inputs.prod != 'true' }}
       working-directory: ${{ inputs.working-dir }}
       shell: bash
-      run: pnpm ${{ inputs.install-recursive && '--recursive' || '' }} ${{ inputs.install-filter && '--filter inputs.install-filter' || '' }} install
+      run: pnpm ${{ inputs.install-recursive && '--recursive' || '' }} ${{ inputs.install-filter && format('--fail-if-no-match --filter {0}...', inputs.install-filter) || '' }} install
