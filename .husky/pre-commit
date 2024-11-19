@@ -13,3 +13,18 @@ for package in $changed_packages; do
     pnpm --filter "$package" run test:unit
   fi
 done
+
+git diff --cached --name-only | while read file; do
+  set -x
+  if [ -f "$file" ]; then
+    # Ensure files have ending newline
+    if [ "$(tail -c1 "$file")" != "" ]; then
+      echo "[pre-commit] Adding newline to $file"
+      echo "" >> "$file"
+    fi
+
+    # Remove trailing whitespace and add back to staging
+    sed -i 's/\s*$//' "$file"
+    git add "$file"
+  fi
+done
