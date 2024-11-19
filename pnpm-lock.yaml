@@ -69,6 +69,9 @@ importers:
       '@types/aws-lambda':
         specifier: ^8.10.145
         version: 8.10.145
+      '@types/jest':
+        specifier: ^29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: ^22.9.0
         version: 22.9.0
@@ -206,6 +209,9 @@ importers:
       '@tsconfig/recommended':
         specifier: ^1.0.8
         version: 1.0.8
+      '@types/jest':
+        specifier: ^29.5.14
+        version: 29.5.14
       '@types/node':
         specifier: ^22.9.0
         version: 22.9.0
