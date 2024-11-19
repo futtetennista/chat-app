@@ -4,6 +4,10 @@
 module.exports = {
   clearMocks: true,
   setupFilesAfterEnv: ["<rootDir>/jest.setup-after-env.js"],
+  reporters:
+    process.env["CI"] === "true"
+      ? [["github-actions", { silent: false }], "summary"]
+      : undefined,
   testEnvironment: "node",
   transform: {
     "^.+\\.tsx?$": [
