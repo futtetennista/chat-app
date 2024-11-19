@@ -1,8 +1,11 @@
 /* eslint-disable */
 
+const { resetMocks } = require("../contracts/jest.config");
+
 /** @type {import('jest').Config} */
 module.exports = {
   clearMocks: true,
+  resetMocks: true,
   setupFilesAfterEnv: ["<rootDir>/jest.setup-after-env.js"],
   reporters:
     process.env["CI"] === "true"
