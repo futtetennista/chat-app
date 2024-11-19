@@ -7,7 +7,7 @@ fi
 
 if [ -n "$changed_files" ]; then
   echo "Running ESLint on changed files..."
-  pnpm exec eslint $changed_files
+  pnpm run lint $changed_files
 else
   echo "No changed files to lint."
 fi

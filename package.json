@@ -5,10 +5,9 @@
   "packageManager": "pnpm@9.12.2",
   "scripts": {
     "lint": "pnpm run lint:before && eslint .",
-    "lint:before": "cd ./packages/frontend && pnpm run compile:before dev && cd -",
-    "knip:before": "cd ./packages/frontend && pnpm run compile:before dev && cd -",
-    "knip": "pnpm run knip:before && knip",
-    "prepare": "husky"
+    "lint:before": "pnpm --filter frontend run compile:before dev",
+    "knip:before": "pnpm --fiter frontend run compile:before dev",
+    "knip": "pnpm run knip:before && knip"
   },
   "license": "UNLICENSED",
   "workspaces": [
@@ -20,6 +19,7 @@
     "eslint": "^9.14.0",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^15.12.0",
     "husky": "^9.1.6",
     "knip": "^5.36.3",
     "lint-staged": "^15.2.10",
