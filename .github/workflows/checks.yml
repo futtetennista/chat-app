@@ -20,6 +20,8 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
+        with:
+          install-filter: backend
       - name: Run type checker
         working-directory: ./packages/backend
         run: pnpm tsc -b -v
@@ -32,10 +34,12 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
+        with:
+          install-filter: frontend
       - name: Run type checker
         working-directory: ./packages/frontend
         run: |
-          pnpm compile:before dev
+          pnpm run compile:before dev
           pnpm tsc -b -v
   frontend-test-e2e:
     runs-on: ubuntu-latest
@@ -70,6 +74,22 @@ jobs:
           name: frontend
           path: ./packages/frontend/build
           retention-days: 1
+  frontend-infrastructure-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+        with:
+          install-filter: frontend-infrastructure
+      - name: Type check
+        working-directory: ./packages/frontend-infrastructure
+        run: pnpm run type-check
+      - name: Run tests
+        working-directory: ./packages/frontend-infrastructure
+        run: pnpm run test
 
   project-lint:
     runs-on: ubuntu-latest
@@ -82,7 +102,7 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
         with:
-          install-recursive: false
+          install-recursive: true
       - name: Run linter
         id: run-linter
         run: pnpm run lint --fix
@@ -101,8 +121,10 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
+        with:
+          install-recursive: true
       - name: Run tests
-        run: pnpm recursive run test
+        run: pnpm --recursive run test:unit
 
   project-knip:
     runs-on: ubuntu-latest
@@ -114,6 +136,6 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
         with:
-          install-recursive: false
+          install-recursive: true
       - name: Knip code
         run: pnpm run knip
