@@ -16,6 +16,7 @@
   "scripts": {
     "build": "tsc -b",
     "clean": "rm -rf ./build tsconfig.tsbuildinfo",
-    "test": "jest"
+    "test": "jest",
+    "test:unit": "jest"
   }
 }

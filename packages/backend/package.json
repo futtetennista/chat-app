@@ -4,6 +4,7 @@
   "packageManager": "pnpm@9.12.2",
   "scripts": {
     "test": "jest --passWithNoTests",
+    "test:unit": "jest --passWithNoTests",
     "type-check": "tsc --noEmit"
   },
   "license": "UNLICENSED",

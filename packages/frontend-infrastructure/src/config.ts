@@ -11,4 +11,5 @@ export const Config = D.struct({
   secretKey: D.string,
 });
 
+// undo
 export type Config = D.TypeOf<typeof Config>;
