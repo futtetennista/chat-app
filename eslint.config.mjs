@@ -73,17 +73,13 @@ export default tseslint.config(
     settings: { react: { version: "18" } },
   },
   {
-    overrides: [
-      {
-        files: [
-          "**/*.test.{js,jsx,ts,tsx}",
-          "**/*.spec.{js,jsx,ts,tsx}",
-          "__tests__/**/*",
-        ],
-        env: {
-          jest: true,
-        },
-      },
+    files: [
+      "**/*.test.{js,jsx,ts,tsx}",
+      "**/*.spec.{js,jsx,ts,tsx}",
+      "__tests__/**/*",
     ],
+    env: {
+      jest: true,
+    },
   },
 );

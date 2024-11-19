@@ -1,6 +1,8 @@
+/* eslint-disable */
+
 /** @type {import('jest').Config} */
-// eslint-disable-next-line no-undef
 module.exports = {
+  clearMocks: true,
   setupFilesAfterEnv: ["<rootDir>/jest.setup-after-env.js"],
   testEnvironment: "node",
   transform: {
