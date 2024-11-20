@@ -34,13 +34,13 @@ describe("Frontend", () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3Bucket, {
-      bucket: "some-bucket-name",
+      bucket: config.frontend.bucket,
     });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3BucketWebsiteConfiguration, {
       index_document: { suffix: "index.html" },
       error_document: { key: "index.html" },
-      bucket: expect.stringContaining("s3b.id"),
+      bucket: expect.stringContaining(`${Frontend.s3BucketId}.id`),
     });
   });
 
