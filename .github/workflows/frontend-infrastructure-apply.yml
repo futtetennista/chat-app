@@ -1,0 +1,54 @@
+name: frontend-infrastructure-apply
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: read
+
+jobs:
+  terraform-apply:
+    name: "Terraform CDK Deploy"
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+        with:
+          install-filter: frontend-infrastructure
+      - name: Test stack
+        working-directory: ./packages/frontend-infrastructure
+        run: pnpm run test:unit
+      - name: Make config
+        working-directory: ./packages/frontend-infrastructure/scripts
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+          AWS_S3_BUCKET_NAME: ${{ vars.AWS_S3_BUCKET_NAME }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          echo "FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(mk_config.sh)" >>"$GITHUB_ENV"
+      - name: Get CDKTF version
+        id: get-cdktf-version
+        run: |
+          version=$(pnpm --filter 'frontend-infrastructure' list cdktf | grep cdktf | cut -d ' ' -f 2)
+          echo "cdktf-version=$version" >>"$GITHUB_OUTPUT"
+      - name: Generate module and provider bindings
+        working-directory: ./packages/frontend-infrastructure
+        run: pnpx cdktf-cli@${{ steps.get-cdktf-version.outputs.cdktf-version }} get
+      - name: Run Terraform CDK
+        uses: hashicorp/terraform-cdk-action@d0ac1a0d6ea11736459c4e06ccf55a5fda705f77 # v5.0.1
+        env:
+          FRONTEND_INFRASTRUCTURE_JSON_CONFIG: ${{ env.FRONTEND_INFRASTRUCTURE_JSON_CONFIG }}
+        with:
+          cdktfVersion: ${{ steps.get-cdktf-version.outputs.cdktf-version }}
+          terraformVersion: 1.9.8
+          mode: auto-approve-apply
+          stackName: frontend
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
