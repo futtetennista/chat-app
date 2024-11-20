@@ -1,25 +1,39 @@
-changed_files=$(git diff HEAD origin/main --name-only | grep -E '\.tsx?$' | sort -u)
-if [ -z "$changed_packages" ]; then
-  echo "[pre-push] Changed TS files from HEAD to origin/main: none"
-else
-  echo "[pre-push] Changed TS files from HEAD to origin/main: ${changed_files[*]}"
+remote_branch=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+
+if [ -z "$remote_branch" ]; then
+  echo "[pre-push] No remote branch found, skipping."
+  exit 0
 fi
 
-if [ -n "$changed_files" ]; then
-  echo "[pre-push] Running ESLint on changed files..."
-  pnpm run lint $changed_files
-  echo "[pre-push] Done linting changed files..."
+echo "[pre-push] Knip will start."
+pnpm run knip
+echo "[pre-push] Knip did end."
+
+changed_files=$(git diff HEAD "$remote_branch" --name-only | grep -E '\.tsx?$' | sort -u)
+if [ -z "$changed_files" ]; then
+  echo "[pre-push] Changed TS files from HEAD to '$remote_branch': none"
+  echo "[pre-push] Done."
+  exit 0
 fi
+
+echo "[pre-push] Changed TS files from HEAD to '$remote_branch': ${changed_files[*]}"
+echo "[pre-push] ESLint will start."
+pnpm run lint $changed_files
+echo "[pre-push] ESLint did end."
 
 changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
 if [ -z "$changed_packages" ]; then
   echo "[pre-push] Changed packages: none"
-else
-  echo "[pre-push] Changed packages: ${changed_packages[*]}"
+  echo "[pre-push] Done."
+  exit 0
 fi
+
+echo "[pre-push] Changed packages: ${changed_packages[*]}"
 for package in $changed_packages; do
   if [ -d "packages/$package" ]; then
     echo "[pre-push] Running tests for package: $package"
     pnpm --filter "$package" run test:unit
   fi
 done
+
+echo "[pre-push] Done."
