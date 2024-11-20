@@ -8,21 +8,21 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.21"
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:"
   },
   "devDependencies": {
     "@cdktf/provider-aws": "^19.42.0",
-    "@jest/globals": "^29.5.14",
+    "@jest/globals": "catalog:jest",
     "@swc/core": "^1.9.2",
-    "@swc/jest": "^0.2.37",
-    "@tsconfig/recommended": "^1.0.8",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^22.9.0",
+    "@swc/jest": "catalog:jest",
+    "@tsconfig/recommended": "catalog:",
+    "@types/jest": "catalog:jest",
+    "@types/node": "catalog:typescript-node20",
     "cdktf": "^0.20.10",
     "constructs": "^10.4.2",
-    "jest": "^29.7.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.6.3"
+    "jest": "catalog:jest",
+    "ts-node": "catalog:",
+    "typescript": "catalog:"
   }
 }

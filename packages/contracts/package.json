@@ -5,13 +5,13 @@
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "devDependencies": {
-    "@swc/jest": "^0.2.37",
-    "@tsconfig/recommended": "^1.0.8",
-    "@types/jest": "^29.5.14",
-    "fp-ts": "^2.16.9",
-    "io-ts": "^2.2.21",
-    "jest": "^29.7.0",
-    "typescript": "^5.6.3"
+    "@swc/jest": "catalog:jest",
+    "@tsconfig/recommended": "catalog:",
+    "@types/jest": "catalog:jest",
+    "fp-ts": "catalog:",
+    "io-ts": "catalog:",
+    "jest": "catalog:jest",
+    "typescript": "catalog:"
   },
   "scripts": {
     "build": "tsc -b",
