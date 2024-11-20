@@ -14,9 +14,8 @@ describe("Frontend", () => {
       bucket: "some-bucket-name",
     },
     region: "eu-west-1",
-    accessKey: "your-access-key",
-    profile: "your-profile",
-    secretKey: "your-secret-key",
+    accessKey: "some-access-key",
+    secretKey: "some-secret-key",
   };
 
   it("should create AWS provider", () => {
@@ -41,7 +40,7 @@ describe("Frontend", () => {
     expect(result).toHaveResourceWithProperties(S3BucketWebsiteConfiguration, {
       index_document: { suffix: "index.html" },
       error_document: { key: "index.html" },
-      bucket: expect.stringContaining("s3bucket.id"),
+      bucket: expect.stringContaining("s3b.id"),
     });
   });
 

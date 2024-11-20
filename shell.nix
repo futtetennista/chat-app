@@ -6,6 +6,7 @@
 
 pkgs.mkShellNoCC {
   packages = with pkgs; [
+    awscli2
     git
     gh
     jq

@@ -6,9 +6,10 @@ export const Config = pipe(
     frontend: D.struct({
       bucket: D.string,
     }),
-    accessKey: D.string,
     region: D.string,
+    accessKey: D.string,
     secretKey: D.string,
+    //roleArn: D.string,
   }),
   D.intersect(
     D.partial({
