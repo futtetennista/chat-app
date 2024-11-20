@@ -8,6 +8,7 @@ pkgs.mkShellNoCC {
   packages = with pkgs; [
     git
     gh
+    jq
     nodejs_20
     pnpm
     shellcheck

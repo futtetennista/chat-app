@@ -5,7 +5,7 @@
   "packageManager": "pnpm@9.12.2",
   "scripts": {
     "clean": "rm -rf ./build tsconfig.tsbuildinfo",
-    "use-tsconfig": "f() { ln --force --symbolic ./tsconfig.\"$1\".json ./tsconfig.json; }; f $@",
+    "use-tsconfig": "__use_tsconfig() { ln --force --symbolic ./tsconfig.\"$1\".json ./tsconfig.json; }; __use_tsconfig $@",
     "start": "pnpm run start:before && REACT_APP_API_BASE_URL=http://localhost DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "start:before": "pnpm run use-tsconfig dev && tsc -b -v",
     "build": "pnpm run build:before && DISABLE_ESLINT_PLUGIN=true react-scripts build",
