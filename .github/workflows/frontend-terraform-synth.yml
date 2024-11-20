@@ -1,0 +1,55 @@
+name: frontend-terraform-synth
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  terraform-synth:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Make config
+        run: |
+          FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(jq --null-input --compact-output \
+            --arg accessKey "${{ secrets.AWS_ACCESS_KEY_ID }}" \
+            --arg bucket "${{ vars.BUCKET_NAME }}" \
+            --arg region "${{ vars.AWS_REGION }}" \
+            --arg secretKey "${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+          '{
+              frontend: {
+                bucket: $bucket
+              },
+              accessKey: $accessKey,
+              region: $region,
+              secretKey: $secretKey
+          }')
+          echo "FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$FRONTEND_INFRASTRUCTURE_JSON_CONFIG" >>"$GITHUB_ENV"
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+      - name: Build frontend
+        working-directory: ./packages/frontend
+        if: ${{ github.event_name != 'workflow_call' }}
+        run: pnpm build
+      - name: Download build
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
+        with:
+          name: frontend
+          path: ./packages/frontend/build
+      - name: Generate module and provider bindings
+        run: pnpm run generate-bindings
+      - name: Get CDKTF version
+        id: get-cdktf-version
+        run: |
+          version=$(pnpm --filter 'frontend-infrastructure' list cdktf | grep cdktf | cut -d ' ' -f 2)
+          echo "cdktf-version=$version" >>"$GITHUB_OUTPUT"
+      - name: Test the synth
+        uses: hashicorp/terraform-cdk-action@v5
+        with:
+          cdktfVersion: ${{ steps.get-cdktf-version.outputs.cdktf-version }}
+          terraformVersion: 1.9.8
+          mode: synth-only
