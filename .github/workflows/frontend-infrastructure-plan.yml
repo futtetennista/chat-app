@@ -2,13 +2,14 @@ name: frontend-infrastructure-plan
 
 permissions:
   contents: read
+  # id-token: write
   pull-requests: write
 
 on:
-  # pull_request:
-  #   paths:
-  #     - '.github/workflows/frontend-infrastructure-plan.yml'
-  #     - 'packages/frontend-infrastructure/**'
+  pull_request:
+    paths:
+      - '.github/workflows/frontend-infrastructure-plan.yml'
+      - 'packages/frontend-infrastructure/**'
   workflow_call:
   workflow_dispatch:
 
@@ -35,6 +36,12 @@ jobs:
       - name: Test stack
         working-directory: ./packages/frontend-infrastructure
         run: pnpm run test:unit
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     audience: sts.amazonaws.com
+      #     aws-region: ${{ vars.AWS_REGION }}
+      #     role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/FrontendAppDeploy
       - name: Get CDKTF version
         id: get-cdktf-version
         run: |
