@@ -27,3 +27,14 @@ git diff --cached --name-only --diff-filter=d | while read file; do
     git add "$file"
   fi
 done
+
+set -x
+changed_scripts=$(git diff --cached --name-only | grep -E '\.sh$')
+if [ -z "$changed_scripts" ]; then
+  echo "[pre-commit] Changed scripts: none"
+else
+  echo "[pre-commit] Changed scripts: ${changed_scripts[*]}"
+  echo "[pre-commit] Shellcheck will start."
+  echo "${changed_scripts[@]}" | xargs shellcheck
+  echo "[pre-commit] Shellcheck did end."
+fi
