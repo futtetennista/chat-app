@@ -2,14 +2,14 @@ packages:
   - 'packages/*'
 
 catalog:
-  "fp-ts": ^2.16.9
-  "io-ts": ^2.2.21
+  "@tsconfig/recommended": ^1.0.8
+  fp-ts: ^2.16.9
+  io-ts: ^2.2.21
   knip: ^5.36.3
   msw: ^2.6.0
   openai: ^4.71.1
+  tsx: ^4.19.2
   typescript: ^5.6.3
-  "ts-node": ^10.9.2
-  "@tsconfig/recommended": ^1.0.8
 
 catalogs:
   jest:

@@ -2,9 +2,16 @@
   "name": "@chat-app/frontend-infrastructure",
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
+  "main": "./dist/index.js",
   "scripts": {
-    "test:unit": "jest --passWithNoTests",
-    "type-check": "tsc --noEmit"
+    "clean": "rm -rf ./dist && rm tsconfig.tsbuildinfo",
+    "compile": "tsc -b",
+    "c": "pnpm run clean && pnpm run compile",
+    "gen-providers": "cdktf get",
+    "synth": "cdktf synth",
+    "synth:clean": "rm -rf ./cdktf.out",
+    "synth:local": "FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(cat config.json | jq -r -c .) pnpm run synth:clean && cdktf synth",
+    "test:unit": "jest --passWithNoTests"
   },
   "license": "UNLICENSED",
   "dependencies": {
@@ -16,13 +23,13 @@
     "@jest/globals": "catalog:jest",
     "@swc/core": "^1.9.2",
     "@swc/jest": "catalog:jest",
-    "@tsconfig/recommended": "catalog:",
+    "@tsconfig/node20": "catalog:typescript-node20",
     "@types/jest": "catalog:jest",
     "@types/node": "catalog:typescript-node20",
     "cdktf": "^0.20.10",
     "constructs": "^10.4.2",
     "jest": "catalog:jest",
-    "ts-node": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   }
 }

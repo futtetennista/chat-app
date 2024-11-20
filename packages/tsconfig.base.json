@@ -30,5 +30,6 @@
     "allowSyntheticDefaultImports": true,
     "newLine": "LF",
     "resolveJsonModule": true
-  }
+  },
+  "tsBuildInfoFile": "tsconfig.tsbuildinfo"
 }

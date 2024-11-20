@@ -1,6 +1,6 @@
 {
   "language": "typescript",
-  "app": "pnpm ts-node --swc main.ts",
+  "app": "pnpm run synth",
   "projectId": "@chat-app/frontend-infrastructure",
   "sendCrashReports": false,
   "terraformProviders": [
