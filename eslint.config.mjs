@@ -29,6 +29,7 @@ export default tseslint.config(
       "**/public/**",
       "**/tests-examples/**",
       "eslint.config.mjs",
+      "**/.gen/**",
     ],
   },
   {
