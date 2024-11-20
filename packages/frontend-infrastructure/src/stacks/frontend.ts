@@ -11,17 +11,23 @@ export class Frontend extends TerraformStack {
   constructor(scope: Construct, name: string, config: Config) {
     super(scope, name);
 
-    new AwsProvider(this, "aws", {
+    new AwsProvider(this, "awsp", {
       region: config.region,
-      profile: config.profile,
+      accessKey: config.accessKey,
+      secretKey: config.secretKey,
+      // assumeRole: [
+      //   {
+      //     roleArn: config.roleArn,
+      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
+      //   },
+      // ],
     });
 
-    const bucket = new S3Bucket(this, "s3bucket", {
+    const bucket = new S3Bucket(this, "s3b", {
       bucket: config.frontend.bucket,
-      versioning: { enabled: true },
     });
 
-    new S3BucketWebsiteConfiguration(this, "s3bucketwebsiteconfiguration", {
+    new S3BucketWebsiteConfiguration(this, "s3bwc", {
       bucket: bucket.id,
       indexDocument: {
         suffix: "index.html",
@@ -31,7 +37,7 @@ export class Frontend extends TerraformStack {
       },
     });
 
-    new CloudfrontDistribution(this, "cloudfrontdistribution", {
+    new CloudfrontDistribution(this, "cfd", {
       enabled: true,
       defaultCacheBehavior: {
         allowedMethods: ["GET", "HEAD"],

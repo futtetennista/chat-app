@@ -4,13 +4,14 @@
   "packageManager": "pnpm@9.12.2",
   "main": "./dist/index.js",
   "scripts": {
+    "cdktf:clean": "rm -rf ./cdktf.out",
     "clean": "rm -rf ./dist && rm tsconfig.tsbuildinfo",
     "compile": "tsc -b",
     "c": "pnpm run clean && pnpm run compile",
-    "gen-providers": "cdktf get",
+    "generate-bindings": "cdktf get",
+    "plan:local": "pnpm run cdktf:clean && FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(./scripts/mk-config.sh) cdktf plan",
     "synth": "cdktf synth",
-    "synth:clean": "rm -rf ./cdktf.out",
-    "synth:local": "FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(cat config.json | jq -r -c .) pnpm run synth:clean && cdktf synth",
+    "synth:local": "pnpm run cdktf:clean && FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(./scripts/mk-config.sh) cdktf synth",
     "test:unit": "jest --passWithNoTests"
   },
   "license": "UNLICENSED",
