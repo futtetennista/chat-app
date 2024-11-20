@@ -82,8 +82,10 @@ jobs:
           FRONTEND_INFRASTRUCTURE_JSON_CONFIG: ${{ env.FRONTEND_INFRASTRUCTURE_JSON_CONFIG }}
         with:
           cdktfVersion: ${{ steps.get-cdktf-version.outputs.cdktf-version }}
+          commentOnPr: true
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           mode: plan-only
           stackName: frontend
           terraformVersion: 1.9.8
+          updateComment: true
           workingDirectory: ./packages/frontend-infrastructure
