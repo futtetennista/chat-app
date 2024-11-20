@@ -1,13 +1,13 @@
 {
   "extends": [
     "../tsconfig.base.json",
-    "@tsconfig/recommended/tsconfig.json"
+    "@tsconfig/node20/tsconfig.json"
   ],
   "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "node16",
+    "rootDir": "./src",
     "outDir": "./dist",
-    "types": [
-      "jest"
-    ],
     "paths": {
       "@/*": [
         "./src/*"
@@ -19,6 +19,7 @@
   ],
   "exclude": [
     "./node_modules",
-    "./dist"
+    "./dist",
+    "**/*.test.ts",
   ]
 }
