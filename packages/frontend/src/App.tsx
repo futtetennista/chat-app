@@ -5,7 +5,6 @@ import { v4 } from "uuid";
 
 import Chat from "./components/ChatV2";
 
-// style d
 const AppContainer = styled.div`
   display: flex;
   // flex-direction: column;

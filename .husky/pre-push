@@ -8,6 +8,7 @@ fi
 if [ -n "$changed_files" ]; then
   echo "[pre-push] Running ESLint on changed files..."
   pnpm run lint $changed_files
+  echo "[pre-push] Done linting changed files..."
 fi
 
 changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
