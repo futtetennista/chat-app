@@ -1,2 +1,22 @@
 packages:
   - 'packages/*'
+
+catalog:
+  "fp-ts": ^2.16.9
+  "io-ts": ^2.2.21
+  knip: ^5.36.3
+  msw: ^2.6.0
+  openai: ^4.71.1
+  typescript: ^5.6.3
+  "ts-node": ^10.9.2
+  "@tsconfig/recommended": ^1.0.8
+
+catalogs:
+  jest:
+    "@swc/jest": ^0.2.37
+    "@types/jest": ^29.5.14
+    "@jest/globals": ^29.5.14
+    "jest": ^29.7.0
+  typescript-node20:
+    "@types/node": ^20.1.4
+    "@tsconfig/node20": ^20.1.4
