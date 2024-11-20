@@ -5,13 +5,12 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*)$
+        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*|npins/.*)$
       - id: end-of-file-fixer
-        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*)$
+        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*|npins/.*)$
       - id: check-yaml
       - id: check-added-large-files
       - id: detect-private-key
-        exclude: ^common/auth/JWTValidator.test.ts$
   - repo: https://github.com/jumanjihouse/pre-commit-hooks
     rev: 3.0.0
     hooks:
