@@ -54,7 +54,7 @@ jobs:
         working-directory: ./packages/frontend
         run: pnpm playwright test --config=playwright.config.ts
         env:
-          # It should fix erros like: "Firefox is unable to launch if the $HOME folder isn't owned by the current user."
+          # Setting HOME fixes erros like: "Firefox is unable to launch if the $HOME folder isn't owned by the current user."
           # when using the Playwright Docker image.
           HOME: /root
           REACT_APP_API_BASE_URL: http://localhost
@@ -67,7 +67,7 @@ jobs:
         with:
           name: playwright-report
           path: ./playwright-report/
-          retention-days: 7
+          retention-days: 1
       - name: Upload build
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         continue-on-error: true
@@ -76,7 +76,20 @@ jobs:
           path: ./packages/frontend/build
           retention-days: 1
 
-  project-lint:
+  repo-test-unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: ./.github/actions/setup-nodejs-pnpm
+        name: Set up node.js with pnpm
+        with:
+          install-recursive: true
+      - name: Run tests
+        run: pnpm --recursive run test:unit
+
+  repo-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -90,7 +103,7 @@ jobs:
           install-recursive: true
       - name: Run linter
         id: run-linter
-        run: pnpm run lint --fix
+        run: pnpm run lint ${{ github.event_name == 'pull_request' && '--fix' || '' }}
       - name: Commit and push fixed files
         uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
         if: steps.run-linter.outcome == 'failure' && github.event_name == 'pull_request'
@@ -98,20 +111,7 @@ jobs:
           add: .
           message: Fix eslint issues
 
-  project-test-unit:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - uses: ./.github/actions/setup-nodejs-pnpm
-        name: Set up node.js with pnpm
-        with:
-          install-recursive: true
-      - name: Run tests
-        run: pnpm --recursive run test:unit
-
-  project-knip:
+  repo-knip:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
