@@ -8,8 +8,8 @@
     "**/*.test.{js,jsx,ts,tsx}",
     "packages/frontend-infrastructure/src/main.ts"
   ],
-  "ignoreBinaries": ["build", "cdktf-cli", "f"],
-  "ignoreDependencies": ["husky", "ts-node"],
+  "ignoreBinaries": ["build", "cdktf", "jq", "__use_tsconfig"],
+  "ignoreDependencies": ["husky", "tsx"],
   "workspaces": {
     "packages/backend": {
       "entry": ["src/lambda/index.ts"]
