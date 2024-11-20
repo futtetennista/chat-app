@@ -1,18 +1,15 @@
 {
   "extends": [
-    "../tsconfig.json",
+    "../tsconfig.base.json",
     "@tsconfig/node20/tsconfig.json"
   ],
   "compilerOptions": {
-    "baseUrl": ".",
-    "composite": true,
     "outDir": "./dist",
     "paths": {
       "@/*": [
         "./src/*"
       ],
-    },
-    "tsBuildInfoFile": "tsconfig.tsbuildinfo"
+    }
   },
   "include": [
     "./src/**/*"
@@ -29,10 +26,5 @@
     {
       "path": "../mocks"
     }
-  ],
-  "ts-node": {
-    "require": [
-      "tsconfig-paths/register"
-    ]
-  }
+  ]
 }

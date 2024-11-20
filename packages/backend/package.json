@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
   "scripts": {
+    "compile": "tsc -b",
+    "c": "pnpm run compile",
     "test": "jest --passWithNoTests",
-    "test:unit": "jest --passWithNoTests",
-    "type-check": "tsc --noEmit"
+    "test:unit": "jest --passWithNoTests"
   },
   "license": "UNLICENSED",
   "dependencies": {
