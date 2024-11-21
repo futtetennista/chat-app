@@ -4,7 +4,7 @@ import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-
 import { describe, expect, it } from "@jest/globals";
 import { Testing } from "cdktf";
 
-import type { Config } from "@/config";
+import { Config } from "@/config";
 import { Frontend } from "@/stacks/frontend";
 
 describe("Frontend", () => {
