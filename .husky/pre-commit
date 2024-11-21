@@ -34,6 +34,6 @@ if [ -z "$changed_scripts" ]; then
 else
   echo "[pre-commit] Changed scripts: ${changed_scripts[*]}"
   echo "[pre-commit] Shellcheck will start."
-  echo "${changed_scripts[@]}" | xargs shellcheck
+  echo "${changed_scripts[@]}" | xargs shellcheck -x
   echo "[pre-commit] Shellcheck did end."
 fi

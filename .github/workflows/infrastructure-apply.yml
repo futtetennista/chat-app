@@ -1,4 +1,4 @@
-name: frontend-infrastructure-apply
+name: infrastructure-apply
 
 on:
   push:
@@ -21,12 +21,12 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
         with:
-          install-filter: frontend-infrastructure
+          install-filter: infrastructure
       - name: Test stack
-        working-directory: ./packages/frontend-infrastructure
+        working-directory: ./packages/infrastructure
         run: pnpm run test:unit
       - name: Make config
-        working-directory: ./packages/frontend-infrastructure/scripts
+        working-directory: ./packages/infrastructure/scripts
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_REGION: ${{ vars.AWS_REGION }}
@@ -37,7 +37,7 @@ jobs:
       - name: Get CDKTF version
         id: get-cdktf-version
         run: |
-          version=$(pnpm --filter 'frontend-infrastructure' list cdktf | grep cdktf | cut -d ' ' -f 2)
+          version=$(pnpm --filter 'infrastructure' list cdktf | grep cdktf | cut -d ' ' -f 2)
           if [ "$?" -ne 0 ]; then
             echo "Failed to get CDKTF version"
             exit 1
@@ -50,7 +50,7 @@ jobs:
 
           echo "cdktf-version=$version" >>"$GITHUB_OUTPUT"
       - name: Generate module and provider bindings
-        working-directory: ./packages/frontend-infrastructure
+        working-directory: ./packages/infrastructure
         run: pnpx cdktf-cli@${{ steps.get-cdktf-version.outputs.cdktf-version }} get
       - name: Run Terraform CDK
         uses: hashicorp/terraform-cdk-action@d0ac1a0d6ea11736459c4e06ccf55a5fda705f77 # v5.0.1

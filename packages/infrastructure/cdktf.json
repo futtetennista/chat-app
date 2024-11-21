@@ -1,7 +1,7 @@
 {
   "language": "typescript",
   "app": "pnpm tsx ./src/main.ts",
-  "projectId": "@chat-app/frontend-infrastructure",
+  "projectId": "@chat-app/infrastructure",
   "sendCrashReports": false,
   "terraformProviders": [
     "aws@~>5.0"
