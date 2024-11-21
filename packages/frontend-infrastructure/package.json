@@ -16,19 +16,20 @@
   },
   "license": "UNLICENSED",
   "dependencies": {
+    "@cdktf/provider-aws": "^19.42.0",
+    "@cdktf/provider-null": "^10.0.1",
+    "cdktf": "^0.20.10",
+    "constructs": "^10.4.2",
     "fp-ts": "catalog:",
     "io-ts": "catalog:"
   },
   "devDependencies": {
-    "@cdktf/provider-aws": "^19.42.0",
     "@jest/globals": "catalog:jest",
     "@swc/core": "^1.9.2",
     "@swc/jest": "catalog:jest",
     "@tsconfig/node20": "catalog:typescript-node20",
     "@types/jest": "catalog:jest",
     "@types/node": "catalog:typescript-node20",
-    "cdktf": "^0.20.10",
-    "constructs": "^10.4.2",
     "jest": "catalog:jest",
     "tsx": "catalog:",
     "typescript": "catalog:"

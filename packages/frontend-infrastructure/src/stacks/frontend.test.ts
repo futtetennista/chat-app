@@ -1,5 +1,4 @@
 import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
-import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
 import { describe, expect, it } from "@jest/globals";
@@ -9,23 +8,9 @@ import type { Config } from "@/config";
 import { Frontend } from "@/stacks/frontend";
 
 describe("Frontend", () => {
-  const config: Config = {
-    frontend: {
-      bucket: "some-bucket-name",
-    },
-    region: "eu-west-1",
-    accessKey: "some-access-key",
-    secretKey: "some-secret-key",
+  const config: Config["frontend"] = {
+    bucket: "some-bucket-name",
   };
-
-  it("should create AWS provider", () => {
-    const app = Testing.app();
-    const stack = new Frontend(app, "frontend", config);
-    const result = Testing.synth(stack);
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    expect(result).toHaveProvider(AwsProvider);
-  });
 
   it("should create S3 bucket", () => {
     const app = Testing.app();
@@ -34,7 +19,7 @@ describe("Frontend", () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3Bucket, {
-      bucket: config.frontend.bucket,
+      bucket: config.bucket,
     });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3BucketWebsiteConfiguration, {

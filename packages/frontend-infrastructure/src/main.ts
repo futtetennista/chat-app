@@ -1,10 +1,10 @@
-#!/usr/bin/env -S node --import @swc-node/register/esm-register
+#!/usr/bin/env tsx
 
 import { App } from "cdktf";
 import * as D from "io-ts/Decoder";
 
 import { Config } from "@/config";
-import { Frontend } from "@/stacks/frontend";
+import { AppStack } from "@/stacks";
 
 function parseConfig(): Config {
   if (!process.env.FRONTEND_INFRASTRUCTURE_JSON_CONFIG) {
@@ -33,7 +33,7 @@ function parseConfig(): Config {
 function main() {
   const config: Config = parseConfig();
   const app = new App();
-  new Frontend(app, "frontend", config);
+  new AppStack(app, "app", config);
   app.synth();
 }
 
