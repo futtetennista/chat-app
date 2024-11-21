@@ -1,5 +1,4 @@
 import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
-import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
 import { TerraformStack } from "cdktf";
@@ -10,23 +9,11 @@ import { Config } from "@/config";
 export class Frontend extends TerraformStack {
   static readonly s3BucketId = "s3b";
 
-  constructor(scope: Construct, name: string, config: Config) {
-    super(scope, name);
-
-    new AwsProvider(this, "awsp", {
-      region: config.region,
-      accessKey: config.accessKey,
-      secretKey: config.secretKey,
-      // assumeRole: [
-      //   {
-      //     roleArn: config.roleArn,
-      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
-      //   },
-      // ],
-    });
+  constructor(scope: Construct, id: string, config: Config["frontend"]) {
+    super(scope, id);
 
     const bucket = new S3Bucket(this, Frontend.s3BucketId, {
-      bucket: config.frontend.bucket,
+      bucket: config.bucket,
     });
 
     new S3BucketWebsiteConfiguration(this, "s3bwc", {
