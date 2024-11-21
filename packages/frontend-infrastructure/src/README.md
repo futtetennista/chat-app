@@ -7,6 +7,11 @@
 * https://docs.powertools.aws.dev/lambda/typescript/latest/core/logger/
 * https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/javascriptv3/example_code/cross-services/lambda-for-browser
 
+### SAM
+
+#### Resources
+* https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/gs-terraform-support.html
+
 ## Terraform CDK
 ### Resources
 * https://developer.hashicorp.com/terraform/cdktf/
