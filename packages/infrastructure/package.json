@@ -1,5 +1,5 @@
 {
-  "name": "@chat-app/frontend-infrastructure",
+  "name": "@chat-app/infrastructure",
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
   "main": "./dist/index.js",
