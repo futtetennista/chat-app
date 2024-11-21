@@ -2,7 +2,7 @@ import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { describe, expect, it } from "@jest/globals";
 import { Testing } from "cdktf";
 
-import type { Config } from "@/config";
+import { Config } from "@/config";
 import { AppStack } from "@/stacks";
 
 describe("AppStack", () => {
