@@ -4,7 +4,8 @@ import { App } from "cdktf";
 import * as D from "io-ts/Decoder";
 
 import { Config } from "@/config";
-import { AppStack } from "@/stacks";
+import { FrontendStack } from "@/stacks/frontend";
+import { IdentityStack } from "@/stacks/identity";
 
 function parseConfig(): Config {
   if (!process.env.FRONTEND_INFRASTRUCTURE_JSON_CONFIG) {
@@ -33,7 +34,10 @@ function parseConfig(): Config {
 function main() {
   const config: Config = parseConfig();
   const app = new App();
-  new AppStack(app, "app", config);
+  // new AppStack(app, "app", config);
+  new IdentityStack(app, "identity", config);
+  new FrontendStack(app, "frontend", config);
+  // new BackendStack(app, "backend", config);
   app.synth();
 }
 

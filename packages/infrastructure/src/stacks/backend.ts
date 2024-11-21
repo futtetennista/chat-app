@@ -1,5 +1,6 @@
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { LambdaFunction } from "@cdktf/provider-aws/lib/lambda-function";
+import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { Resource as NullResource } from "@cdktf/provider-null/lib/resource";
 import { TerraformStack } from "cdktf";
 import { Construct } from "constructs";
@@ -8,8 +9,20 @@ import path from "path";
 import { Config } from "@/config";
 
 export class BackendStack extends TerraformStack {
-  constructor(scope: Construct, id: string, _config: Config["backend"]) {
+  constructor(scope: Construct, id: string, config: Config) {
     super(scope, id);
+
+    new AwsProvider(this, "aws", {
+      region: config.region,
+      accessKey: config.accessKey,
+      secretKey: config.secretKey,
+      // assumeRole: [
+      //   {
+      //     roleArn: config.roleArn,
+      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
+      //   },
+      // ],
+    });
 
     const buildLambdaFunction = new NullResource(
       this,
