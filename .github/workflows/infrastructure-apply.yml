@@ -38,6 +38,16 @@ jobs:
         id: get-cdktf-version
         run: |
           version=$(pnpm --filter 'frontend-infrastructure' list cdktf | grep cdktf | cut -d ' ' -f 2)
+          if [ "$?" -ne 0 ]; then
+            echo "Failed to get CDKTF version"
+            exit 1
+          fi
+
+          if [ -z "$version" ]; then
+            echo "Empty CDKTF version"
+            exit 1
+          fi
+
           echo "cdktf-version=$version" >>"$GITHUB_OUTPUT"
       - name: Generate module and provider bindings
         working-directory: ./packages/frontend-infrastructure
