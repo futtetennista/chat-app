@@ -4,7 +4,7 @@
   "packageManager": "pnpm@9.12.2",
   "main": "./dist/index.js",
   "scripts": {
-    "cdktf:clean": "rm -rf ./cdktf.out",
+    "cdktf:clean": "find cdktf.out -name cdk.tf.json -type f -exec rm {} \\;",
     "clean": "rm -rf ./dist && rm tsconfig.tsbuildinfo",
     "compile": "tsc -b",
     "c": "pnpm run clean && pnpm run compile",
