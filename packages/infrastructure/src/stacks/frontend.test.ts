@@ -5,16 +5,16 @@ import { describe, expect, it } from "@jest/globals";
 import { Testing } from "cdktf";
 
 import { Config } from "@/config";
-import { Frontend } from "@/stacks/frontend";
+import { FrontendStack } from "@/stacks/frontend";
 
-describe("Frontend", () => {
+describe("FrontendStack", () => {
   const config: Config["frontend"] = {
     bucket: "some-bucket-name",
   };
 
   it("should create S3 bucket", () => {
     const app = Testing.app();
-    const stack = new Frontend(app, "frontend", config);
+    const stack = new FrontendStack(app, "frontend", config);
     const result = Testing.synth(stack);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -25,13 +25,13 @@ describe("Frontend", () => {
     expect(result).toHaveResourceWithProperties(S3BucketWebsiteConfiguration, {
       index_document: { suffix: "index.html" },
       error_document: { key: "index.html" },
-      bucket: expect.stringContaining(`${Frontend.s3BucketId}.id`),
+      bucket: expect.stringContaining(`${FrontendStack.s3BucketId}.id`),
     });
   });
 
   it("should create CloudFront distribution", () => {
     const app = Testing.app();
-    const stack = new Frontend(app, "frontend", config);
+    const stack = new FrontendStack(app, "frontend", config);
     const result = Testing.synth(stack);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call

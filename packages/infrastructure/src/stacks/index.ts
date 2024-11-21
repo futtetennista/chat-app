@@ -3,8 +3,8 @@ import { TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 
 import { Config } from "@/config";
-import { Backend as BackendStack } from "@/stacks/backend";
-import { Frontend as FrontendStack } from "@/stacks/frontend";
+import { BackendStack } from "@/stacks/backend";
+import { FrontendStack } from "@/stacks/frontend";
 import { IdentityStack } from "@/stacks/identity";
 
 export class AppStack extends TerraformStack {

@@ -7,7 +7,7 @@ import path from "path";
 
 import { Config } from "@/config";
 
-export class Backend extends TerraformStack {
+export class BackendStack extends TerraformStack {
   constructor(scope: Construct, id: string, _config: Config["backend"]) {
     super(scope, id);
 
