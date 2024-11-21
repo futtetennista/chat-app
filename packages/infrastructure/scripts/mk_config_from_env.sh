@@ -4,6 +4,11 @@ set -euo pipefail
 
 missing_vars=()
 
+if [[ "${CI:-false}" != "true" && -f "$(dirname "$0")"/../secret.env ]]; then
+  # shellcheck source=/dev/null
+  source "$(dirname "${BASH_SOURCE[0]}")"/../secret.env
+fi
+
 set +u
 if [ -z "$AWS_ACCESS_KEY_ID" ]; then
   missing_vars+=("AWS_ACCESS_KEY_ID")
