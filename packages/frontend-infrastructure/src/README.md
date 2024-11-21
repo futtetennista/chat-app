@@ -5,6 +5,7 @@
 * https://docs.aws.amazon.com/AmazonS3/latest/userguide/HostingWebsiteOnS3Setup.html
 * https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/getting-started-secure-static-website-cloudformation-template.html
 * https://docs.powertools.aws.dev/lambda/typescript/latest/core/logger/
+* https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/javascriptv3/example_code/cross-services/lambda-for-browser
 
 ## Terraform CDK
 ### Resources
