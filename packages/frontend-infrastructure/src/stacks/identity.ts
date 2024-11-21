@@ -6,8 +6,8 @@ import { TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 
 export class IdentityStack extends TerraformStack {
-  constructor(scope: Construct, name: string) {
-    super(scope, name);
+  constructor(scope: Construct, id: string) {
+    super(scope, id);
 
     const identityPool = new CognitoIdentityPool(this, "cip_guest", {
       identityPoolName: "guest",

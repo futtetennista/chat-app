@@ -6,6 +6,7 @@ export const Config = pipe(
     frontend: D.struct({
       bucket: D.string,
     }),
+    backend: D.struct({}),
     region: D.string,
     accessKey: D.string,
     secretKey: D.string,
