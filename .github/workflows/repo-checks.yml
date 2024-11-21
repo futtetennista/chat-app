@@ -1,13 +1,14 @@
 name: repo-checks
 
 on:
-  # push:
+  push:
   pull_request:
   workflow_dispatch:
 
 jobs:
   repo-checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # 4.1.7
