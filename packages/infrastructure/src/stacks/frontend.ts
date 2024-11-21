@@ -6,13 +6,13 @@ import { Construct } from "constructs";
 
 import { Config } from "@/config";
 
-export class Frontend extends TerraformStack {
+export class FrontendStack extends TerraformStack {
   static readonly s3BucketId = "s3b";
 
   constructor(scope: Construct, id: string, config: Config["frontend"]) {
     super(scope, id);
 
-    const bucket = new S3Bucket(this, Frontend.s3BucketId, {
+    const bucket = new S3Bucket(this, FrontendStack.s3BucketId, {
       bucket: config.bucket,
     });
 

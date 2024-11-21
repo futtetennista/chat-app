@@ -5,7 +5,7 @@ import { Testing } from "cdktf";
 import type { Config } from "@/config";
 import { AppStack } from "@/stacks";
 
-describe("App", () => {
+describe("AppStack", () => {
   const config: Config = {
     frontend: {
       bucket: "some-bucket-name",
