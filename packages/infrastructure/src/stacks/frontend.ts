@@ -1,7 +1,8 @@
 import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
+import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
-import { TerraformStack } from "cdktf";
+import { TerraformOutput, TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 
 import { Config } from "@/config";
@@ -9,11 +10,23 @@ import { Config } from "@/config";
 export class FrontendStack extends TerraformStack {
   static readonly s3BucketId = "s3b";
 
-  constructor(scope: Construct, id: string, config: Config["frontend"]) {
+  constructor(scope: Construct, id: string, config: Config) {
     super(scope, id);
 
+    new AwsProvider(this, "aws", {
+      region: config.region,
+      accessKey: config.accessKey,
+      secretKey: config.secretKey,
+      // assumeRole: [
+      //   {
+      //     roleArn: config.roleArn,
+      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
+      //   },
+      // ],
+    });
+
     const bucket = new S3Bucket(this, FrontendStack.s3BucketId, {
-      bucket: config.bucket,
+      bucket: config.frontend.bucket,
     });
 
     new S3BucketWebsiteConfiguration(this, "s3bwc", {
@@ -26,7 +39,7 @@ export class FrontendStack extends TerraformStack {
       },
     });
 
-    new CloudfrontDistribution(this, "cfd", {
+    const cfd = new CloudfrontDistribution(this, "cfd", {
       enabled: true,
       defaultCacheBehavior: {
         allowedMethods: ["GET", "HEAD"],
@@ -57,6 +70,10 @@ export class FrontendStack extends TerraformStack {
       viewerCertificate: {
         cloudfrontDefaultCertificate: true,
       },
+    });
+
+    new TerraformOutput(this, "distribution_id", {
+      value: cfd.id,
     });
   }
 }

@@ -2,12 +2,27 @@ import { CognitoIdentityPool } from "@cdktf/provider-aws/lib/cognito-identity-po
 import { CognitoIdentityPoolRolesAttachment } from "@cdktf/provider-aws/lib/cognito-identity-pool-roles-attachment";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { IamRolePolicy } from "@cdktf/provider-aws/lib/iam-role-policy";
+import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 
+import { Config } from "@/config";
+
 export class IdentityStack extends TerraformStack {
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, config: Config) {
     super(scope, id);
+
+    new AwsProvider(this, "aws", {
+      region: config.region,
+      accessKey: config.accessKey,
+      secretKey: config.secretKey,
+      // assumeRole: [
+      //   {
+      //     roleArn: config.roleArn,
+      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
+      //   },
+      // ],
+    });
 
     const identityPool = new CognitoIdentityPool(this, "cip_guest", {
       identityPoolName: "guest",

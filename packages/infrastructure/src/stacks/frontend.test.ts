@@ -8,8 +8,14 @@ import { Config } from "@/config";
 import { FrontendStack } from "@/stacks/frontend";
 
 describe("FrontendStack", () => {
-  const config: Config["frontend"] = {
-    bucket: "some-bucket-name",
+  const config: Config = {
+    frontend: {
+      bucket: "some-bucket-name",
+    },
+    backend: {},
+    accessKey: "some-access-key",
+    secretKey: "some-secret-key",
+    region: "eu-west-1",
   };
 
   it("should create S3 bucket", () => {
@@ -19,7 +25,7 @@ describe("FrontendStack", () => {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3Bucket, {
-      bucket: config.bucket,
+      bucket: config.frontend.bucket,
     });
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     expect(result).toHaveResourceWithProperties(S3BucketWebsiteConfiguration, {
