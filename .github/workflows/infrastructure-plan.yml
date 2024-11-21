@@ -1,4 +1,4 @@
-name: frontend-infrastructure-plan
+name: infrastructure-plan
 
 permissions:
   contents: read
@@ -7,16 +7,37 @@ permissions:
 
 on:
   pull_request:
-    paths:
-      - '.github/workflows/frontend-infrastructure-plan.yml'
-      - 'packages/frontend-infrastructure/**'
   workflow_call:
   workflow_dispatch:
 
 jobs:
-  terraform-plan:
+  filter-changes:
+    runs-on: cicd-medium
+    timeout-minutes: 3
+    outputs:
+      frontend: ${{ steps.filter-changes.outputs.frontend }}
+      backend: ${{ steps.filter-changes.outputs.backend }}
+    steps:
+      - name: Filter changes
+        uses: dorny/paths-filter@0bc4621a3135347011ad047f9ecf449bf72ce2bd #v3.0.0
+        id: filter-changes
+        with:
+          filters: |
+            frontend:
+              - '.github/workflows/frontend-infrastructure-plan.yml'
+              - 'packages/frontend-infrastructure/**'
+              - '!packages/frontend-infrastructure/src/stacks/backend*'
+            backend:
+              - '.github/workflows/frontend-infrastructure-plan.yml'
+              - 'packages/frontend-infrastructure/**'
+              - '!packages/frontend-infrastructure/src/stacks/frontend*'
+
+  frontend:
     runs-on: ubuntu-latest
-    environment: production
+    needs: filter-changes
+    # environment: production
+    if: ${{ needs.filter-changes.outputs.frontend == 'true' }}
+    timeout-minutes: 10
     steps:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -41,7 +62,7 @@ jobs:
           AWS_S3_BUCKET_NAME: ${{ vars.AWS_S3_BUCKET_NAME }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          config_json=$(./mk_config.sh)
+          config_json=$(./mk_config_from_env.sh)
           if [ $? -ne 0 ]; then
             echo "Failed to create config"
             exit 1
@@ -66,13 +87,3 @@ jobs:
           stackName: frontend
           terraformVersion: 1.9.8
           workingDirectory: ./packages/frontend-infrastructure
-      # - name: Build frontend
-      #   working-directory: ./packages/frontend
-      #   if: ${{ github.event_name != 'workflow_call' }}
-      #   run: pnpm build
-      # - name: Download build
-      #   if: ${{ github.event_name != 'pull_request' }}
-      #   uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-      #   with:
-      #     name: frontend
-      #     path: ./packages/frontend/build
