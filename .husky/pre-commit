@@ -28,8 +28,7 @@ git diff --cached --name-only | while read file; do
   fi
 done
 
-set -x
-changed_scripts=$(git diff --cached --name-only | grep -E '\.sh$')
+changed_scripts=$(git diff --cached --name-only | grep -E '\.sh$' | sort -u)
 if [ -z "$changed_scripts" ]; then
   echo "[pre-commit] Changed scripts: none"
 else
