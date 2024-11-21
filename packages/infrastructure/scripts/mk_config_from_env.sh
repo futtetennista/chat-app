@@ -41,6 +41,8 @@ jq --null-input --compact-output \
     frontend: {
       bucket: $bucket
     },
+    backend: {
+    },
     accessKey: $accessKey,
     region: $region,
     secretKey: $secretKey
