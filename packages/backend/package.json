@@ -3,8 +3,13 @@
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
   "scripts": {
+    "bundle:local": "tsx ./scripts/bundle.ts non-prod",
+    "clean": "rm -rf $(jq -r .compilerOptions.outDir < tsconfig.json)",
     "compile": "tsc -b",
     "c": "pnpm run compile",
+    "start:local": "sam local start-api --parameter-overrides \"handler=$(jq -r .compilerOptions.outDir < tsconfig.json)/dev/index.js\"",
+    "start": "pnpm run start:local",
+    "start:bundle": "pnpm run clean && pnpm run bundle:local && pnpm run start:local",
     "test": "jest --passWithNoTests",
     "test:unit": "jest --passWithNoTests"
   },
@@ -18,14 +23,18 @@
   },
   "devDependencies": {
     "@chat-app/mocks": "workspace:*",
+    "@commander-js/extra-typings": "^12.1.0",
     "@swc/jest": "catalog:jest",
     "@tsconfig/node20": "catalog:typescript-node20",
     "@types/aws-lambda": "^8.10.145",
     "@types/node": "catalog:typescript-node20",
+    "commander": "^12.1.0",
+    "esbuild": "^0.24.0",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "jest": "catalog:jest",
     "msw": "catalog:",
+    "tsx": "^4.19.2",
     "typescript": "catalog:"
   }
 }

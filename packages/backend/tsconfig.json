@@ -8,16 +8,17 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
+      ]
     }
   },
   "include": [
-    "./src/**/*"
+    "./src/**/*",
+    "./scripts/**/*.ts"
   ],
   "exclude": [
     "./node_modules",
     "./dist",
-    "**/*.test.ts",
+    "**/*.test.ts"
   ],
   "references": [
     {
