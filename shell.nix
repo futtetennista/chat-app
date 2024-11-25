@@ -5,6 +5,8 @@
 }:
 
 pkgs.mkShellNoCC {
+  AWS_PROFILE = "softwareeng";
+
   packages = with pkgs; [
     awscli2
     git
