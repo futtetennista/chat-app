@@ -9,9 +9,9 @@
     "compile": "tsc -b",
     "c": "pnpm run clean && pnpm run compile",
     "generate-bindings": "cdktf get",
-    "plan:local": "pnpm run cdktf:clean && FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(./scripts/mk_config_from_env.sh) cdktf plan",
+    "plan:local": "pnpm run cdktf:clean && FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(./scripts/mk_frontend_config_from_env.sh) cdktf plan",
     "synth": "cdktf synth",
-    "synth:local": "pnpm run cdktf:clean && FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(./scripts/mk_config_from_env.sh) cdktf synth",
+    "synth:local": "pnpm run cdktf:clean && FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$(./scripts/mk_frontend_config_from_env.sh) cdktf synth",
     "test:unit": "jest --passWithNoTests"
   },
   "license": "UNLICENSED",

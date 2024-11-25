@@ -62,7 +62,7 @@ jobs:
           AWS_S3_BUCKET_NAME: ${{ vars.AWS_S3_BUCKET_NAME }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          config_json=$(./mk_config_from_env.sh)
+          config_json=$(./mk_frontend_config_from_env.sh)
           if [ $? -ne 0 ]; then
             echo "Failed to create config"
             exit 1
