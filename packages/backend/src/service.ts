@@ -6,7 +6,7 @@ import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 import OpenAI from "openai";
 
-import * as config from "@/config";
+import { Config } from "@/config";
 import * as plugins from "@/plugins";
 
 interface ChatCallback {
@@ -54,24 +54,11 @@ interface ChatService {
  *
  * @returns {ChatService} The ChatService instance.
  */
-export function mkService({
-  callback,
-}: {
-  callback?: {
-    onError: (
-      error:
-        | { _t: "config"; error: Error }
-        | { _t: "decode"; error: D.DecodeError }
-        | { _t: "apiKey" | "baseURL"; error: Error },
-    ) => void;
-    onUnsupported: (message: string) => void;
-  };
-}): ChatService {
-  plugins.registerPlugins(
-    config.mkConfig({
-      callback,
-    }),
-  );
+export function mkService(
+  config: Config,
+  { callback }: { callback: Parameters<typeof plugins.registerPlugins>[1] },
+): ChatService {
+  plugins.registerPlugins(config, callback);
 
   return {
     chatTE,

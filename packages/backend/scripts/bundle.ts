@@ -14,14 +14,14 @@ const nonProdBuildOptions = {
   ...defaultBuildOptions,
   minify: false,
   sourcemap: false,
-  outfile: `dist/dev/index.js`,
+  outfile: "dist/non-prod/index.js",
 };
 
 const prodBuildOptions = {
   ...defaultBuildOptions,
   minify: false,
   sourcemap: true,
-  outfile: `dist/prod/index.js`,
+  outfile: "dist/prod/index.js",
 };
 
 async function main() {

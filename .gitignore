@@ -4,3 +4,4 @@ build
 tsconfig.tsbuildinfo
 .DS_Store
 secret.env
+.bin
