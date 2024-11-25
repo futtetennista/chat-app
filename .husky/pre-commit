@@ -1,6 +1,6 @@
 pnpm exec lint-staged
 
-changed_packages=$(git diff --cached --name-only | grep -E '\.tsx?$' | cut -d'/' -f2 | sort -u)
+changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.tsx?$' | cut -d'/' -f2 | sort -u)
 if [ -z "$changed_packages" ]; then
   echo "[pre-commit] Changed packages: none"
 else
@@ -14,7 +14,7 @@ for package in $changed_packages; do
   fi
 done
 
-git diff --cached --name-only | while read file; do
+git diff --cached --name-only --diff-filter=d | while read file; do
   if [ -f "$file" ]; then
     # Ensure files have ending newline
     if [ "$(tail -c1 "$file")" != "" ]; then

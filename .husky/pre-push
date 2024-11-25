@@ -1,4 +1,4 @@
-changed_files=$(git diff HEAD origin/main --name-only | grep -E '\.tsx?$' | sort -u)
+changed_files=$(git diff HEAD origin/main --name-only --diff-filter=d | grep -E '\.tsx?$' | sort -u)
 if [ -z "$changed_packages" ]; then
   echo "[pre-push] Changed TS files from HEAD to origin/main: none"
 else
