@@ -79,7 +79,7 @@ export default tseslint.config(
     files: [
       "**/*.test.{js,jsx,ts,tsx}",
       "**/*.spec.{js,jsx,ts,tsx}",
-      "__tests__/**/*",
+      "**/__tests__/**/*",
     ],
     languageOptions: {
       globals: {
