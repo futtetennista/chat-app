@@ -2,8 +2,10 @@
 
 import { App } from "cdktf";
 import * as D from "io-ts/Decoder";
+import * as path from "path";
 
 import { Config } from "@/config";
+import { BackendStack } from "@/stacks/backend";
 import { FrontendStack } from "@/stacks/frontend";
 import { IdentityStack } from "@/stacks/identity";
 
@@ -37,7 +39,13 @@ function main() {
   // new AppStack(app, "app", config);
   new IdentityStack(app, "identity", config);
   new FrontendStack(app, "frontend", config);
-  // new BackendStack(app, "backend", config);
+  new BackendStack(app, "backend", {
+    ...config,
+    backend: {
+      ...config.backend,
+      codePath: path.resolve(__dirname, "../../backend/dist"),
+    },
+  });
   app.synth();
 }
 

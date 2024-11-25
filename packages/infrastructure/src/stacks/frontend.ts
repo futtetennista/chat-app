@@ -10,7 +10,7 @@ import { Config } from "@/config";
 export class FrontendStack extends TerraformStack {
   static readonly s3BucketId = "s3b";
 
-  constructor(scope: Construct, id: string, config: Config) {
+  constructor(scope: Construct, id: string, config: Omit<Config, "backend">) {
     super(scope, id);
 
     new AwsProvider(this, "aws", {
