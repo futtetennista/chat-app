@@ -14,6 +14,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 
+import { mkConfig } from "@/config";
 import { mkService } from "@/service";
 
 // https://docs.powertools.aws.dev/lambda/typescript/latest/core/logger
@@ -41,9 +42,39 @@ export const handler: Handler = async (
     server.listen();
   }
 
-  const service = mkService({
+  const config = mkConfig({
+    onError: (error) => {
+      switch (error._t) {
+        case "config": {
+          logger.error(error.error.message);
+          break;
+        }
+        case "decode": {
+          logger.error("JSON config decode error", {
+            details: D.draw(error.error),
+          });
+          break;
+        }
+        default: {
+          const _exhaustiveCheck: never = error;
+          return _exhaustiveCheck;
+        }
+      }
+    },
+  });
+
+  if (config.logging?.enable === undefined || config.logging.enable) {
+    // This is 'false' by default.
+    process.env.POWERTOOLS_LOGGER_LOG_EVENT = "true";
+  }
+
+  if (config.logging?.level) {
+    logger.setLogLevel(config.logging.level);
+  }
+
+  const service = mkService(config, {
     callback: {
-      onUnsupported(message) {
+      onEmptyPlugins(message) {
         logger.warn(message);
       },
       onError: (error) => {
@@ -56,21 +87,14 @@ export const handler: Handler = async (
             logger.error(error.error.message);
             break;
           }
-          case "config": {
-            logger.error(error.error.message);
-            break;
-          }
-          case "decode": {
-            logger.error("JSON config decode error", {
-              details: D.draw(error.error),
-            });
-            break;
-          }
           default: {
-            const _exhaustiveCheck: never = error;
+            const _exhaustiveCheck: never = error._t;
             return _exhaustiveCheck;
           }
         }
+      },
+      onUnsupported(message) {
+        logger.warn(message);
       },
     },
   });

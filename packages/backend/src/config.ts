@@ -19,31 +19,44 @@ const ConfigD = D.partial({
     baseURL: D.string,
     stream: D.boolean,
   }),
-  logging: pipe(
-    D.struct({
-      enable: D.boolean,
-    }),
-    D.intersect(D.partial({ level: D.string })),
-  ),
+  logging: D.partial({
+    enable: D.boolean,
+    level: D.literal(
+      "trace",
+      "debug",
+      "info",
+      "warn",
+      "error",
+      "silent",
+      "critical",
+      "TRACE",
+      "DEBUG",
+      "INFO",
+      "WARN",
+      "ERROR",
+      "SILENT",
+      "CRITICAL",
+    ),
+  }),
 });
 
 export type Config = D.TypeOf<typeof ConfigD>;
 
-export function mkConfig({
-  callback,
-}: {
-  callback?: {
-    onError: (
-      error:
-        | { _t: "config"; error: Error }
-        | { _t: "decode"; error: D.DecodeError },
-    ) => void;
-  };
-} = {}): Config {
+export function mkConfig(callback: {
+  onError: (
+    error:
+      | { _t: "config"; error: Error }
+      | { _t: "decode"; error: D.DecodeError },
+  ) => void;
+}): Config {
   return pipe(
     E.fromNullable(new Error("CHAT_APP_CONFIG_JSON is not set"))(
       process.env.CHAT_APP_CONFIG_JSON,
     ),
+    E.tap((configRaw) => {
+      console.log("Config raw", configRaw);
+      return E.of(configRaw);
+    }),
     E.flatMap((configRaw) => {
       return E.tryCatch(
         () => JSON.parse(configRaw) as Config,
@@ -53,21 +66,14 @@ export function mkConfig({
       );
     }),
     E.flatMap(ConfigD.decode),
-    E.tap((config) => {
-      if (config.logging?.enable) {
-        // This is 'false' by default.
-        process.env.POWERTOOLS_LOGGER_LOG_EVENT = "true";
-      }
-      return E.of(config);
-    }),
     E.match(
       (e) => {
         if (e instanceof Error) {
-          callback?.onError({ _t: "config", error: e });
+          callback.onError({ _t: "config", error: e });
           throw e;
         }
 
-        callback?.onError({ _t: "decode", error: e });
+        callback.onError({ _t: "decode", error: e });
         throw new Error("Failed to decode JSON configuration");
       },
       (config) => config,

@@ -22,6 +22,8 @@ type InferVendor<Name extends string> = Name extends "anthropic"
   ? OpenAI
   : never;
 
+const onEmptyPluginsMessage = "No plugins registered.";
+
 /**
  * Retrieves a plugin by its name.
  *
@@ -81,7 +83,8 @@ function registerPlugin(
  */
 export function registerPlugins(
   config: Config,
-  callback?: {
+  callback: {
+    onEmptyPlugins: (message: typeof onEmptyPluginsMessage) => void;
     onError: (error: { _t: "apiKey" | "baseURL"; error: Error }) => void;
     onUnsupported: (message: string) => void;
   },
@@ -93,11 +96,11 @@ export function registerPlugins(
         const apiKey = config.openai.apiKey;
         if (!apiKey) {
           const error = new Error("Missing configuration: openai.apiKey");
-          callback?.onError({ _t: "apiKey", error });
+          callback.onError({ _t: "apiKey", error });
           throw error;
         }
         if (config.openai.stream) {
-          callback?.onUnsupported("Streaming not supported for OpenAI API");
+          callback.onUnsupported("Streaming not supported for OpenAI API");
         }
         return {
           client: new OpenAI({ apiKey }),
@@ -115,12 +118,12 @@ export function registerPlugins(
         const apiKey = config.perplexity.apiKey;
         if (!apiKey) {
           const error = new Error("Missing configuration: perplexity.apiKey");
-          callback?.onError({ _t: "apiKey", error });
+          callback.onError({ _t: "apiKey", error });
           throw error;
         }
         if (!config.perplexity.baseURL) {
           const error = new Error("Missing configuration: perplexity.baseURL");
-          callback?.onError({ _t: "baseURL", error });
+          callback.onError({ _t: "baseURL", error });
           throw error;
         }
 
@@ -140,11 +143,11 @@ export function registerPlugins(
         const apiKey = config.anthropic.apiKey;
         if (!apiKey) {
           const error = new Error("Missing configuration: anthropic.apiKey");
-          callback?.onError({ _t: "apiKey", error });
+          callback.onError({ _t: "apiKey", error });
           throw error;
         }
         if (config.anthropic.stream) {
-          callback?.onUnsupported("Streaming not supported for Anthropic API");
+          callback.onUnsupported("Streaming not supported for Anthropic API");
         }
 
         return {
@@ -154,5 +157,9 @@ export function registerPlugins(
         };
       })(),
     );
+  }
+
+  if (plugins.length === 0) {
+    callback.onEmptyPlugins(onEmptyPluginsMessage);
   }
 }

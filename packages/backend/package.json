@@ -3,13 +3,15 @@
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
   "scripts": {
+    "bundle:before": "./scripts/mk_config_from_env.sh",
     "bundle:local": "tsx ./scripts/bundle.ts non-prod",
     "clean": "rm -rf $(jq -r .compilerOptions.outDir < tsconfig.json)",
     "compile": "tsc -b",
     "c": "pnpm run compile",
-    "start:local": "sam local start-api --parameter-overrides \"handler=$(jq -r .compilerOptions.outDir < tsconfig.json)/dev/index.js\"",
+    "start:local": "CHAT_APP_CONFIG_JSON=$(./scripts/mk_config_from_env.sh) sam local start-api --template-file aws-sam.template.yml --warm-containers EAGER --parameter-overrides \"handler=$(jq -r .compilerOptions.outDir < tsconfig.json)/non-prod/index.js\"",
     "start": "pnpm run start:local",
     "start:bundle": "pnpm run clean && pnpm run bundle:local && pnpm run start:local",
+    "watch": "nodemon",
     "test": "jest --passWithNoTests",
     "test:unit": "jest --passWithNoTests"
   },
@@ -29,11 +31,13 @@
     "@types/aws-lambda": "^8.10.145",
     "@types/node": "catalog:typescript-node20",
     "commander": "^12.1.0",
+    "concurrently": "^9.1.0",
     "esbuild": "^0.24.0",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "jest": "catalog:jest",
     "msw": "catalog:",
+    "nodemon": "^3.1.7",
     "tsx": "^4.19.2",
     "typescript": "catalog:"
   }
