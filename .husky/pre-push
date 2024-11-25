@@ -9,7 +9,7 @@ echo "[pre-push] Knip will start."
 pnpm run knip
 echo "[pre-push] Knip did end."
 
-changed_files=$(git diff HEAD "$remote_branch" --name-only | grep -E '\.tsx?$' | sort -u)
+changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=d | grep -E '\.tsx?$' | sort -u)
 if [ -z "$changed_files" ]; then
   echo "[pre-push] Changed TS files from HEAD to '$remote_branch': none"
   echo "[pre-push] Done."
