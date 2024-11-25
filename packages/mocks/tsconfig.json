@@ -14,8 +14,8 @@
     "paths": {
       "@chat-app/contracts/*": [
         "../contracts/src/*"
-      ],
-    },
+      ]
+    }
   },
   "include": [
     "./src/**/*"
@@ -23,7 +23,7 @@
   "exclude": [
     "./node_modules",
     "./build/**/*",
-    "./dist/**/*",
+    "./dist/**/*"
   ],
   "references": [
     {
