@@ -14,7 +14,7 @@ jobs:
   terraform-apply:
     name: "Terraform CDK Deploy"
     runs-on: ubuntu-latest
-    environment: production
+    # environment: production
     steps:
       - name: Checkout repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
