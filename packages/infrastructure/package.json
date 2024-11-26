@@ -17,7 +17,6 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@cdktf/provider-aws": "^19.42.0",
-    "@cdktf/provider-null": "^10.0.1",
     "cdktf": "^0.20.10",
     "constructs": "^10.4.2",
     "fp-ts": "catalog:",

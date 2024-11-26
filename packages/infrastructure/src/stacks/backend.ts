@@ -16,7 +16,7 @@ import { Construct } from "constructs";
 
 import { Config as ConfigBase } from "@/config";
 
-type Config = Omit<ConfigBase, "frontend"> & {
+export type Config = Omit<ConfigBase, "frontend"> & {
   backend: Required<ConfigBase["backend"]>;
 };
 
