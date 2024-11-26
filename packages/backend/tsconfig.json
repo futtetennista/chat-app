@@ -12,7 +12,8 @@
     }
   },
   "include": [
-    "./src/**/*",
+    "package.json",
+    "./src/**/*.ts",
     "./scripts/**/*.ts"
   ],
   "exclude": [
