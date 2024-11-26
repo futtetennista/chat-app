@@ -3,7 +3,7 @@ name: infrastructure-apply
 on:
   push:
     branches:
-      - main
+      - none
 
 permissions:
   contents: read
