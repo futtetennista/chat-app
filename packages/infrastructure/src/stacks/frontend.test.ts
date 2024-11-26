@@ -1,4 +1,5 @@
 import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
+import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
 import { describe, expect, it } from "@jest/globals";
@@ -8,15 +9,25 @@ import { Config } from "@/config";
 import { FrontendStack } from "@/stacks/frontend";
 
 describe("FrontendStack", () => {
-  const config: Config = {
+  const config: Omit<Config, "backend"> = {
     frontend: {
       bucket: "some-bucket-name",
     },
-    backend: {},
     accessKey: "some-access-key",
     secretKey: "some-secret-key",
     region: "eu-west-1",
   };
+
+  it("should create AWS provider", () => {
+    const app = Testing.app();
+    const stack = new FrontendStack(app, "frontend", config);
+    const result = Testing.synth(stack);
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    expect(result).toHaveProviderWithProperties(AwsProvider, {
+      region: config.region,
+    });
+  });
 
   it("should create S3 bucket", () => {
     const app = Testing.app();

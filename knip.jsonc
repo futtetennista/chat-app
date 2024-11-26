@@ -2,20 +2,22 @@
   "$schema": "https://unpkg.com/knip/schema.json",
   "project": "**/*.{js,jsx,ts,tsx}",
   "ignore": [
-    "packages/frontend/src/index.dev.tsx",
     "**/dist/**",
     "**/build/**",
     "**/*.test.{js,jsx,ts,tsx}",
-    "packages/infrastructure/src/main.ts"
+    "packages/frontend/src/index.dev.tsx"
   ],
   "ignoreBinaries": ["cdktf", "__use_tsconfig"],
-  "ignoreDependencies": ["husky", "tsx"],
+  "ignoreDependencies": ["concurrently", "husky", "tsx"],
   "workspaces": {
     "packages/backend": {
       "entry": ["src/lambda/index.ts"]
     },
     "packages/frontend": {
       "entry": ["src/index.tsx"]
+    },
+    "packages/infrastructure": {
+      "entry": ["src/main.ts"]
     },
     "packages/*": {
       "entry": ["src/index.ts"]

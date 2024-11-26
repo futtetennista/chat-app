@@ -252,9 +252,6 @@ importers:
       '@cdktf/provider-aws':
         specifier: ^19.42.0
         version: 19.42.0(cdktf@0.20.10(constructs@10.4.2))(constructs@10.4.2)
-      '@cdktf/provider-null':
-        specifier: ^10.0.1
-        version: 10.0.1(cdktf@0.20.10(constructs@10.4.2))(constructs@10.4.2)
       cdktf:
         specifier: ^0.20.10
         version: 0.20.10(constructs@10.4.2)
@@ -1070,13 +1067,6 @@ packages:
 
   '@cdktf/provider-aws@19.42.0':
     resolution: {integrity: sha512-4GN9J3VEsHeRQTPDIpMKJIW+GMZ/L6FzkRbvVB1GvLH9PBAYrsiS0apihiETUK/XPpFpoGygjAiRP9C2e2LAKw==}
-    engines: {node: '>= 18.12.0'}
-    peerDependencies:
-      cdktf: ^0.20.0
-      constructs: ^10.3.0
-
-  '@cdktf/provider-null@10.0.1':
-    resolution: {integrity: sha512-X176VQZFTNi1xSyUEoSb9CsFHfJ9EpcdzCx33UlZMGfQo/DRZC8NT1vHxCQU2TAaB1ZwmnhXEkW2FJO6pB6Pjg==}
     engines: {node: '>= 18.12.0'}
     peerDependencies:
       cdktf: ^0.20.0
@@ -8180,11 +8170,6 @@ snapshots:
       tough-cookie: 4.1.4
 
   '@cdktf/provider-aws@19.42.0(cdktf@0.20.10(constructs@10.4.2))(constructs@10.4.2)':
-    dependencies:
-      cdktf: 0.20.10(constructs@10.4.2)
-      constructs: 10.4.2
-
-  '@cdktf/provider-null@10.0.1(cdktf@0.20.10(constructs@10.4.2))(constructs@10.4.2)':
     dependencies:
       cdktf: 0.20.10(constructs@10.4.2)
       constructs: 10.4.2

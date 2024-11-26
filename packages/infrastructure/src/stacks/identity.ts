@@ -6,7 +6,9 @@ import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 
-import { Config } from "@/config";
+import { Config as ConfigBase } from "@/config";
+
+export type Config = Omit<ConfigBase, "backend" | "frontend">;
 
 export class IdentityStack extends TerraformStack {
   constructor(scope: Construct, id: string, config: Config) {

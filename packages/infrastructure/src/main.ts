@@ -28,7 +28,7 @@ function parseConfig(): Config {
     console.log("✅ Config parsed successfully");
     return configOrError.right;
   } catch (error) {
-    console.error("Could not parse config", error);
+    console.error("❌Could not parse config", error);
     process.exit(1);
   }
 }
