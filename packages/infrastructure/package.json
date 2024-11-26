@@ -2,6 +2,7 @@
   "name": "@chat-app/infrastructure",
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
+  "private": true,
   "main": "./dist/index.js",
   "scripts": {
     "cdktf:clean": "find cdktf.out -name cdk.tf.json -type f -exec rm {} \\;",
