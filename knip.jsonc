@@ -5,22 +5,25 @@
     "**/dist/**",
     "**/build/**",
     "**/*.test.{js,jsx,ts,tsx}",
-    "packages/frontend/src/index.dev.tsx"
+    "packages/frontend/src/index.dev.tsx",
   ],
-  "ignoreBinaries": ["cdktf", "__use_tsconfig"],
+  "ignoreBinaries": ["cdktf", "__use_tsconfig", "__lint", "__prettier"],
   "ignoreDependencies": ["concurrently", "husky", "tsx"],
   "workspaces": {
     "packages/backend": {
-      "entry": ["src/lambda/index.ts"]
+      "entry": [
+        "src/lambda/index.ts",
+        "scripts/cli.ts"
+      ],
     },
     "packages/frontend": {
-      "entry": ["src/index.tsx"]
+      "entry": ["src/index.tsx"],
     },
     "packages/infrastructure": {
-      "entry": ["src/main.ts"]
+      "entry": ["src/main.ts"],
     },
     "packages/*": {
-      "entry": ["src/index.ts"]
-    }
-  }
+      "entry": ["src/index.ts"],
+    },
+  },
 }

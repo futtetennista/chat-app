@@ -1,7 +1,7 @@
 import { Vendor } from "@chat-app/contracts";
 import React from "react";
 import { FaPaperclip, FaPaperPlane, FaTruckLoading } from "react-icons/fa";
-import styled from 'styled-components';
+import styled from "styled-components";
 
 import { useChat } from "../hooks/useChat";
 
@@ -71,7 +71,7 @@ const SendButton = styled.button`
 `;
 
 const AttachFileButton = styled.button`
-  background-color: ${({ disabled }) => (disabled ? '#ccc' : '#007bff')};
+  background-color: ${({ disabled }) => (disabled ? "#ccc" : "#007bff")};
   border: none;
   border-radius: 24px;
   color: white;

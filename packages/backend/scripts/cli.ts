@@ -3,7 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import bundle from "./bundle";
-import mkConfigFromEnv, {
+import mkConfig, {
   AnthropicModels,
   anthropicModels,
   OpenAIModels,
@@ -38,13 +38,7 @@ function main() {
     )
     .option("--stream", "Use streaming API", false)
     .helpOption("-h, --help")
-    .action(({ anthropicModel, openaiModel, ...rest }) => {
-      return mkConfigFromEnv(cli)({
-        ...rest,
-        anthropicModel: anthropicModel,
-        openaiModel: openaiModel,
-      });
-    });
+    .action(mkConfig(cli));
 
   const { version } = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"),

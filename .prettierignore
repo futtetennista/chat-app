@@ -1,0 +1,9 @@
+**/node_modules/**
+**/dist/**
+**/build/**
+**/public/**
+**/tests-examples/**
+**/.gen/**
+pnpm-lock.yaml
+packages/infrastructure/cdktf.out/**
+packages/frontend/playwright-report/**

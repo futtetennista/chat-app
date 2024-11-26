@@ -17,10 +17,10 @@ const plugins: Plugin[] = [];
 type InferVendor<Name extends string> = Name extends "anthropic"
   ? Anthropic
   : Name extends "openai"
-  ? OpenAI
-  : Name extends "perplexity"
-  ? OpenAI
-  : never;
+    ? OpenAI
+    : Name extends "perplexity"
+      ? OpenAI
+      : never;
 
 const onEmptyPluginsMessage = "No plugins registered.";
 

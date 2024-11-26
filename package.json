@@ -5,10 +5,10 @@
   "packageManager": "pnpm@9.12.2",
   "private": true,
   "scripts": {
-    "lint": "pnpm run lint:before && eslint .",
-    "lint:before": "pnpm --filter frontend run use-tsconfig dev",
-    "knip:before": "pnpm --filter frontend run use-tsconfig dev",
-    "knip": "pnpm run knip:before && knip"
+    "__before": "pnpm --filter frontend run use-tsconfig dev",
+    "format": "__prettier() { pnpm run __before && prettier --write \"${1:-$PWD}\"; }; __prettier $@",
+    "lint": "__lint() { pnpm run __before && eslint \"${1:-$PWD}\"; }; __lint \"$@\"",
+    "knip": "pnpm run __before && knip"
   },
   "license": "UNLICENSED",
   "devDependencies": {
@@ -21,7 +21,7 @@
     "husky": "^9.1.6",
     "knip": "^5.36.3",
     "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3",
+    "prettier": "^3.4.1",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8.13.0"
   },

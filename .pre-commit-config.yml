@@ -16,24 +16,24 @@ repos:
     hooks:
       - id: shellcheck
   # - repo: local
-    # hooks:
-      # - entry: /nix/store/d4b80pdbakylf5czc94ll3gwshmb0mmk-nix-linter-0.2.0.4/bin/nix-linter
-        # files: "\\.nix$"
-        # id: nix-linter
-        # language: system
-        # name: nix-linter
-        # pass_filenames: true
-        # stages:
-          # - commit
-        # types:
-          # - file
-      # - entry: /nix/store/m86nnc41fpsh8rbxmnlsyvk5g99hi1fp-nixpkgs-fmt-1.3.0/bin/nixpkgs-fmt
-        # files: "\\.nix$"
-        # id: nixpkgs-fmt
-        # language: system
-        # name: nixpkgs-fmt
-        # pass_filenames: true
-        # stages:
-          # - commit
-        # types:
-          # - file
+  # hooks:
+  # - entry: /nix/store/d4b80pdbakylf5czc94ll3gwshmb0mmk-nix-linter-0.2.0.4/bin/nix-linter
+  # files: "\\.nix$"
+  # id: nix-linter
+  # language: system
+  # name: nix-linter
+  # pass_filenames: true
+  # stages:
+  # - commit
+  # types:
+  # - file
+  # - entry: /nix/store/m86nnc41fpsh8rbxmnlsyvk5g99hi1fp-nixpkgs-fmt-1.3.0/bin/nixpkgs-fmt
+  # files: "\\.nix$"
+  # id: nixpkgs-fmt
+  # language: system
+  # name: nixpkgs-fmt
+  # pass_filenames: true
+  # stages:
+  # - commit
+  # types:
+  # - file

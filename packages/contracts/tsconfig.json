@@ -1,18 +1,10 @@
 {
-  "extends": [
-    "../tsconfig.base.json",
-    "@tsconfig/recommended/tsconfig.json"
-  ],
+  "extends": ["../tsconfig.base.json", "@tsconfig/recommended/tsconfig.json"],
   "compilerOptions": {
     "module": "preserve",
     "outDir": "./build",
     "rootDir": "./src"
   },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./node_modules",
-    "./build"
-  ]
+  "include": ["./src/**/*"],
+  "exclude": ["./node_modules", "./build"]
 }

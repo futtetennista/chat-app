@@ -7,30 +7,17 @@
     "allowImportingTsExtensions": true,
     "isolatedDeclarations": false,
     "target": "ES2022",
-    "lib": [
-      "ES2022",
-      "DOM"
-    ],
+    "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx",
     "outDir": "./build",
     "paths": {
-      "@chat-app/contracts/*": [
-        "../contracts/src/*"
-      ],
-      "@chat-app/mocks/*": [
-        "../mocks/src/*"
-      ],
+      "@chat-app/contracts/*": ["../contracts/src/*"],
+      "@chat-app/mocks/*": ["../mocks/src/*"]
     },
     "tsBuildInfoFile": "tsconfig.tsbuildinfo"
   },
-  "include": [
-    "src/**/*",
-    "playwright.config.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "./build",
-  ],
+  "include": ["src/**/*", "playwright.config.ts"],
+  "exclude": ["node_modules", "./build"],
   "references": [
     {
       "path": "../contracts"

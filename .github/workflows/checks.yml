@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: '${{ github.workflow }} @ ${{ github.ref }}'
+  group: "${{ github.workflow }} @ ${{ github.ref }}"
   cancel-in-progress: true
 
 permissions:
@@ -89,7 +89,7 @@ jobs:
       - name: Run tests
         run: pnpm --recursive run test:unit
 
-  repo-lint:
+  repo-pretty-lint:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -101,15 +101,19 @@ jobs:
         name: Set up node.js with pnpm
         with:
           install-recursive: true
+      - name: Run prettier
+        id: run-prettier
+        run: pnpm run format ${{ github.event_name == 'pull_request' && '--write' || '' }}
       - name: Run linter
         id: run-linter
         run: pnpm run lint ${{ github.event_name == 'pull_request' && '--fix' || '' }}
       - name: Commit and push fixed files
         uses: EndBug/add-and-commit@a94899bca583c204427a224a7af87c02f9b325d5 # v9.1.4
-        if: steps.run-linter.outcome == 'failure' && github.event_name == 'pull_request'
+        continue-on-error: true
+        if: github.event_name == 'pull_request'
         with:
           add: .
-          message: Fix eslint issues
+          message: Fix eslint and prettier issues
 
   repo-knip:
     runs-on: ubuntu-latest
