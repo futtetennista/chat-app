@@ -2,8 +2,6 @@
   "delay": 200,
   "exec": "concurrently --kill-others-on-fail \"pnpm run bundle:local\" \"pnpm run start\"",
   "signal": "SIGKILL",
-  "watch": [
-    "src"
-  ],
+  "watch": ["src"],
   "ext": "ts,mts,cts,js,mjs,cjs,json"
 }

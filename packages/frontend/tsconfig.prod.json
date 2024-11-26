@@ -1,7 +1,5 @@
 {
-  "extends": [
-    "./tsconfig.dev.json",
-  ],
+  "extends": ["./tsconfig.dev.json"],
   "exclude": [
     "node_modules",
     "./build",
@@ -11,7 +9,7 @@
     "**/*.spec.ts",
     "**/*.spec.tsx",
     "**/*.test.ts",
-    "**/*.test.tsx",
+    "**/*.test.tsx"
   ],
   "references": [
     {
