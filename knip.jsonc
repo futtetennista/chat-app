@@ -8,7 +8,7 @@
     "packages/frontend/src/index.dev.tsx",
   ],
   "ignoreBinaries": ["cdktf", "__use_tsconfig", "__lint", "__prettier"],
-  "ignoreDependencies": ["concurrently", "husky", "tsx"],
+  "ignoreDependencies": ["concurrently", "husky", "lint-staged", "tsx"],
   "workspaces": {
     "packages/backend": {
       "entry": [
