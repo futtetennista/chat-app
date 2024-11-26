@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "packageManager": "pnpm@9.12.2",
+  "private": true,
   "scripts": {
     "lint": "pnpm run lint:before && eslint .",
     "lint:before": "pnpm --filter frontend run use-tsconfig dev",
