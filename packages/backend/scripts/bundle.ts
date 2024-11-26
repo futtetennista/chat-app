@@ -1,4 +1,4 @@
-import { Argument, Command } from "@commander-js/extra-typings";
+import { Command } from "@commander-js/extra-typings";
 import * as esbuild from "esbuild";
 
 const defaultBuildOptions: esbuild.BuildOptions = {
@@ -24,24 +24,14 @@ const prodBuildOptions = {
   outfile: "dist/prod/index.js",
 };
 
-async function main() {
-  const program = new Command()
-    .addArgument(
-      new Argument("<environment>").choices(["prod", "non-prod"] as const),
-    )
-    .allowExcessArguments(false)
-    .allowUnknownOption(false)
-    .version("1.0.0")
-    .parse();
+export default function bundle(cmd: Command) {
+  return async function (arg: "prod" | "non-prod") {
+    const buildOptions =
+      arg === "non-prod" ? nonProdBuildOptions : prodBuildOptions;
 
-  const env = program.args[0];
-  const buildOptions =
-    env === "non-prod" ? nonProdBuildOptions : prodBuildOptions;
-
-  await esbuild.build(buildOptions).catch((e: unknown) => {
-    console.error("Build not successful", e);
-    process.exit(1);
-  });
+    await esbuild.build(buildOptions).catch((e: unknown) => {
+      console.error("Build not successful", e);
+      cmd.error("Build not successful");
+    });
+  };
 }
-
-void main();
