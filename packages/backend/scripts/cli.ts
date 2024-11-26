@@ -1,9 +1,16 @@
 import { Argument, Command, Option } from "@commander-js/extra-typings";
+import * as fs from "fs";
+import * as path from "path";
 
 import bundle from "./bundle";
-import mkConfigFromEnv, { AnthropicModel, OpenAIModel } from "./mkConfig";
+import mkConfigFromEnv, {
+  AnthropicModels,
+  anthropicModels,
+  OpenAIModels,
+  openAIModels,
+} from "./mkConfig";
 
-async function main() {
+function main() {
   const cli = new Command();
 
   cli
@@ -17,42 +24,31 @@ async function main() {
   cli
     .command("config:create")
     .description("Create the config file.")
-    .option<"--local-dev", boolean>("--local-dev", "Output file")
+    .option("--local-dev", "Output file", false)
     .addOption(
       new Option("--openai-model <name>")
-        .choices<OpenAIModel[]>([
-          "gpt-4o",
-          "gpt-4o-mini",
-          "o1-preview",
-          "o1-mini",
-        ])
-        .default("gpt-4o-mini"),
+        .choices<OpenAIModels>(openAIModels)
+        .default<OpenAIModels[number]>("gpt-4o-mini"),
     )
     // https://docs.anthropic.com/en/docs/about-claude/models#model-comparison-table
     .addOption(
       new Option("--anthropic-model <name>")
-        .choices<AnthropicModel[]>([
-          "claude-3-opus-latest",
-          "claude-3-sonnet-latest",
-          "claude-3-haiku-latest",
-          "claude-3-5-sonnet-latest",
-          "claude-3-5-haiku-latest",
-        ])
-        .default("claude-3-sonnet-latest"),
+        .choices<AnthropicModels>(anthropicModels)
+        .default<AnthropicModels[number]>("claude-3-sonnet-latest"),
     )
     .option("--stream", "Use streaming API", false)
     .helpOption("-h, --help")
     .action(({ anthropicModel, openaiModel, ...rest }) => {
       return mkConfigFromEnv(cli)({
         ...rest,
-        anthropicModel: anthropicModel as AnthropicModel,
-        openaiModel: openaiModel as OpenAIModel,
+        anthropicModel: anthropicModel,
+        openaiModel: openaiModel,
       });
     });
 
-  const {
-    default: { version },
-  } = await import("../package.json");
+  const { version } = JSON.parse(
+    fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8"),
+  ) as { version: string };
 
   cli
     .allowExcessArguments(false)
@@ -61,4 +57,4 @@ async function main() {
     .parse();
 }
 
-void main();
+main();

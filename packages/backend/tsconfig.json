@@ -1,26 +1,13 @@
 {
-  "extends": [
-    "../tsconfig.base.json",
-    "@tsconfig/node20/tsconfig.json"
-  ],
+  "extends": ["../tsconfig.base.json", "@tsconfig/node20/tsconfig.json"],
   "compilerOptions": {
     "outDir": "./dist",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "package.json",
-    "./src/**/*.ts",
-    "./scripts/**/*.ts"
-  ],
-  "exclude": [
-    "./node_modules",
-    "./dist",
-    "**/*.test.ts"
-  ],
+  "include": ["./src/**/*.ts", "./scripts/**/*.ts"],
+  "exclude": ["./node_modules", "./dist"],
   "references": [
     {
       "path": "../contracts"

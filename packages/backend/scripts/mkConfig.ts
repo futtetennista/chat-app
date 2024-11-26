@@ -8,26 +8,34 @@ import * as path from "path";
 
 import { Config } from "../src/config";
 
-export type AnthropicModel =
-  | "claude-3-opus-latest"
-  | "claude-3-sonnet-latest"
-  | "claude-3-haiku-latest"
-  | "claude-3-5-sonnet-latest"
-  | "claude-3-5-haiku-latest";
+export const anthropicModels = [
+  "claude-3-opus-latest",
+  "claude-3-sonnet-latest",
+  "claude-3-haiku-latest",
+  "claude-3-5-sonnet-latest",
+  "claude-3-5-haiku-latest",
+] as const;
+export type AnthropicModels = typeof anthropicModels;
 
-export type OpenAIModel = "gpt-4o" | "gpt-4o-mini" | "o1-preview" | "o1-mini";
+export const openAIModels = [
+  "gpt-4o",
+  "gpt-4o-mini",
+  "o1-preview",
+  "o1-mini",
+] as const;
+export type OpenAIModels = typeof openAIModels;
 
 export default function (cmd: Command) {
   return async function ({
     localDev,
     openaiModel,
     anthropicModel,
-    stream,
+    stream = false,
   }: {
-    localDev: boolean;
-    openaiModel: OpenAIModel;
-    anthropicModel: AnthropicModel;
-    stream: boolean;
+    localDev?: boolean;
+    openaiModel: OpenAIModels[number];
+    anthropicModel: AnthropicModels[number];
+    stream?: boolean;
   }): Promise<void> {
     if (localDev) {
       const envPath = path.resolve(__dirname, "../../../secret.env");
@@ -91,8 +99,8 @@ function createConfig({
     PERPLEXITY_API_KEY?: string;
     PERPLEXITY_BASE_URL?: string;
   };
-  openaiModel: OpenAIModel;
-  anthropicModel: AnthropicModel;
+  openaiModel: OpenAIModels[number];
+  anthropicModel: AnthropicModels[number];
   perplexityModel?: string;
   stream: boolean;
 }): Config {
