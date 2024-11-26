@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
   "private": true,
+  "license": "UNLICENSED",
   "scripts": {
     "bundle:before": "tsx ./scripts/cli.ts config:create --local-dev",
     "bundle:local": "tsx ./scripts/cli.ts bundle non-prod",
@@ -13,11 +14,9 @@
     "start": "pnpm run start:local",
     "start:bundle": "pnpm run bundle:clean && pnpm run bundle:local && pnpm run start:local",
     "watch": "nodemon",
-    "__watch_description": "See nodemon.json to see how nodemon is configured.",
     "test": "pnpm run test:unit",
     "test:unit": "jest --passWithNoTests"
   },
-  "license": "UNLICENSED",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
     "@aws-lambda-powertools/logger": "^2.10.0",
