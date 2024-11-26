@@ -1,6 +1,6 @@
 pnpm exec lint-staged
 
-changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.tsx?$' | cut -d'/' -f2 | sort -u)
+changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.(j|t)sx?$' | cut -d'/' -f2 | sort -u)
 if [ -z "$changed_packages" ]; then
   echo "[pre-commit] Changed packages: none"
 else
