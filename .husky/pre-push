@@ -9,6 +9,13 @@ echo "[pre-push] Knip will start."
 pnpm run knip
 echo "[pre-push] Knip did end."
 
+
+# This script identifies JavaScript and TypeScript files that have been changed
+# between the current HEAD and the specified remote branch. It filters out deleted
+# files and sorts the list of changed files in a unique, alphabetical order.
+# The resulting list includes files with the following extensions: .js, .jsx, .ts, .tsx.
+# Sorting is not strictly necessary, it's a workaround to swallow non-zero codes that grep
+# returns if no match is found so that the command always returns a zero code.
 changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=d | grep -E '\.(j|t)sx?$' | sort -u)
 
 if [ -z "$changed_files" ]; then
