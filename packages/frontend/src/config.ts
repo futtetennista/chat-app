@@ -11,6 +11,6 @@ export const config: {
       }
       return process.env.REACT_APP_API_BASE_URL;
     })(),
-    chatPath: process.env.REACT_APP_API_CHAT_PATH ?? "/api/chat",
+    chatPath: process.env.REACT_APP_API_CHAT_PATH ?? "/v1/api/chat",
   },
 } as const;

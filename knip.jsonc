@@ -7,7 +7,14 @@
     "**/*.test.{js,jsx,ts,tsx}",
     "packages/frontend/src/index.dev.tsx",
   ],
-  "ignoreBinaries": ["cdktf", "__use_tsconfig", "__lint", "__prettier"],
+  "ignoreBinaries": [
+    "cdktf",
+    "jq",
+    "__cdktf_clean",
+    "__use_tsconfig",
+    "__lint",
+    "__prettier",
+  ],
   "ignoreDependencies": ["concurrently", "husky", "lint-staged", "tsx"],
   "workspaces": {
     "packages/backend": {
@@ -20,7 +27,7 @@
       "entry": ["src/index.tsx"],
     },
     "packages/infrastructure": {
-      "entry": ["src/main.ts"],
+      "entry": ["src/**/main.ts"],
     },
     "packages/*": {
       "entry": ["src/index.ts"],

@@ -22,7 +22,7 @@ export function useChat({
 }): {
   messages: Message[];
   isLoading: boolean;
-  sendMessage: (content: string) => Promise<void>;
+  chat: (content: string) => Promise<void>;
   error: string | undefined;
 } {
   const [chatHistory, setChatHistory] = useState<ChatHistory>({
@@ -53,7 +53,7 @@ export function useChat({
     );
   }
 
-  const sendMessage = useCallback(
+  const chat = useCallback(
     async (content: string): Promise<void> => {
       setIsLoading(true);
 
@@ -105,7 +105,7 @@ export function useChat({
           return TE.right({ model, message, history });
         }),
         TE.flatMap(({ model, message, history }) =>
-          api.sendMessageTE({ vendor: model, message, history }),
+          api.chatTE({ vendor: model, message, history }),
         ),
         TE.flatMap((response) => {
           if (response._t === "ko") {
@@ -188,7 +188,7 @@ export function useChat({
   return {
     messages: chatHistory.messages,
     isLoading,
-    sendMessage,
+    chat,
     error,
   };
 }

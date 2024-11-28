@@ -1,12 +1,11 @@
+import { Config } from "@app/config";
+import { FrontendStack } from "@app/stacks/frontend";
 import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
 import { describe, expect, it } from "@jest/globals";
 import { Testing } from "cdktf";
-
-import { Config } from "@/config";
-import { FrontendStack } from "@/stacks/frontend";
 
 describe("FrontendStack", () => {
   const config: Omit<Config, "backend"> = {

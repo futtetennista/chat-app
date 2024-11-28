@@ -1,3 +1,4 @@
+import { Config as ConfigBase } from "@app/config";
 import { Apigatewayv2Api } from "@cdktf/provider-aws/lib/apigatewayv2-api";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { IamRolePolicyAttachment } from "@cdktf/provider-aws/lib/iam-role-policy-attachment";
@@ -13,8 +14,6 @@ import {
   TerraformStack,
 } from "cdktf";
 import { Construct } from "constructs";
-
-import { Config as ConfigBase } from "@/config";
 
 export type Config = Omit<ConfigBase, "frontend"> & {
   backend: Required<ConfigBase["backend"]>;
@@ -112,7 +111,7 @@ export class BackendStack extends TerraformStack {
     //         type: "local-exec",
     //         command: `sam build && \
     //           mkdir -p ./dist && \
-    //           zip -r ./dist/bundle.zip .aws-sam/build/sendMessage`,
+    //           zip -r ./dist/bundle.zip .aws-sam/build/chat`,
     //       },
     //     ],
     //   },
@@ -138,7 +137,7 @@ export class BackendStack extends TerraformStack {
     //   filename: path.resolve(__dirname, "../../../backend/dist/bundle.zip"),
     //   handler: "index.handler",
     //   runtime: "nodejs20",
-    //   functionName: "sendMessage",
+    //   functionName: "chat",
     //   role: lambdaRole.arn,
     //   dependsOn: [buildLambdaFunction],
     // });
@@ -148,7 +147,7 @@ export class BackendStack extends TerraformStack {
     //   "sam_metadata_aws_lambda_function_publish_book_review",
     //   {
     //     triggers: {
-    //       resource_name: "aws_lambda_function.sendMessage",
+    //       resource_name: "aws_lambda_function.chat",
     //       resource_type: "ZIP_LAMBDA_FUNCTION",
     //       original_source_code: path.join(__dirname, "../../../backend/src"),
     //       built_output_path: path.join(__dirname, "../../../backend/dist"),

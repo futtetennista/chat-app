@@ -1,0 +1,68 @@
+[
+  {
+    "Effect": "Allow",
+    "Action": [
+      "s3:CreateBucket",
+      "s3:DeleteBucket",
+      "s3:ListBucket",
+      "s3:PutObject",
+      "s3:GetObject",
+      "s3:DeleteObject",
+      "s3:PutBucketTagging"
+    ],
+    "Resource": "*"
+  },
+  {
+    "Effect": "Allow",
+    "Action": [
+      "lambda:CreateFunction",
+      "lambda:DeleteFunction",
+      "lambda:UpdateFunctionCode",
+      "lambda:UpdateFunctionConfiguration",
+      "lambda:GetFunction",
+      "lambda:ListFunctions",
+      "lambda:AddPermission",
+      "lambda:RemovePermission"
+    ],
+    "Resource": "*"
+  },
+  {
+    "Effect": "Allow",
+    "Action": [
+      "iam:CreateRole",
+      "iam:DeleteRole",
+      "iam:AttachRolePolicy",
+      "iam:DetachRolePolicy",
+      "iam:PassRole",
+      "iam:CreatePolicy",
+      "iam:GetPolicy",
+      "iam:GetPolicyVersion",
+      "iam:ListAttachedRolePolicies"
+    ],
+    "Resource": "*"
+  },
+  {
+    "Effect": "Allow",
+    "Action": [
+      "apigatewayv2:CreateApi",
+      "apigatewayv2:DeleteApi",
+      "apigatewayv2:GetApi",
+      "apigatewayv2:UpdateApi",
+      "apigatewayv2:ListApis",
+      "apigatewayv2:PutIntegration",
+      "apigatewayv2:PutIntegrationResponse",
+      "apigatewayv2:PutRoute",
+      "apigatewayv2:PutRouteResponse"
+    ],
+    "Resource": "*"
+  },
+  {
+    "Effect": "Allow",
+    "Action": [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ],
+    "Resource": "*"
+  }
+]

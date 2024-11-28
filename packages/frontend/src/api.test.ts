@@ -25,13 +25,13 @@ afterAll(() => {
   server.close();
 });
 
-describe("sendMessage", () => {
+describe("chat", () => {
   it("should send a message and return the response", async function () {
     const history: Message[] = [
       { role: "user", content: "Hi", timestamp: Date.now() },
     ];
 
-    const response = await api.sendMessageTE({
+    const response = await api.chatTE({
       vendor: "openai",
       message: "Hello, world!",
       history,
@@ -54,7 +54,7 @@ describe("sendMessage", () => {
     ];
 
     await expect(
-      api.sendMessageTE({ vendor, message, history })(),
+      api.chatTE({ vendor, message, history })(),
     ).rejects.toThrow();
   });
 });

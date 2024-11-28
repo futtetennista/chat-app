@@ -6,3 +6,4 @@ cdktf.log
 .gen
 .terraform
 tsconfig.tsbuildinfo
+cdktf.json

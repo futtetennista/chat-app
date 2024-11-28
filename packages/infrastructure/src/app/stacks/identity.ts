@@ -1,3 +1,4 @@
+import { Config as ConfigBase } from "@app/config";
 import { CognitoIdentityPool } from "@cdktf/provider-aws/lib/cognito-identity-pool";
 import { CognitoIdentityPoolRolesAttachment } from "@cdktf/provider-aws/lib/cognito-identity-pool-roles-attachment";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
@@ -5,8 +6,6 @@ import { IamRolePolicy } from "@cdktf/provider-aws/lib/iam-role-policy";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { TerraformStack } from "cdktf";
 import { Construct } from "constructs";
-
-import { Config as ConfigBase } from "@/config";
 
 export type Config = Omit<ConfigBase, "backend" | "frontend">;
 

@@ -22,7 +22,7 @@ export type APIError =
 export interface API {
   readonly baseURL: string;
 
-  sendMessageTE({
+  chatTE({
     vendor,
     message,
     history,
@@ -32,7 +32,7 @@ export interface API {
 const api: API = {
   baseURL: config.api.baseURL,
 
-  sendMessageTE({ vendor, message, history }) {
+  chatTE({ vendor, message, history }) {
     console.log(`Sending message "${message}" to model "${vendor}"`);
     return pipe(
       TE.tryCatch(
@@ -64,7 +64,7 @@ const api: API = {
 };
 
 // export const api_ = {
-//   sendMessageTE({
+//   chatTE({
 //     model,
 //     message,
 //     history,
@@ -74,7 +74,7 @@ const api: API = {
 //     return pipe(
 //       TE.tryCatch(
 //         () => {
-//           return fetch(new URL("/api/chat", config.apiBaseURL), {
+//           return fetch(new URL("/v1/api/chat", config.apiBaseURL), {
 //             body: ChatRequest.encode({ model, message, history }),
 //             method: "POST",
 //           });

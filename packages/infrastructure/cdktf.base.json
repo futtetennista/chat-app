@@ -2,13 +2,10 @@
   "language": "typescript",
   "projectId": "@chat-app/infrastructure",
   "sendCrashReports": false,
-  "terraformProviders": [
-    "aws@~>5.0"
-  ],
+  "terraformProviders": ["aws@~>5.0"],
   "terraformModules": [],
   "context": {
     "excludeStackIdFromLogicalIds": "true",
     "allowSepCharsInLogicalIds": "true"
-  },
-  "app": "pnpm tsx ./src/bootstrap/main.ts"
+  }
 }
