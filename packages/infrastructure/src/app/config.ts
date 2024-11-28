@@ -1,7 +1,7 @@
 import { pipe } from "fp-ts/lib/function";
 import * as D from "io-ts/Decoder";
 
-const LambdaFunctionConfig = pipe(
+const LambdaFunctionConfigD = pipe(
   D.struct({
     handler: D.string,
     name: D.string,
@@ -16,14 +16,18 @@ const LambdaFunctionConfig = pipe(
   ),
 );
 
-const FrontendConfig = D.struct({
+export type LambdaFunctionConfig = D.TypeOf<typeof LambdaFunctionConfigD>;
+
+const FrontendConfigD = D.struct({
   bucket: D.string,
 });
 
+export type FrontendConfig = D.TypeOf<typeof FrontendConfigD>;
+
 export const Config = pipe(
   D.struct({
-    frontend: FrontendConfig,
-    backend: LambdaFunctionConfig,
+    frontend: FrontendConfigD,
+    backend: LambdaFunctionConfigD,
     region: D.string,
     accessKey: D.string,
     secretKey: D.string,

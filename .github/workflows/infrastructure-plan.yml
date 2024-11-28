@@ -9,6 +9,15 @@ on:
   pull_request:
   workflow_call:
   workflow_dispatch:
+    # inputs:
+    #   openai-model:
+    #     description: 'OpenAI model to use'
+    #     required: true
+    #     default: gpt-4o-mini
+    #   anthropic-model:
+    #     description: 'Anthropic model to use'
+    #     required: true
+    #     default: claude-3-sonnet-latest
 
 jobs:
   filter-changes:
@@ -48,26 +57,35 @@ jobs:
       - name: Test stack
         working-directory: ./packages/infrastructure
         run: pnpm run test:unit
-      # - name: Configure AWS Credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     audience: sts.amazonaws.com
-      #     aws-region: ${{ vars.AWS_REGION }}
-      #     role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/FrontendAppDeploy
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          audience: sts.amazonaws.com
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsRole
+      # - name: Set defaults
+      #   id: set-defaults
+      #   run: |
+      #     openai_model="${{ inputs.openai-model }}"
+      #     anthropic_model="${{ inputs.anthropic-model }}"
+      #     echo "openai-model="${openai_model:=gpt-4o-mini}" >>"$GITHUB_OUPUT"
+      #     echo anthropic-model=${anthropic_model:=claude-3-sonnet-latest} >>"$GITHUB_OUPUT"
       - name: Make config
         working-directory: ./packages/infrastructure/scripts
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_REGION: ${{ vars.AWS_REGION }}
-          AWS_S3_BUCKET_NAME: ${{ vars.AWS_S3_BUCKET_NAME }}
+          AWS_LAMBDA_FUNC_HANDLER: index.handler
+          AWS_LAMBDA_FUNC_NAME: backend
+          AWS_LAMBDA_FUNC_RUNTIME: nodejs20.x
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          config_json=$(./mk_frontend_config_from_env.sh)
-          if [ $? -ne 0 ]; then
-            echo "Failed to create config"
-            exit 1
-          fi
-          echo "FRONTEND_INFRASTRUCTURE_JSON_CONFIG=$config_json" >>"$GITHUB_ENV"
+          # Sets BACKEND_INFRASTRUCTURE_JSON_CONFIG
+          pnpm run config:backend:create \
+            --version ${{ github.sha }}
+
+          # Sets FRONTEND_INFRASTRUCTURE_JSON_CONFIG
+          pnpm run config:frontend:create \
+            --aws-bucket ${{ vars.AWS_S3_BUCKET_NAME }}
       - name: Get CDKTF version
         id: get-cdktf-version
         run: |
@@ -80,6 +98,7 @@ jobs:
         uses: hashicorp/terraform-cdk-action@d0ac1a0d6ea11736459c4e06ccf55a5fda705f77 # v5.0.1
         env:
           FRONTEND_INFRASTRUCTURE_JSON_CONFIG: ${{ env.FRONTEND_INFRASTRUCTURE_JSON_CONFIG }}
+          BACKEND_INFRASTRUCTURE_JSON_CONFIG: ${{ env.BACKEND_INFRASTRUCTURE_JSON_CONFIG }}
         with:
           cdktfVersion: ${{ steps.get-cdktf-version.outputs.cdktf-version }}
           commentOnPr: true

@@ -4,7 +4,8 @@
 module.exports = {
   clearMocks: true,
   moduleNameMapper: {
-    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@app/(.*)$": "<rootDir>/src/app/$1",
+    "^@bootstrap/(.*)$": "<rootDir>/src/bootstrap/$1",
   },
   resetMocks: true,
   reporters:

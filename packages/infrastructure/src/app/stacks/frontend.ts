@@ -1,11 +1,10 @@
+import { Config } from "@app/config";
 import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
 import { TerraformOutput, TerraformStack } from "cdktf";
 import { Construct } from "constructs";
-
-import { Config } from "@/config";
 
 export class FrontendStack extends TerraformStack {
   static readonly s3BucketId = "s3b";

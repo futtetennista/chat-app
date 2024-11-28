@@ -90,7 +90,7 @@ interface Props {
 
 const Chat = ({ modelState, chatId }: Props) => {
   const [input, setInput] = React.useState<string | undefined>(undefined);
-  const { messages, isLoading, error, sendMessage } = useChat({
+  const { messages, isLoading, error, chat } = useChat({
     modelState,
     chatId,
   });
@@ -98,7 +98,7 @@ const Chat = ({ modelState, chatId }: Props) => {
   const onSubmit = async function (e: React.FormEvent): Promise<void> {
     e.preventDefault();
     if (input?.trim() && !isLoading) {
-      await sendMessage(input.trim());
+      await chat(input.trim());
       setInput("");
     }
   };

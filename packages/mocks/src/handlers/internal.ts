@@ -17,7 +17,7 @@ const handlers = [
     return passthrough();
   }),
   http.post(
-    new URL("/api/chat", baseURL).toString(),
+    new URL("/v1/api/chat", baseURL).toString(),
     ({ request }): Promise<StrictResponse<ChatResponse>> => {
       return pipe(
         TE.tryCatch(

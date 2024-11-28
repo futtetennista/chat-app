@@ -271,6 +271,12 @@ importers:
         specifier: 'catalog:'
         version: 2.2.21(fp-ts@2.16.9)
     devDependencies:
+      '@actions/core':
+        specifier: ^1.11.1
+        version: 1.11.1
+      '@commander-js/extra-typings':
+        specifier: ^12.1.0
+        version: 12.1.0(commander@12.1.0)
       '@jest/globals':
         specifier: catalog:jest
         version: 29.7.0
@@ -289,6 +295,9 @@ importers:
       '@types/node':
         specifier: catalog:typescript-node20
         version: 20.17.6
+      commander:
+        specifier: ^12.1.0
+        version: 12.1.0
       jest:
         specifier: catalog:jest
         version: 29.7.0(@types/node@20.17.6)(babel-plugin-macros@3.1.0)(ts-node@10.9.2(@swc/core@1.9.2)(@types/node@20.17.6)(typescript@5.6.3))
