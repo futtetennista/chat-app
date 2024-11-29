@@ -26,15 +26,17 @@ function main() {
     .description("Create the config file.")
     .option("--local-dev", "Output file", false)
     .addOption(
-      new Option("--openai-model <name>")
+      new Option("--openai-model <name>", "OpenAI model (pick 'gpt-4o-mini' for a general-purpose, fast model)")
         .choices<OpenAIModels>(openAIModels)
-        .default<OpenAIModels[number]>("gpt-4o-mini"),
+        .makeOptionMandatory(),
+        // .default<OpenAIModels[number]>("gpt-4o-mini"),
     )
     // https://docs.anthropic.com/en/docs/about-claude/models#model-comparison-table
     .addOption(
-      new Option("--anthropic-model <name>")
+      new Option("--anthropic-model <name>", "Anthropic model (pick 'claude-3-haiku-latest' for a general-purpose, fast model)")
         .choices<AnthropicModels>(anthropicModels)
-        .default<AnthropicModels[number]>("claude-3-sonnet-latest"),
+        // .default<AnthropicModels[number]>("claude-3-haiku-latest"),
+        .makeOptionMandatory(),
     )
     .option("--stream", "Use streaming API", false)
     .helpOption("-h, --help")
