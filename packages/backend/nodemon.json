@@ -1,7 +1,7 @@
 {
   "delay": 200,
-  "exec": "concurrently --kill-others-on-fail \"pnpm run bundle:local\" \"pnpm run start\"",
+  "exec": "pnpm run compile && pnpm run bundle:non-prod",
   "signal": "SIGKILL",
-  "watch": ["src"],
+  "watch": ["src", "../mocks/src", "../contracts/src"],
   "ext": "ts,mts,cts,js,mjs,cjs,json"
 }

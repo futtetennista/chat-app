@@ -7,11 +7,11 @@ import * as D from "io-ts/Decoder";
 import * as path from "path";
 
 interface Env {
-  "FRONTEND_INFRASTRUCTURE_JSON_CONFIG"?: string
-  "BACKEND_INFRASTRUCTURE_JSON_CONFIG"?: string
-  "AWS_ACCESS_KEY_ID"?: string
-  "AWS_SECRET_ACCESS_KEY"?: string
-  "AWS_REGION"?: string
+  FRONTEND_INFRASTRUCTURE_JSON_CONFIG?: string;
+  BACKEND_INFRASTRUCTURE_JSON_CONFIG?: string;
+  AWS_ACCESS_KEY_ID?: string;
+  AWS_SECRET_ACCESS_KEY?: string;
+  AWS_REGION?: string;
 }
 
 function checkEnvironment(): Required<Env> {
@@ -24,11 +24,14 @@ function checkEnvironment(): Required<Env> {
   ];
   const [missingEnvVars, result] = requiredEnvVars.reduce<[string[], Env]>(
     ([missingEnvVars, result], envVar) => {
-      if (undefined === process.env[envVar] || process.env[envVar].length === 0) {
+      if (
+        undefined === process.env[envVar] ||
+        process.env[envVar].length === 0
+      ) {
         return [[...missingEnvVars, envVar], result];
       }
 
-      return [ missingEnvVars, { ...result, [envVar]: process.env[envVar] }];
+      return [missingEnvVars, { ...result, [envVar]: process.env[envVar] }];
     },
     [[], {}],
   );

@@ -20,11 +20,14 @@ function checkEnvironment(): Required<Env> {
   ];
   const [missingEnvVars, result] = requiredEnvVars.reduce<[string[], Env]>(
     ([missingEnvVars, result], envVar) => {
-      if (undefined === process.env[envVar] || process.env[envVar].length === 0) {
+      if (
+        undefined === process.env[envVar] ||
+        process.env[envVar].length === 0
+      ) {
         return [[...missingEnvVars, envVar], result];
       }
 
-      return [ missingEnvVars, { ...result, [envVar]: process.env[envVar] }];
+      return [missingEnvVars, { ...result, [envVar]: process.env[envVar] }];
     },
     [[], {}],
   );

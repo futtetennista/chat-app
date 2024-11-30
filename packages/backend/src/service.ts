@@ -17,13 +17,14 @@ interface ChatCallback {
       | { _t: "api"; data: Error | string },
   ) => void;
   onMissingConfig: (x: Vendor) => void;
-  onResponse: (response: unknown) => void;
+  afterResponse: (response: unknown) => void;
+  beforeRequest?: (service: Vendor, request: ChatRequest) => void;
 }
 
 interface ChatService {
   validateBody: (
     x: string | null,
-    callback?: {
+    callback: {
       onValid: (data: ChatRequest) => void;
       onInvalid: (
         arg:
@@ -40,7 +41,7 @@ interface ChatService {
 
   chatTE: (
     data: ChatRequest,
-    callback?: ChatCallback,
+    callback: ChatCallback,
   ) => TE.TaskEither<
     RFC9457ErrorResponse,
     { message: string; stopReason?: string }
@@ -165,7 +166,7 @@ function chatOpenAI(
         },
       ),
       TE.tapIO((response) => {
-        callback?.onResponse(response);
+        callback?.afterResponse(response);
         return TE.right(response);
       }),
       TE.flatMap((responseUntyped) => {
@@ -201,6 +202,8 @@ function chatOpenAI(
       }),
     );
   }
+
+  callback?.beforeRequest?.("openai", data);
 
   return pipe(
     TE.fromNullable(undefined)(plugin),
@@ -271,7 +274,7 @@ function chatAnthropic(
         },
       ),
       TE.tapIO((response) => {
-        callback?.onResponse(response);
+        callback?.afterResponse(response);
         return TE.right(response);
       }),
       TE.flatMap((response) => {
@@ -325,7 +328,12 @@ const supportedModels: Vendor[] = ["openai", "perplexity", "anthropic"];
 
 function validateBody(
   x: string | null,
-  callback?: {
+  {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onInvalid = () => {},
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    onValid = () => {},
+  }: {
     onValid: (data: ChatRequest) => void;
     onInvalid: (
       arg:
@@ -337,19 +345,25 @@ function validateBody(
   },
 ): E.Either<RFC9457ErrorResponse, ChatRequest> {
   if (!x) {
-    callback?.onInvalid({ _t: "empty_body", message: "Request body is empty" });
+    onInvalid({ _t: "empty_body", message: "Request body is empty" });
     return E.left({
       type: "tag:@chat-app:empty_request_body",
       status: "400",
-      title: "Invalid request body",
-      detail: "Request body is empty",
+      title: "Empty request body",
+      detail: `Request body must be an instance of ChatRequest. Example:
+{
+  "vendor": "openai",
+  "message": "Hello, world!",
+  "history": []
+}
+`,
     });
   }
 
   try {
     const validationResult = ChatRequest.decode(JSON.parse(x));
     if (E.isLeft(validationResult)) {
-      callback?.onInvalid({ _t: "decode", error: validationResult.left });
+      onInvalid({ _t: "decode", error: validationResult.left });
       return E.left({
         type: "tag:@chat-app:invalid_request_format",
         status: "400",
@@ -358,7 +372,7 @@ function validateBody(
       });
     }
     if (!supportedModels.includes(validationResult.right.vendor)) {
-      callback?.onInvalid({
+      onInvalid({
         _t: "unsupported_vendor",
         message: `Unsupported vendor: ${validationResult.right.vendor}`,
       });
@@ -370,10 +384,10 @@ function validateBody(
       });
     }
 
-    callback?.onValid(validationResult.right);
+    onValid(validationResult.right);
     return E.right(validationResult.right);
   } catch (e) {
-    callback?.onInvalid({ _t: "unknown", error: e });
+    onInvalid({ _t: "unknown", error: e });
     return E.left({
       type: "tag:@chat-app:invalid_json",
       status: "400",

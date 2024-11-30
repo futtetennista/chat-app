@@ -2,14 +2,17 @@ import { Command } from "@commander-js/extra-typings";
 
 import { FrontendConfig } from "../src/app/config";
 
-export default function (_cmd: Command, { printConfig }: { printConfig: boolean }) {
+export default function (
+  _cmd: Command,
+  { printConfig }: { printConfig: boolean },
+) {
   return async function ({
     awsBucket,
   }: {
     awsBucket: string;
   }): Promise<FrontendConfig> {
-    const config : FrontendConfig = {
-        bucket: awsBucket,
+    const config: FrontendConfig = {
+      bucket: awsBucket,
     };
 
     if (process.env.CI === "true") {

@@ -42,8 +42,17 @@ const ConfigD = D.partial({
 
 export type Config = D.TypeOf<typeof ConfigD>;
 
-export function mkConfig(callback: {
-  onError: (
+export function mkConfig({
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onConfigParsed = () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onConfigRead = () => {},
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  onError = () => {},
+}: {
+  onConfigRead?: (config: string) => void;
+  onConfigParsed?: (config: Config) => void;
+  onError?: (
     error:
       | { _t: "config"; error: Error }
       | { _t: "decode"; error: D.DecodeError },
@@ -53,9 +62,9 @@ export function mkConfig(callback: {
     E.fromNullable(new Error("CHAT_APP_CONFIG_JSON is not set"))(
       process.env.CHAT_APP_CONFIG_JSON,
     ),
-    E.tap((configRaw) => {
-      console.log("Config raw", configRaw);
-      return E.of(configRaw);
+    E.tap((config) => {
+      onConfigRead(config);
+      return E.of(config);
     }),
     E.flatMap((configRaw) => {
       return E.tryCatch(
@@ -65,15 +74,19 @@ export function mkConfig(callback: {
         },
       );
     }),
+    E.tap((config) => {
+      onConfigParsed(config);
+      return E.of(config);
+    }),
     E.flatMap(ConfigD.decode),
     E.match(
       (e) => {
         if (e instanceof Error) {
-          callback.onError({ _t: "config", error: e });
+          onError({ _t: "config", error: e });
           throw e;
         }
 
-        callback.onError({ _t: "decode", error: e });
+        onError({ _t: "decode", error: e });
         throw new Error("Failed to decode JSON configuration");
       },
       (config) => config,
