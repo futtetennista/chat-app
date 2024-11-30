@@ -35,6 +35,7 @@
     "@tsconfig/node20": "catalog:typescript-node20",
     "@types/aws-lambda": "^8.10.145",
     "@types/node": "catalog:typescript-node20",
+    "@types/jest": "catalog:jest",
     "commander": "^12.1.0",
     "concurrently": "^9.1.0",
     "esbuild": "^0.24.0",

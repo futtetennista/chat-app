@@ -1,5 +1,8 @@
 function obfuscate(value: string): string {
-  return `${value.slice(0, Math.ceil(value.length / 2))}****${value.slice(-Math.floor(value.length / 2))}`;
+  const takeN = value.length > 10 ? 5 : value.length > 4 ? 2 : 0;
+  return takeN === 0
+    ? "****"
+    : `${value.slice(0, takeN)}****${value.slice(-takeN)}`;
 }
 
 export function obfuscateObject(obj: object): Record<string, unknown> {
@@ -20,4 +23,4 @@ export function obfuscateObject(obj: object): Record<string, unknown> {
   );
 }
 
-// export { obfuscate as obfuscateTestOnly };
+export { obfuscate as obfuscateTestOnly };
