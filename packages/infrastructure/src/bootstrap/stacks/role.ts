@@ -3,7 +3,7 @@ import { IamPolicy } from "@cdktf/provider-aws/lib/iam-policy";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { IamRolePolicyAttachment } from "@cdktf/provider-aws/lib/iam-role-policy-attachment";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
-import { TerraformStack } from "cdktf";
+import { TerraformOutput, TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 
 export class TerraformRoleStack extends TerraformStack {
@@ -33,12 +33,6 @@ export class TerraformRoleStack extends TerraformStack {
       // Use credentials of an admin user to create this stack
       accessKey,
       secretKey,
-      // assumeRole: [
-      //   {
-      //     roleArn: config.roleArn,
-      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
-      //   },
-      // ],
     });
 
     const arn = this.createGitHubOIDCProvider();
@@ -78,11 +72,16 @@ export class TerraformRoleStack extends TerraformStack {
       role: role.name,
       policyArn: policy.arn,
     });
+
+    new TerraformOutput(this, "roleArn", {
+      value: role.arn,
+    });
   }
 
+  // https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services#adding-the-identity-provider-to-aws
   createGitHubOIDCProvider() {
     const oidcProvider = new IamOpenidConnectProvider(this, "iamoidcp", {
-      url: this.oidcProviderURL,
+      url: `https://${this.oidcProviderURL}`,
       clientIdList: process.env.AWS_OIDC_GITHUB_CLIENT_ID_CSV
         ? process.env.AWS_OIDC_GITHUB_CLIENT_ID_CSV.split(",")
         : ["sts.amazonaws.com"],

@@ -10,8 +10,9 @@ interface Env {
   FRONTEND_INFRASTRUCTURE_JSON_CONFIG?: string;
   BACKEND_INFRASTRUCTURE_JSON_CONFIG?: string;
   AWS_ACCESS_KEY_ID?: string;
-  AWS_SECRET_ACCESS_KEY?: string;
+  AWS_ROLE_ARN?: string;
   AWS_REGION?: string;
+  AWS_SECRET_ACCESS_KEY?: string;
 }
 
 function checkEnvironment(): Required<Env> {
@@ -19,8 +20,9 @@ function checkEnvironment(): Required<Env> {
     "FRONTEND_INFRASTRUCTURE_JSON_CONFIG",
     "BACKEND_INFRASTRUCTURE_JSON_CONFIG",
     "AWS_ACCESS_KEY_ID",
-    "AWS_SECRET_ACCESS_KEY",
     "AWS_REGION",
+    "AWS_ROLEA_ARN",
+    "AWS_SECRET_ACCESS_KEY",
   ];
   const [missingEnvVars, result] = requiredEnvVars.reduce<[string[], Env]>(
     ([missingEnvVars, result], envVar) => {
@@ -49,14 +51,16 @@ function mkConfig({
   frontendConfig,
   backendConfig,
   accessKey,
-  secretKey,
   region,
+  roleArn,
+  secretKey,
 }: {
   frontendConfig: string;
   backendConfig: string;
   accessKey: string;
-  secretKey: string;
   region: string;
+  roleArn: string;
+  secretKey: string;
 }): Config {
   try {
     const frontendConfigRaw = JSON.parse(frontendConfig) as Config["frontend"];
@@ -66,8 +70,9 @@ function mkConfig({
       frontend: frontendConfigRaw,
       backend: backendConfigRaw,
       accessKey,
-      secretKey,
       region,
+      roleArn,
+      secretKey,
     });
     if (result._tag === "Left") {
       console.error(D.draw(result.left));
@@ -87,8 +92,9 @@ function main() {
     FRONTEND_INFRASTRUCTURE_JSON_CONFIG: frontendConfig,
     BACKEND_INFRASTRUCTURE_JSON_CONFIG: backendConfig,
     AWS_ACCESS_KEY_ID: accessKey,
-    AWS_SECRET_ACCESS_KEY: secretKey,
     AWS_REGION: region,
+    AWS_ROLE_ARN: roleArn,
+    AWS_SECRET_ACCESS_KEY: secretKey,
   } = checkEnvironment();
 
   const config: Config = mkConfig({
@@ -97,6 +103,7 @@ function main() {
     accessKey,
     secretKey,
     region,
+    roleArn,
   });
   const app = new App();
   // new AppStack(app, "app", config);
