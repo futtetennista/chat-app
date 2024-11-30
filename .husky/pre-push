@@ -1,4 +1,6 @@
-remote_branch=$(git rev-parse --abbrev-ref --symbolic-full-name @{u})
+# shellcheck disable=SC2148
+
+remote_branch=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}")
 
 if [ -z "$remote_branch" ]; then
   echo "[pre-push] No remote branch found, skipping."
@@ -26,7 +28,7 @@ fi
 
 echo "[pre-push] Changed TS files from HEAD to '$remote_branch': ${changed_files[*]}"
 echo "[pre-push] ESLint will start."
-pnpm run lint $changed_files
+pnpm run lint "$changed_files"
 echo "[pre-push] ESLint did end."
 
 changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
