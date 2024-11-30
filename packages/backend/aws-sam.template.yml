@@ -1,3 +1,4 @@
+# SAM template used to run the Lambda function locally.
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   chat-app
@@ -24,12 +25,13 @@ Resources:
         Variables:
           CHAT_APP_CONFIG_JSON: !Sub "${CHAT_APP_CONFIG_JSON}"
           EAGER_START_FUNCTION: true
+          USE_MOCKS: !Sub "${USE_MOCKS}"
       Events:
         Api:
           Type: Api
           Properties:
             Path: /v1/api/chat
-            Method: GET
+            Method: POST
   # Each Lambda function is defined by properties:
   # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
 

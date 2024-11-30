@@ -11,18 +11,19 @@ pkgs.mkShellNoCC {
   AWS_PROFILE = "softwareeng";
 
   packages = with pkgs; [
+    #   doInstallCheck = false;
+    # (aws-sam-cli.overrideAttrs (oldAttrs: {
+    # }))
     awscli2
-    git
+    curl
     gh
+    git
     jq
+    nodePackages.cdktf-cli
     nodejs_20
     pnpm
     shellcheck
-    # (aws-sam-cli.overrideAttrs (oldAttrs: {
-    #   doInstallCheck = false;
-    # }))
     terraform
-    nodePackages.cdktf-cli
   ];
 
   shellHook = ''

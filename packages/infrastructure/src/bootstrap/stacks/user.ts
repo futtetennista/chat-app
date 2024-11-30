@@ -13,28 +13,25 @@ import * as os from "os";
 import * as path from "path";
 
 export class TerraformUserStack extends TerraformStack {
-  constructor(scope: Construct, id: string, {
-    region,
-    accessKey,
-    secretKey,
-  }: {
-    region: string;
-    accessKey: string;
-    secretKey: string;
-  }) {
+  constructor(
+    scope: Construct,
+    id: string,
+    {
+      region,
+      accessKey,
+      secretKey,
+    }: {
+      region: string;
+      accessKey: string;
+      secretKey: string;
+    },
+  ) {
     super(scope, id);
 
     new AwsProvider(this, "awsp", {
-      region,
-      // Use credentials of an admin user to create this stack
       accessKey,
+      region,
       secretKey,
-      // assumeRole: [
-      //   {
-      //     roleArn: config.roleArn,
-      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
-      //   },
-      // ],
     });
 
     const policyName =

@@ -2,17 +2,20 @@ import { Command } from "@commander-js/extra-typings";
 
 import { LambdaFunctionConfig } from "../src/app/config";
 
-export default function (_cmd: Command, { printConfig } : { printConfig: boolean }) {
+export default function (
+  _cmd: Command,
+  { printConfig }: { printConfig: boolean },
+) {
   return async function ({
     handler,
     name,
     runtime,
     version,
   }: {
-    handler: string,
-    name: string,
-    runtime: string,
-    version: string,
+    handler: string;
+    name: string;
+    runtime: string;
+    version: string;
   }): Promise<LambdaFunctionConfig> {
     const config: LambdaFunctionConfig = {
       handler,

@@ -1,6 +1,6 @@
 pnpm exec lint-staged
 
-changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.(j|t)sx?$' | cut -d'/' -f2 | sort -u)
+changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.[jt]sx?$' | cut -d'/' -f2 | sort -u)
 if [ -z "$changed_packages" ]; then
   echo "[pre-commit] Changed packages: none"
 else
@@ -9,6 +9,9 @@ fi
 
 for package in $changed_packages; do
   if [ -d "packages/$package" ]; then
+    echo "[pre-commit] Running prettier for package: $package"
+    pnpm run format "packages/$package"
+    git add $(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$')
     echo "[pre-commit] Running tests for package: $package"
     pnpm --filter "$package" run test:unit
   fi

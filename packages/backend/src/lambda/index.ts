@@ -15,10 +15,11 @@ import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 
 import { mkConfig } from "@/config";
+import { obfuscateObject } from "@/security";
 import { mkService } from "@/service";
 
 // https://docs.powertools.aws.dev/lambda/typescript/latest/core/logger
-const logger = new Logger();
+const logger = new Logger({ serviceName: "chat" });
 
 const commonHeaders = {
   "Content-Type": "application/json",
@@ -33,16 +34,25 @@ export const handler: Handler = async (
 
   if (
     process.env.NODE_ENV !== "production" &&
-    process.env.USE_MOCKS === "true"
+    process.env.USE_MOCKS?.match(/(true|1|enable[d]?|on)/i)
   ) {
+    logger.info("Using mock API");
     // https://www.webdevtutor.net/blog/typescript-dynamic-import-javascript
     const { setupServer } = await import("msw/node");
-    const { internalHandlers } = await import("@chat-app/mocks");
-    const server = setupServer(...internalHandlers);
+    const { openaiHandlers } = await import("@chat-app/mocks");
+    const server = setupServer(...openaiHandlers);
     server.listen();
   }
 
   const config = mkConfig({
+    onConfigRead: (config) => {
+      if (process.env.NODE_ENV !== "production") {
+        logger.info("Config read", { config });
+      }
+    },
+    onConfigParsed: (config) => {
+      logger.info("Config parsed", obfuscateObject(config));
+    },
     onError: (error) => {
       switch (error._t) {
         case "config": {
@@ -63,12 +73,16 @@ export const handler: Handler = async (
     },
   });
 
-  if (config.logging?.enable === undefined || config.logging.enable) {
+  if (
+    config.logging?.enable === undefined ||
+    (config.logging.enable && process.env.NODE_ENV !== "production")
+  ) {
     // This is 'false' by default.
     process.env.POWERTOOLS_LOGGER_LOG_EVENT = "true";
   }
 
   if (config.logging?.level) {
+    process.env.POWERTOOLS_LOG_LEVEL = config.logging.level;
     logger.setLogLevel(config.logging.level);
   }
 
@@ -140,6 +154,9 @@ export const handler: Handler = async (
     ),
     TE.flatMap((data) =>
       service.chatTE(data, {
+        beforeRequest(service, request) {
+          logger.info(`[${service}] Request: `, { request });
+        },
         onError(e) {
           switch (e._t) {
             case "network": {
@@ -169,7 +186,7 @@ export const handler: Handler = async (
         onMissingConfig(vendor: Vendor) {
           logger.error(`Missing configuration for ${vendor}`);
         },
-        onResponse(response) {
+        afterResponse(response) {
           logger.info("Response", { response });
         },
       }),

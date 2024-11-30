@@ -42,7 +42,7 @@ function mkConfig(cmd: Command) {
     } else {
       console.log(JSON.stringify(config));
     }
-  }
+  };
 }
 
 function main() {
@@ -51,11 +51,27 @@ function main() {
   cli
     .command("config:backend:create")
     .description("Create the config file for the backend stack.")
-    .requiredOption("--handler <handler>", "Handler function", process.env.AWS_LAMBDA_FUNC_HANDLER)
-    .requiredOption("--name <name>", "Function name", process.env.AWS_LAMBDA_FUNC_NAME)
-    .requiredOption("--runtime <runtime>", "Runtime", process.env.AWS_LAMBDA_FUNC_RUNTIME)
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    .requiredOption("--version <version>", "Version", process.env.AWS_LAMBDA_FUNC_VERSION || undefined)
+    .requiredOption(
+      "--handler <handler>",
+      "Handler function",
+      process.env.AWS_LAMBDA_FUNC_HANDLER,
+    )
+    .requiredOption(
+      "--name <name>",
+      "Function name",
+      process.env.AWS_LAMBDA_FUNC_NAME,
+    )
+    .requiredOption(
+      "--runtime <runtime>",
+      "Runtime",
+      process.env.AWS_LAMBDA_FUNC_RUNTIME,
+    )
+    .requiredOption(
+      "--version <version>",
+      "Version",
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      process.env.AWS_LAMBDA_FUNC_VERSION || undefined,
+    )
     .action(async (options) => {
       await mkBackendConfig(cli, { printConfig: true })(options);
     });
@@ -76,10 +92,26 @@ function main() {
   cli
     .command("config:create")
     .description("Create the config file for all the stacks.")
-    .requiredOption("--handler <handler>", "Handler function", process.env.AWS_LAMBDA_FUNC_HANDLER)
-    .requiredOption("--name <name>", "Function name", process.env.AWS_LAMBDA_FUNC_NAME)
-    .requiredOption("--runtime <runtime>", "Runtime", process.env.AWS_LAMBDA_FUNC_RUNTIME)
-    .requiredOption("--version <version>", "Version", process.env.AWS_LAMBDA_FUNC_VERSION)
+    .requiredOption(
+      "--handler <handler>",
+      "Handler function",
+      process.env.AWS_LAMBDA_FUNC_HANDLER,
+    )
+    .requiredOption(
+      "--name <name>",
+      "Function name",
+      process.env.AWS_LAMBDA_FUNC_NAME,
+    )
+    .requiredOption(
+      "--runtime <runtime>",
+      "Runtime",
+      process.env.AWS_LAMBDA_FUNC_RUNTIME,
+    )
+    .requiredOption(
+      "--version <version>",
+      "Version",
+      process.env.AWS_LAMBDA_FUNC_VERSION,
+    )
     .requiredOption(
       "--aws-region <region>",
       "AWS region",

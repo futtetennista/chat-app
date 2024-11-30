@@ -51,7 +51,10 @@ export default function (cmd: Command) {
         }
 
         const config = createConfig({
-          env: result.parsed,
+          env: {
+            ...result.parsed,
+            LOG_LEVEL: process.env.LOG_LEVEL ?? "debug",
+          },
           openaiModel,
           anthropicModel,
           stream,

@@ -10,18 +10,22 @@
   "ignoreBinaries": [
     "cdktf",
     "jq",
+    "sam",
     "__cdktf_clean",
     "__use_tsconfig",
     "__lint",
     "__prettier",
   ],
-  "ignoreDependencies": ["concurrently", "husky", "lint-staged", "tsx"],
+  "ignoreDependencies": [
+    "concurrently",
+    "husky",
+    "lint-staged",
+    "nodemon",
+    "tsx",
+  ],
   "workspaces": {
     "packages/backend": {
-      "entry": [
-        "src/lambda/index.ts",
-        "scripts/cli.ts"
-      ],
+      "entry": ["src/lambda/index.ts", "scripts/cli.ts"],
     },
     "packages/frontend": {
       "entry": ["src/index.tsx"],
