@@ -1,3 +1,4 @@
+import { DataAwsCallerIdentity } from "@cdktf/provider-aws/lib/data-aws-caller-identity";
 import { IamOpenidConnectProvider } from "@cdktf/provider-aws/lib/iam-openid-connect-provider";
 import { IamPolicy } from "@cdktf/provider-aws/lib/iam-policy";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
@@ -37,6 +38,11 @@ export class TerraformRoleStack extends TerraformStack {
 
     const arn = this.createGitHubOIDCProvider();
 
+    const awsCallerIdentity = new DataAwsCallerIdentity(
+      this,
+      "awsCallerIdentity",
+    );
+
     const trustPolicyJSON = {
       Version: "2012-10-17",
       Statement: [
@@ -52,6 +58,13 @@ export class TerraformRoleStack extends TerraformStack {
               [`${this.oidcProviderURL}:aud`]: "sts.amazonaws.com",
             },
           },
+        },
+        {
+          Effect: "Allow",
+          Principal: {
+            AWS: `arn:aws:iam::${awsCallerIdentity.accountId}:user/${awsCallerIdentity.userId}`,
+          },
+          Action: "sts:AssumeRole",
         },
       ],
     };
