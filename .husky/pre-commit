@@ -1,3 +1,5 @@
+# shellcheck disable=SC2148
+
 pnpm exec lint-staged
 
 changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.[jt]sx?$' | cut -d'/' -f2 | sort -u)
@@ -11,13 +13,14 @@ for package in $changed_packages; do
   if [ -d "packages/$package" ]; then
     echo "[pre-commit] Running prettier for package: $package"
     pnpm run format "packages/$package"
-    git add $(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$')
+    # Make sure only files that prettier might have changed are staged.
+    git add "$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$')"
     echo "[pre-commit] Running tests for package: $package"
     pnpm --filter "$package" run test:unit
   fi
 done
 
-git diff --cached --name-only --diff-filter=d | while read file; do
+git diff --cached --name-only --diff-filter=d | while read -r file; do
   if [ -f "$file" ]; then
     # Ensure files have ending newline
     if [ "$(tail -c1 "$file")" != "" ]; then
@@ -31,11 +34,11 @@ git diff --cached --name-only --diff-filter=d | while read file; do
   fi
 done
 
-changed_scripts=$(git diff --cached --name-only --diff-filter=d | grep -E '\.sh$' | sort -u)
+changed_scripts=$(git diff --cached --name-only --diff-filter=d | grep -E '(.husky|\.sh$)' | sort -u)
 if [ -z "$changed_scripts" ]; then
   echo "[pre-commit] Changed scripts: none"
 else
-  echo "[pre-commit] Changed scripts: ${changed_scripts[*]}"
+  echo "[pre-commit] Changed scripts: $(echo "${changed_scripts[*]}" | tr '\n' ', ' | sed 's/,$//')"
   echo "[pre-commit] Shellcheck will start."
   echo "${changed_scripts[@]}" | xargs shellcheck -x
   echo "[pre-commit] Shellcheck did end."
