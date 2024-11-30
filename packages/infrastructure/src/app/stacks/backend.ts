@@ -15,7 +15,10 @@ import {
 } from "cdktf";
 import { Construct } from "constructs";
 
-export type Config = Omit<ConfigBase, "frontend"> & {
+export type Config = Omit<
+  ConfigBase,
+  "frontend" | "accessKey" | "secretKey"
+> & {
   backend: Required<ConfigBase["backend"]>;
 };
 
@@ -25,14 +28,14 @@ export class BackendStack extends TerraformStack {
 
     new AwsProvider(this, "awsp", {
       region: config.region,
-      accessKey: config.accessKey,
-      secretKey: config.secretKey,
-      // assumeRole: [
-      //   {
-      //     roleArn: config.roleArn,
-      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
-      //   },
-      // ],
+      // accessKey: config.accessKey,
+      // secretKey: config.secretKey,
+      assumeRole: [
+        {
+          roleArn: config.roleArn,
+          sessionName: `TerraformSession-${new Date().toISOString()}`,
+        },
+      ],
     });
 
     const asset = new TerraformAsset(this, "tf_backend", {

@@ -9,19 +9,23 @@ import { Construct } from "constructs";
 export class FrontendStack extends TerraformStack {
   static readonly s3BucketId = "s3b";
 
-  constructor(scope: Construct, id: string, config: Omit<Config, "backend">) {
+  constructor(
+    scope: Construct,
+    id: string,
+    config: Omit<Config, "backend" | "accessKey" | "secretKey">,
+  ) {
     super(scope, id);
 
     new AwsProvider(this, "aws", {
       region: config.region,
-      accessKey: config.accessKey,
-      secretKey: config.secretKey,
-      // assumeRole: [
-      //   {
-      //     roleArn: config.roleArn,
-      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
-      //   },
-      // ],
+      // accessKey: config.accessKey,
+      // secretKey: config.secretKey,
+      assumeRole: [
+        {
+          roleArn: config.roleArn,
+          sessionName: `TerraformSession-${new Date().toISOString()}`,
+        },
+      ],
     });
 
     const bucket = new S3Bucket(this, FrontendStack.s3BucketId, {

@@ -10,19 +10,23 @@ import { Construct } from "constructs";
 export type Config = Omit<ConfigBase, "backend" | "frontend">;
 
 export class IdentityStack extends TerraformStack {
-  constructor(scope: Construct, id: string, config: Config) {
+  constructor(
+    scope: Construct,
+    id: string,
+    config: Omit<Config, "accessKey" | "backend" | "frontend" | "secretKey">,
+  ) {
     super(scope, id);
 
     new AwsProvider(this, "aws", {
       region: config.region,
-      accessKey: config.accessKey,
-      secretKey: config.secretKey,
-      // assumeRole: [
-      //   {
-      //     roleArn: config.roleArn,
-      //     sessionName: `TerraformSession-${new Date().toISOString()}`,
-      //   },
-      // ],
+      // accessKey: config.accessKey,
+      // secretKey: config.secretKey,
+      assumeRole: [
+        {
+          roleArn: config.roleArn,
+          sessionName: `TerraformSession-${new Date().toISOString()}`,
+        },
+      ],
     });
 
     const identityPool = new CognitoIdentityPool(this, "cip_guest", {

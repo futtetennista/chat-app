@@ -12,6 +12,7 @@
     "jq",
     "sam",
     "__cdktf_clean",
+    "__cdktf_deploy",
     "__use_tsconfig",
     "__lint",
     "__prettier",
