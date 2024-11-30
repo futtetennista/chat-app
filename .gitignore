@@ -3,5 +3,5 @@ dist
 build
 tsconfig.tsbuildinfo
 .DS_Store
-secret.env
+secret*
 .bin

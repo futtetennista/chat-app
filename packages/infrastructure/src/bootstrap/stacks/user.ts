@@ -6,7 +6,7 @@ import { IamUser } from "@cdktf/provider-aws/lib/iam-user";
 import { IamUserGroupMembership } from "@cdktf/provider-aws/lib/iam-user-group-membership";
 import { IamUserPolicyAttachment } from "@cdktf/provider-aws/lib/iam-user-policy-attachment";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
-import { TerraformStack } from "cdktf";
+import { TerraformOutput, TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 import * as fs from "fs";
 import * as os from "os";
@@ -73,6 +73,10 @@ export class TerraformUserStack extends TerraformStack {
     new IamUserPolicyAttachment(this, "iamupa", {
       user: user.name,
       policyArn: policy.arn,
+    });
+
+    new TerraformOutput(this, "userArn", {
+      value: user.arn,
     });
   }
 }

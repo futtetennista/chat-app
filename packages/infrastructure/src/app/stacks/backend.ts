@@ -23,7 +23,7 @@ export class BackendStack extends TerraformStack {
   constructor(scope: Construct, id: string, config: Config) {
     super(scope, id);
 
-    new AwsProvider(this, "aws", {
+    new AwsProvider(this, "awsp", {
       region: config.region,
       accessKey: config.accessKey,
       secretKey: config.secretKey,

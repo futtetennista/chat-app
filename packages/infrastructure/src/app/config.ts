@@ -31,7 +31,7 @@ export const Config = pipe(
     region: D.string,
     accessKey: D.string,
     secretKey: D.string,
-    //roleArn: D.string,
+    roleArn: D.string,
   }),
   D.intersect(
     D.partial({
