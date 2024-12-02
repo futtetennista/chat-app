@@ -11,7 +11,6 @@ import * as E from "fp-ts/lib/Either";
 import { constVoid, pipe } from "fp-ts/lib/function";
 import * as IO from "fp-ts/lib/IO";
 import * as IOE from "fp-ts/lib/IOEither";
-import * as J from "fp-ts/lib/Json";
 import * as O from "fp-ts/lib/Option";
 import * as T from "fp-ts/lib/Task";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -107,13 +106,13 @@ export function chat(_cmd: Command) {
         ),
         IO.bind(
           "contentParsedOrError",
-          ({ contentOrError }): IO.IO<E.Either<Error, J.Json>> => {
+          ({
+            contentOrError,
+          }): IOE.IOEither<Error, Undecoded<PersistedChat>> => {
             if (contentOrError._tag === "Left") {
               return IO.of(contentOrError);
             }
-            return IO.of(
-              J.parse(contentOrError.right) as E.Either<SyntaxError, J.Json>,
-            );
+            return parseJSON<PersistedChat>(contentOrError.right);
           },
         ),
         IO.bind(
@@ -122,8 +121,9 @@ export function chat(_cmd: Command) {
             if (contentParsedOrError._tag === "Left") {
               return IO.of(contentParsedOrError);
             }
-            return decodePersistedChat({
-              persistedChatUndecoded: contentParsedOrError.right,
+            return decodeOrFail({
+              decoder: PersistedChat,
+              value: contentParsedOrError.right,
               fileName: path.basename(filePath),
             });
           },
@@ -153,31 +153,46 @@ export function chat(_cmd: Command) {
       );
     };
 
-    const decodePersistedChat = ({
-      persistedChatUndecoded,
+    interface Undecoded<T> {
+      _tag: "undecoded";
+      value: T;
+    }
+
+    const parseJSON = <T>(value: string): IOE.IOEither<Error, Undecoded<T>> => {
+      return IOE.tryCatch(
+        () => ({ _tag: "undecoded", value: JSON.parse(value) as T }),
+        (reason) => new Error(String(reason)),
+      );
+    };
+
+    const decodeOrFail = <T>({
+      value,
+      decoder,
       fileName,
     }: {
-      persistedChatUndecoded: unknown;
-      fileName: string;
-    }): IOE.IOEither<Error, PersistedChat> => {
+      value: Undecoded<T>;
+      decoder: Decoder.Decoder<unknown, T>;
+      fileName?: string;
+    }): IOE.IOEither<Error, T> => {
       return IO.of(
         pipe(
-          PersistedChat.decode(persistedChatUndecoded),
+          decoder.decode(value),
           E.mapLeft(
             (error) =>
-              new Error(`Could not decode chat file ${fileName}`, {
-                cause: Decoder.draw(error),
-              }),
+              new Error(
+                `Could not decode value${fileName ? `(file: ${fileName}` : ""}`,
+                {
+                  cause: Decoder.draw(error),
+                },
+              ),
           ),
         ),
       );
     };
 
-    const getExistingChatFilePaths: TE.TaskEither<Error, string[]> = pipe(
-      fs.existsSync(chatHistoryDir)
-        ? TE.fromIOEither(readDir(chatHistoryDir))
-        : TE.right([]),
-      TE.map((files) => {
+    const getExistingChatFilePaths: IOE.IOEither<Error, string[]> = pipe(
+      fs.existsSync(chatHistoryDir) ? readDir(chatHistoryDir) : IOE.right([]),
+      IOE.map((files) => {
         return files.filter((file) => file.endsWith(".json"));
       }),
     );
@@ -250,11 +265,15 @@ export function chat(_cmd: Command) {
           });
         }),
         TE.bind("selectedChatFileName", ({ chats, selectedChatName }) => {
-          const chat = chats.find((chat) => chat.name === selectedChatName);
-          if (!chat) {
-            return TE.left(new Error("Chat not found"));
-          }
-          return TE.right(chat.fileName);
+          return pipe(
+            O.fromNullable(
+              chats.find((chat) => chat.name === selectedChatName),
+            ),
+            O.match(
+              () => TE.left(new Error("Chat not found")),
+              (chat) => TE.right(chat.fileName),
+            ),
+          );
         }),
         TE.bind("selectedChatPersisted", ({ selectedChatFileName }) => {
           return TE.fromIOEither(
@@ -263,16 +282,14 @@ export function chat(_cmd: Command) {
         }),
         TE.bind("selectedChatRaw", ({ selectedChatPersisted }) => {
           return TE.fromIOEither(
-            IOE.tryCatch(
-              () => JSON.parse(selectedChatPersisted) as PersistedChat,
-              (reason) => new Error(String(reason)),
-            ),
+            parseJSON<PersistedChat>(selectedChatPersisted),
           );
         }),
         TE.bind("selectedChat", ({ selectedChatFileName, selectedChatRaw }) => {
           return TE.fromIOEither(
-            decodePersistedChat({
-              persistedChatUndecoded: selectedChatRaw,
+            decodeOrFail({
+              decoder: PersistedChat,
+              value: selectedChatRaw,
               fileName: selectedChatFileName,
             }),
           );
@@ -306,16 +323,7 @@ export function chat(_cmd: Command) {
         name: name,
         messages: [],
       });
-    // IOE.tryCatch(
-    //   () => {
-    //     fs.writeFileSync(
-    //       path.resolve(chatHistoryPath, fileName),
-    //       JSON.stringify({ name: name }, null, 2),
-    //     );
-    //     return fileName;
-    //   },
-    //   (reason) => new Error(String(reason)),
-    // );
+
     const createChatHistoryDir = (
       dirPath: string,
     ): IOE.IOEither<Error, string | null | undefined> =>
@@ -352,11 +360,7 @@ export function chat(_cmd: Command) {
     const chatLoop = (
       filePath: string,
       chat:
-        | {
-            name: string;
-            messages: Message[];
-            _tag: "chat";
-          }
+        | (PersistedChat & { _tag: "chat" })
         | { name: string; _tag: "restore" },
     ): TE.TaskEither<ErrorOrDone, unknown> =>
       pipe(
@@ -412,11 +416,10 @@ export function chat(_cmd: Command) {
           if (modelTarget._tag === "None") {
             return userMessageRaw;
           }
-
           return userMessageRaw.replace(modelTarget.value, "").trim();
         }),
         TE.bind(
-          "chatData",
+          "messageHistory",
           ({ userMessage }): TE.TaskEither<Error, Message[]> => {
             if (chat._tag === "restore") {
               return pipe(
@@ -436,10 +439,13 @@ export function chat(_cmd: Command) {
             return TE.of(data);
           },
         ),
-        TE.tapIO(({ chatData }) => {
-          return writeFile(filePath, { name: chat.name, messages: chatData });
+        TE.tapIO(({ messageHistory }) => {
+          return writeFile(filePath, {
+            name: chat.name,
+            messages: messageHistory,
+          });
         }),
-        TE.bind("response", ({ vendor, userMessage, chatData }) => {
+        TE.bind("response", ({ vendor, userMessage, messageHistory }) => {
           return TE.tryCatch(
             () =>
               fetch("http://localhost:3000/v1/api/chat", {
@@ -450,7 +456,7 @@ export function chat(_cmd: Command) {
                 body: JSON.stringify({
                   vendor,
                   message: userMessage,
-                  history: chatData.slice(0, -1),
+                  history: messageHistory.slice(0, -1),
                 }),
               }),
             (reason) => new Error(String(reason)),
@@ -470,20 +476,23 @@ export function chat(_cmd: Command) {
             ? TE.left(new APIError(chatResponse.error))
             : TE.of(chatResponse.data);
         }),
-        TE.tap(({ chatData, assistantResponse }) => {
-          chatData.push({
+        TE.tap(({ messageHistory, assistantResponse }) => {
+          messageHistory.push({
             content: assistantResponse.message,
             role: "assistant",
           });
           return TE.of(undefined);
         }),
-        TE.tapIO(({ chatData }) => {
-          return writeFile(filePath, { name: chat.name, messages: chatData });
+        TE.tapIO(({ messageHistory }) => {
+          return writeFile(filePath, {
+            name: chat.name,
+            messages: messageHistory,
+          });
         }),
-        TE.tap(({ chatData }) => {
+        TE.tap(({ messageHistory }) => {
           return chatLoop(filePath, {
             name: chat.name,
-            messages: chatData,
+            messages: messageHistory,
             _tag: "chat",
           });
         }),
@@ -497,14 +506,16 @@ export function chat(_cmd: Command) {
 
     return pipe(
       TE.Do,
-      TE.bind("existingChatFilePaths", () => getExistingChatFilePaths),
+      TE.bind("existingChatFilePaths", () =>
+        TE.fromIOEither(getExistingChatFilePaths),
+      ),
       TE.bind("action", ({ existingChatFilePaths }) =>
         TE.fromTask(selectAction(existingChatFilePaths)),
       ),
       TE.tapIO(({ action }) => {
-        return Console.log(`Selected action: ${action}`);
+        return Console.log({ action });
       }),
-      TE.bind("persistedChat", ({ action }) => {
+      TE.bind("currentChat", ({ action }) => {
         switch (action) {
           case "new": {
             return createNewChat;
@@ -518,7 +529,7 @@ export function chat(_cmd: Command) {
           }
         }
       }),
-      TE.tapTask(({ persistedChat: { fileName, name, messages } }) => {
+      TE.tapTask(({ currentChat: { fileName, name, messages } }) => {
         return chatLoop(path.resolve(chatHistoryDir, fileName), {
           name,
           messages,
