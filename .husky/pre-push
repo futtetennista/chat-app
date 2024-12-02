@@ -11,25 +11,23 @@ echo "[pre-push] Knip will start."
 pnpm run knip
 echo "[pre-push] Knip did end."
 
-
 # This script identifies JavaScript and TypeScript files that have been changed
 # between the current HEAD and the specified remote branch. It filters out deleted
 # files and sorts the list of changed files in a unique, alphabetical order.
 # The resulting list includes files with the following extensions: .js, .jsx, .ts, .tsx.
 # Sorting is not strictly necessary, it's a workaround to swallow non-zero codes that grep
 # returns if no match is found so that the command always returns a zero code.
-changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=d | grep -E '\.(j|t)sx?$' | sort -u)
+changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=d | sort -u)
+changed_files_ts=$(echo "$changed_files" | grep -E '\.(j|t)sx?$' | sort -u)
 
-if [ -z "$changed_files" ]; then
-  echo "[pre-push] Changed TS files from HEAD to '$remote_branch': none"
-  echo "[pre-push] Done."
-  exit 0
+if [ -z "$changed_files_ts" ]; then
+  echo "[pre-push] Changed files from HEAD to '$remote_branch': none"
+else
+  echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files_ts[*]}" | tr '\n' ', ' | sed 's/, $//')"
+  echo "[pre-push] ESLint will start."
+  echo "$changed_files_ts" | xargs pnpm run lint
+  echo "[pre-push] ESLint did end."
 fi
-
-echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files[*]}" | tr '\n' ', ' | sed 's/, $//')"
-echo "[pre-push] ESLint will start."
-echo "$changed_files" | xargs pnpm run lint
-echo "[pre-push] ESLint did end."
 
 # changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
 # if [ -z "$changed_packages" ]; then
@@ -45,5 +43,9 @@ echo "[pre-push] ESLint did end."
 #     pnpm --filter "$package" run test:unit
 #   fi
 # done
+
+echo "[pre-push] pre-commit will start."
+echo "$changed_files" | xargs pre-commit run --config=.pre-commit-config.yml --files
+echo "[pre-push] pre-commit did end."
 
 echo "[pre-push] Done."
