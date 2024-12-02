@@ -1,9 +1,3 @@
-import {
-  ChatResponse,
-  Message,
-  modelHandleToVendor,
-  RFC9457ErrorResponse,
-} from "@chat-app/contracts";
 import { Command } from "@commander-js/extra-typings";
 import { input, search, select } from "@inquirer/prompts";
 import { apply } from "fp-ts";
@@ -21,6 +15,12 @@ import * as Decoder from "io-ts/lib/Decoder";
 import * as Encoder from "io-ts/lib/Encoder";
 import * as path from "path";
 
+import {
+  ChatResponse,
+  Message,
+  modelHandleToVendor,
+  RFC9457ErrorResponse,
+} from "../../contracts/src/index";
 import { anthropicModels, openAIModels } from "./mkConfig";
 
 const ChatHistoryD = Decoder.struct({

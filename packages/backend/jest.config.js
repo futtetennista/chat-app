@@ -5,6 +5,7 @@ module.exports = {
   clearMocks: true,
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^@chat-app/scripts/(.*)$": "<rootDir>/scripts/$1",
   },
   reporters:
     process.env["CI"] === "true"
