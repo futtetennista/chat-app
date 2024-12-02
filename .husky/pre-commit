@@ -16,9 +16,8 @@ for package in $changed_packages; do
     # Make sure only files that prettier might have changed are staged.
     files_formatted="$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$' | sort -u)"
     if [ -n "$files_formatted" ]; then
-      git add "$files_formatted"
+      echo "$files_formatted" | xargs git add
     fi
-    # git add "$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$')"
     echo "[pre-commit] Running tests for package: $package"
     pnpm --filter "$package" run test:unit
   fi
