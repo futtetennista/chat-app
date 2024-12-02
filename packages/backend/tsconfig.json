@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@chat-app/scripts/*": ["./scripts/*"]
     }
   },
   "include": ["./src/**/*.ts", "./scripts/**/*.ts"],
