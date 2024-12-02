@@ -6,6 +6,7 @@ import {
 } from "@chat-app/contracts";
 import { Command } from "@commander-js/extra-typings";
 import { input, search, select } from "@inquirer/prompts";
+import { apply } from "fp-ts";
 import * as Console from "fp-ts/lib/Console";
 import * as E from "fp-ts/lib/Either";
 import { constVoid, pipe } from "fp-ts/lib/function";
@@ -22,19 +23,35 @@ import * as path from "path";
 
 import { anthropicModels, openAIModels } from "./mkConfig";
 
+const ChatHistoryD = Decoder.struct({
+  chat_history: Decoder.array(
+    Decoder.struct({
+      filename: Decoder.string,
+      name: Decoder.string,
+    }),
+  ),
+});
+
+type ChatHistory = Decoder.TypeOf<typeof ChatHistoryD>;
+
+const ChatHistoryE: Encoder.Encoder<string, ChatHistory> = {
+  encode: (chatHistory) => JSON.stringify(chatHistory),
+};
+
+const ChatHistory: Codec.Codec<unknown, string, ChatHistory> = Codec.make(
+  ChatHistoryD,
+  ChatHistoryE,
+);
+
 const PersistedChatD = Decoder.struct({
-  name: Decoder.string,
+  // name: Decoder.string,
   messages: Decoder.array(Message),
 });
 
 export type PersistedChat = Decoder.TypeOf<typeof PersistedChatD>;
 
 const PersistedChatE: Encoder.Encoder<string, PersistedChat> = {
-  encode: (chat) =>
-    JSON.stringify({
-      name: chat.name,
-      messages: chat.messages,
-    }),
+  encode: (chat) => JSON.stringify(chat),
 };
 
 const PersistedChat: Codec.Codec<unknown, string, PersistedChat> = Codec.make(
@@ -68,16 +85,28 @@ export function chat(_cmd: Command) {
     // and json files with a "name" property.
     // Don't show "existing chats" if the folder is empty.
     // Use inquirer.js for this.
-    const readDir = (dirPath: string): IOE.IOEither<Error, string[]> => {
+    const readChatHistory = (
+      dirPath: string,
+    ): IOE.IOEither<Error, ChatHistory["chat_history"]> => {
       return pipe(
         IOE.Do,
-        IOE.bind("fileNames", () =>
-          IOE.tryCatch(
-            () => fs.readdirSync(dirPath),
-            (reason) => new Error(String(reason)),
-          ),
+        IOE.bind("chatHistory", () =>
+          readFile(path.resolve(dirPath, "chat_history.json")),
         ),
-        IOE.map(({ fileNames: files }) => files),
+        IOE.bind("parsed", ({ chatHistory }) => {
+          return parseJSON<ChatHistory>(chatHistory);
+        }),
+        IOE.bind("decoded", ({ parsed }) => {
+          return decodeOrFail({
+            decoder: ChatHistory,
+            value: parsed,
+            filename: "chat_history.json",
+          });
+        }),
+        IOE.map(({ decoded }) => decoded.chat_history),
+        IOE.tapError((e) => {
+          return IOE.fromIO(Console.error(e));
+        }),
       );
     };
 
@@ -89,16 +118,7 @@ export function chat(_cmd: Command) {
 
     const readFileContent = (
       filePath: string,
-    ): IO.IO<
-      E.Either<
-        Error,
-        {
-          fileName: string;
-          name: string;
-          messages: Message[];
-        }
-      >
-    > => {
+    ): IO.IO<E.Either<Error, PersistedChat>> => {
       return pipe(
         IO.Do,
         IO.bind("contentOrError", () =>
@@ -124,7 +144,7 @@ export function chat(_cmd: Command) {
             return decodeOrFail({
               decoder: PersistedChat,
               value: contentParsedOrError.right,
-              fileName: path.basename(filePath),
+              filename: path.basename(filePath),
             });
           },
         ),
@@ -142,11 +162,11 @@ export function chat(_cmd: Command) {
 
     const writeFile = (
       filePath: string,
-      chat: { name: string; messages: unknown[] },
+      payload: string,
     ): IOE.IOEither<Error, string> => {
       return IOE.tryCatch(
         () => {
-          fs.writeFileSync(filePath, JSON.stringify(chat, null, 2));
+          fs.writeFileSync(filePath, payload, { encoding: "utf8" });
           return path.basename(filePath);
         },
         (reason) => new Error(String(reason)),
@@ -168,19 +188,19 @@ export function chat(_cmd: Command) {
     const decodeOrFail = <T>({
       value,
       decoder,
-      fileName,
+      filename,
     }: {
       value: Undecoded<T>;
       decoder: Decoder.Decoder<unknown, T>;
-      fileName?: string;
+      filename?: string;
     }): IOE.IOEither<Error, T> => {
       return IO.of(
         pipe(
-          decoder.decode(value),
+          decoder.decode(value.value),
           E.mapLeft(
             (error) =>
               new Error(
-                `Could not decode value${fileName ? `(file: ${fileName}` : ""}`,
+                `Could not decode value '${JSON.stringify(value.value)}'${filename ? ` (file: ${filename})` : ""}`,
                 {
                   cause: Decoder.draw(error),
                 },
@@ -190,11 +210,13 @@ export function chat(_cmd: Command) {
       );
     };
 
-    const getExistingChatFilePaths: IOE.IOEither<Error, string[]> = pipe(
-      fs.existsSync(chatHistoryDir) ? readDir(chatHistoryDir) : IOE.right([]),
-      IOE.map((files) => {
-        return files.filter((file) => file.endsWith(".json"));
-      }),
+    const getChatHistory: IO.IO<ChatHistory["chat_history"]> = pipe(
+      IOE.Do,
+      IOE.bind("chatHistory", () => readChatHistory(chatHistoryDir)),
+      IOE.matchE(
+        (_) => IO.of([]),
+        ({ chatHistory }) => IO.of(chatHistory),
+      ),
     );
 
     const selectAction: (arg: string[]) => T.Task<"new" | "existing"> = (
@@ -215,69 +237,43 @@ export function chat(_cmd: Command) {
         : T.of("new" as const);
 
     const restoreExistingChat = (
-      chatHistoryPath: string,
+      chatHistory: ChatHistory["chat_history"],
     ): TE.TaskEither<
       Error,
-      {
-        fileName: string;
-        name: string;
-        messages: { content: string; role: "user" | "assistant" }[];
+      PersistedChat & {
+        filename: string;
       }
     > =>
       pipe(
         TE.Do,
-        TE.bind("chatFiles", () => TE.fromIOEither(readDir(chatHistoryPath))),
-        TE.bind("chatContentsOrError", ({ chatFiles }) => {
-          return TE.fromIO(
-            IO.sequenceArray(
-              chatFiles.map((chatFile) =>
-                readFileContent(path.resolve(chatHistoryPath, chatFile)),
-              ),
-            ),
-          );
-        }),
-        TE.tapIO(({ chatContentsOrError }) => {
-          return IO.sequenceArray(
-            chatContentsOrError
-              .filter((chat) => chat._tag === "Left")
-              .map((chat) => Console.error(chat.left)),
-          );
-        }),
-        TE.bindW("chats", ({ chatContentsOrError }) => {
-          return TE.sequenceArray(
-            chatContentsOrError
-              .filter((chat) => chat._tag === "Right")
-              .map((chat) => TE.of(chat.right)),
-          );
-        }),
-        TE.bind("selectedChatName", ({ chats }) => {
+        TE.bind("selectedChatName", () => {
           return TE.fromTask(() => {
             return search<string>({
               message: "Select a chat to continue",
               source(term, _opt) {
                 return !term
-                  ? chats.map((chat) => chat.name)
-                  : chats
+                  ? chatHistory.map((chat) => chat.name)
+                  : chatHistory
                       .filter((chat) => chat.name.includes(term))
                       .map((chat) => chat.name);
               },
             });
           });
         }),
-        TE.bind("selectedChatFileName", ({ chats, selectedChatName }) => {
+        TE.bind("selectedChatFileName", ({ selectedChatName }) => {
           return pipe(
             O.fromNullable(
-              chats.find((chat) => chat.name === selectedChatName),
+              chatHistory.find((chat) => chat.name === selectedChatName),
             ),
             O.match(
               () => TE.left(new Error("Chat not found")),
-              (chat) => TE.right(chat.fileName),
+              (chat) => TE.right(chat.filename),
             ),
           );
         }),
         TE.bind("selectedChatPersisted", ({ selectedChatFileName }) => {
           return TE.fromIOEither(
-            readFile(path.resolve(chatHistoryPath, selectedChatFileName)),
+            readFile(path.resolve(chatHistoryDir, selectedChatFileName)),
           );
         }),
         TE.bind("selectedChatRaw", ({ selectedChatPersisted }) => {
@@ -290,20 +286,21 @@ export function chat(_cmd: Command) {
             decodeOrFail({
               decoder: PersistedChat,
               value: selectedChatRaw,
-              fileName: selectedChatFileName,
+              filename: selectedChatFileName,
             }),
           );
         }),
         TE.tapIO(({ selectedChat }) => {
-          return IO.sequenceArray(
-            selectedChat.messages.map(({ role, content }) => {
+          return apply.sequenceT(IO.Apply)(
+            Console.log("✅ Chat restored"),
+            ...selectedChat.messages.map(({ role, content }) => {
               return Console.log(`${role}: ${content}`);
             }),
           );
         }),
         TE.map(({ selectedChatFileName, selectedChat }) => {
           return {
-            fileName: selectedChatFileName,
+            filename: selectedChatFileName,
             ...selectedChat,
           };
         }),
@@ -313,16 +310,18 @@ export function chat(_cmd: Command) {
       );
 
     const createChatFile = ({
-      fileName,
-      name,
+      filename,
     }: {
-      fileName: string;
+      filename: string;
       name: string;
     }): IOE.IOEither<Error, string> =>
-      writeFile(path.resolve(chatHistoryDir, fileName), {
-        name: name,
-        messages: [],
-      });
+      writeFile(
+        path.resolve(chatHistoryDir, filename),
+        PersistedChat.encode({
+          // name: name,
+          messages: [],
+        }),
+      );
 
     const createChatHistoryDir = (
       dirPath: string,
@@ -335,22 +334,56 @@ export function chat(_cmd: Command) {
         (reason) => new Error(String(reason)),
       );
 
+    const updateChatHistory = (
+      dirPath: string,
+      { name, filename }: { name: string; filename: string },
+    ): IOE.IOEither<Error, void> => {
+      return pipe(
+        IOE.Do,
+        IOE.bind("chatHistory", () => readChatHistory(dirPath)),
+        IOE.bind("updatedChatHistory", ({ chatHistory }) => {
+          return IOE.right([...chatHistory, { name, filename }]);
+        }),
+        IOE.bind("writeResult", ({ updatedChatHistory }) => {
+          return writeFile(
+            path.resolve(dirPath, "chat_history.json"),
+            ChatHistory.encode({
+              chat_history: updatedChatHistory,
+            }),
+          );
+        }),
+        IOE.tapError((e) => {
+          return IOE.fromIO(Console.error(e));
+        }),
+        IOE.map(constVoid),
+      );
+    };
+
     const createNewChat: TE.TaskEither<
       Error,
-      { fileName: string; name: string; messages: Message[] }
+      PersistedChat & { filename: string }
     > = pipe(
       TE.Do,
       TE.tapIO(() => createChatHistoryDir(chatHistoryDir)),
       TE.bind("name", () =>
-        TE.fromTask(() => input({ message: "Enter a name for the new chat:" })),
-      ),
-      TE.bind("fileName", () => {
-        return TE.fromIOEither(
-          createChatFile({
-            fileName: `${Date.now().toString()}.json`,
-            name: "",
+        TE.fromTask(() =>
+          input({
+            message: "Enter a name for the new chat:",
+            default: "New chat",
           }),
-        );
+        ),
+      ),
+      TE.bind("filename", () => {
+        return TE.of(`${Date.now().toString()}.json`);
+      }),
+      TE.tapIO(({ name, filename }) => {
+        return createChatFile({
+          filename,
+          name,
+        });
+      }),
+      TE.tapIO(({ name, filename }) => {
+        return updateChatHistory(chatHistoryDir, { name, filename });
       }),
       TE.bind("messages", () => TE.of([])),
     );
@@ -359,9 +392,7 @@ export function chat(_cmd: Command) {
 
     const chatLoop = (
       filePath: string,
-      chat:
-        | (PersistedChat & { _tag: "chat" })
-        | { name: string; _tag: "restore" },
+      chat: ({ _tag: "chat" } & PersistedChat) | { _tag: "restore" },
     ): TE.TaskEither<ErrorOrDone, unknown> =>
       pipe(
         TE.Do,
@@ -372,10 +403,9 @@ export function chat(_cmd: Command) {
         ),
         TE.tap(({ userMessageRaw }) => {
           if (/!e(xit)?/.test(userMessageRaw.toLowerCase())) {
-            console.log("Exiting chat...");
+            console.log("👋 Bye");
             return TE.left("done" as const);
           }
-
           return _chatLoop(filePath, chat, userMessageRaw);
         }),
         TE.map(constVoid),
@@ -384,10 +414,10 @@ export function chat(_cmd: Command) {
     const _chatLoop = (
       filePath: string,
       chat:
-        | (PersistedChat & {
+        | ({
             _tag: "chat";
-          })
-        | { name: string; _tag: "restore" },
+          } & PersistedChat)
+        | { _tag: "restore" },
       userMessageRaw: string,
     ): TE.TaskEither<ErrorOrDone, unknown> =>
       pipe(
@@ -440,10 +470,13 @@ export function chat(_cmd: Command) {
           },
         ),
         TE.tapIO(({ messageHistory }) => {
-          return writeFile(filePath, {
-            name: chat.name,
-            messages: messageHistory,
-          });
+          return writeFile(
+            filePath,
+            PersistedChat.encode({
+              // name: chat.name,
+              messages: messageHistory,
+            }),
+          );
         }),
         TE.bind("response", ({ vendor, userMessage, messageHistory }) => {
           return TE.tryCatch(
@@ -484,14 +517,17 @@ export function chat(_cmd: Command) {
           return TE.of(undefined);
         }),
         TE.tapIO(({ messageHistory }) => {
-          return writeFile(filePath, {
-            name: chat.name,
-            messages: messageHistory,
-          });
+          return writeFile(
+            filePath,
+            PersistedChat.encode({
+              // name: chat.name,
+              messages: messageHistory,
+            }),
+          );
         }),
         TE.tap(({ messageHistory }) => {
           return chatLoop(filePath, {
-            name: chat.name,
+            // name: chat.name,
             messages: messageHistory,
             _tag: "chat",
           });
@@ -500,43 +536,45 @@ export function chat(_cmd: Command) {
           return TE.fromIO(Console.error(e));
         }),
         TE.alt(() => {
-          return chatLoop(filePath, { name: chat.name, _tag: "restore" });
+          return chatLoop(filePath, { _tag: "restore" });
         }),
       );
 
     return pipe(
       TE.Do,
-      TE.bind("existingChatFilePaths", () =>
-        TE.fromIOEither(getExistingChatFilePaths),
+      TE.bind("chatHistory", () => TE.fromIO(getChatHistory)),
+      TE.bind("choice", ({ chatHistory }) =>
+        TE.fromTask(selectAction(chatHistory.map((chat) => chat.name))),
       ),
-      TE.bind("action", ({ existingChatFilePaths }) =>
-        TE.fromTask(selectAction(existingChatFilePaths)),
-      ),
-      TE.tapIO(({ action }) => {
-        return Console.log({ action });
+      TE.tapIO(({ choice }) => {
+        return Console.log({ choice });
       }),
-      TE.bind("currentChat", ({ action }) => {
-        switch (action) {
+      TE.bind("currentChat", ({ choice, chatHistory }) => {
+        switch (choice) {
           case "new": {
             return createNewChat;
           }
           case "existing": {
-            return restoreExistingChat(chatHistoryDir);
+            return restoreExistingChat(chatHistory);
           }
           default: {
-            const _exhaustiveCheck: never = action;
+            const _exhaustiveCheck: never = choice;
             return _exhaustiveCheck;
           }
         }
       }),
-      TE.tapTask(({ currentChat: { fileName, name, messages } }) => {
-        return chatLoop(path.resolve(chatHistoryDir, fileName), {
-          name,
+      TE.tapTask(({ currentChat: { filename, messages } }) => {
+        return chatLoop(path.resolve(chatHistoryDir, filename), {
           messages,
           _tag: "chat",
         });
+      }),
+      TE.tapError((e) => {
+        return TE.fromIO(Console.error(e));
       }),
       TE.match(constVoid, constVoid),
     )();
   };
 }
+
+export { ChatHistory as ChatHistoryTestOnly };

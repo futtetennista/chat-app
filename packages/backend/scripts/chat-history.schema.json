@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "chat_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "filename": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "filename"]
+      }
+    }
+  },
+  "required": ["chat_history"],
+  "examples": [
+    {
+      "chat_history": [
+        {
+          "name": "chat1",
+          "filename": "1732983566964.json"
+        },
+        {
+          "name": "chat2",
+          "filename": "1732991308405.json"
+        }
+      ]
+    }
+  ]
+}

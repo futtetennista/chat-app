@@ -23,8 +23,10 @@ describe("obfuscateObject", () => {
     const result = obfuscateObject(obj);
 
     expect(result.apiKey).not.toBe("1234567890");
-    expect(result.nested.secretKey).not.toBe("abcdefg");
-    expect(result.nested.notAKey).not.toBe("value");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    expect((result.nested as any).secretKey).not.toBe("abcdefg");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    expect((result.nested as any).notAKey).not.toBe("value");
     expect(result.regularField).toBe("data");
   });
 
