@@ -28,7 +28,7 @@ fi
 
 echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files[*]}" | tr '\n' ', ' | sed 's/, $//')"
 echo "[pre-push] ESLint will start."
-pnpm run lint "$(echo "${changed_files[*]}" | tr '\n' ' ')"
+echo "$changed_files" | xargs pnpm run lint
 echo "[pre-push] ESLint did end."
 
 # changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
