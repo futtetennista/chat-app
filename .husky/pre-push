@@ -26,7 +26,7 @@ if [ -z "$changed_files" ]; then
   exit 0
 fi
 
-echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files[*]}" | tr '\n' ', ' | 'sed 's/, $//')"
+echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files[*]}" | tr '\n' ', ' | sed 's/, $//')"
 echo "[pre-push] ESLint will start."
 pnpm run lint "$(echo "${changed_files[*]}" | tr '\n' ' ')"
 echo "[pre-push] ESLint did end."
