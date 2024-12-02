@@ -51,8 +51,10 @@ jobs:
       - uses: ./.github/actions/setup-nodejs-pnpm
         name: Set up node.js with pnpm
       - name: Run Playwright tests
+        id: run-playwright-tests
         working-directory: ./packages/frontend
         run: pnpm playwright test --config=playwright.config.ts
+        continue-on-error: true
         env:
           # Setting HOME fixes erros like: "Firefox is unable to launch if the $HOME folder isn't owned by the current user."
           # when using the Playwright Docker image.
@@ -62,7 +64,7 @@ jobs:
           PLAYWRIGHT_WEBSERVER_URL: http://localhost:8080
       - name: Upload Playwright report
         uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
-        if: ${{ ! cancelled() }}
+        if: ${{ ! cancelled() && steps.run-playwright-tests.conclusion != 'success' }}
         continue-on-error: true
         with:
           name: playwright-report
