@@ -4,6 +4,7 @@
 **/public/**
 **/tests-examples/**
 **/.gen/**
+**/sam-app/**
 pnpm-lock.yaml
 packages/infrastructure/cdktf.out/**
 packages/frontend/playwright-report/**

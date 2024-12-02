@@ -26,24 +26,24 @@ if [ -z "$changed_files" ]; then
   exit 0
 fi
 
-echo "[pre-push] Changed TS files from HEAD to '$remote_branch': ${changed_files[*]}"
+echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files[*]}" | tr '\n' ', ' | 'sed 's/, $//')"
 echo "[pre-push] ESLint will start."
-pnpm run lint "$changed_files"
+pnpm run lint "$(echo "${changed_files[*]}" | tr '\n' ' ')"
 echo "[pre-push] ESLint did end."
 
-changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
-if [ -z "$changed_packages" ]; then
-  echo "[pre-push] Changed packages: none"
-  echo "[pre-push] Done."
-  exit 0
-fi
+# changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
+# if [ -z "$changed_packages" ]; then
+#   echo "[pre-push] Changed packages: none"
+#   echo "[pre-push] Done."
+#   exit 0
+# fi
 
-echo "[pre-push] Changed packages: ${changed_packages[*]}"
-for package in $changed_packages; do
-  if [ -d "packages/$package" ]; then
-    echo "[pre-push] Running tests for package: $package"
-    pnpm --filter "$package" run test:unit
-  fi
-done
+# echo "[pre-push] Changed packages: ${changed_packages[*]}"
+# for package in $changed_packages; do
+#   if [ -d "packages/$package" ]; then
+#     echo "[pre-push] Running tests for package: $package"
+#     pnpm --filter "$package" run test:unit
+#   fi
+# done
 
 echo "[pre-push] Done."

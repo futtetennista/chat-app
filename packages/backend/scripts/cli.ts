@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import bundle from "./bundle";
+import { chat } from "./chat";
 import mkConfig, {
   AnthropicModels,
   anthropicModels,
@@ -12,6 +13,12 @@ import mkConfig, {
 
 function main() {
   const cli = new Command();
+
+  cli
+    .command("chat")
+    .description("Chat with the bot")
+    .option("--chat-history-dir <dir>", "Directory to store chats")
+    .action(chat(cli));
 
   cli
     .command("bundle")
@@ -45,7 +52,6 @@ function main() {
         .makeOptionMandatory(),
     )
     .option("--stream", "Use streaming API", false)
-    .helpOption("-h, --help")
     .action(mkConfig(cli));
 
   const { version } = JSON.parse(
