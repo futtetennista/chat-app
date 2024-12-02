@@ -22,6 +22,7 @@ pkgs.mkShellNoCC {
     nodePackages.cdktf-cli
     nodejs_20
     pnpm
+    pre-commit
     shellcheck
     terraform
   ];
