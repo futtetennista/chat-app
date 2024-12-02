@@ -17,16 +17,11 @@
     "__lint",
     "__prettier",
   ],
-  "ignoreDependencies": [
-    "concurrently",
-    "husky",
-    "lint-staged",
-    "nodemon",
-    "tsx",
-  ],
+  "ignoreDependencies": ["husky", "lint-staged", "nodemon"],
   "workspaces": {
     "packages/backend": {
       "entry": ["src/lambda/index.ts", "scripts/cli.ts"],
+      "ignoreDependencies": ["inquirer"],
     },
     "packages/frontend": {
       "entry": ["src/index.tsx"],

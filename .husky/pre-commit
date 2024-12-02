@@ -14,7 +14,11 @@ for package in $changed_packages; do
     echo "[pre-commit] Running prettier for package: $package"
     pnpm run format "packages/$package"
     # Make sure only files that prettier might have changed are staged.
-    git add "$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$')"
+    files_formatted="$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$' | sort -u)"
+    if [ -n "$files_formatted" ]; then
+      git add "$files_formatted"
+    fi
+    # git add "$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$')"
     echo "[pre-commit] Running tests for package: $package"
     pnpm --filter "$package" run test:unit
   fi

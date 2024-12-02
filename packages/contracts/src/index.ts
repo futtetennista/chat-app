@@ -1,13 +1,16 @@
 import { pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/Option";
 import * as C from "io-ts/Codec";
 import * as D from "io-ts/Decoder";
 import * as E from "io-ts/Encoder";
 
-const MessageD = D.struct({
-  role: D.union(D.literal("user"), D.literal("assistant")),
-  content: D.string,
-  timestamp: D.number,
-});
+export const MessageD = pipe(
+  D.struct({
+    role: D.literal("user", "assistant"),
+    content: D.string,
+  }),
+  D.intersect(D.partial({ timestamp: D.number })),
+);
 
 export type Message = D.TypeOf<typeof MessageD>;
 
@@ -127,3 +130,28 @@ export const Vendor: C.Codec<unknown, string, Vendor> = C.make(
   VendorD,
   VendorE,
 );
+const anthropicHandles = ["c", "claude", "cld"];
+const openaiHandles = ["chatgpt", "gpt"];
+const perplexityHandles = ["p", "ppx"];
+// export const modelHandles = [
+//   ...anthropicHandles,
+//   ...openaiHandles,
+//   ...perplexityHandles,
+// ];
+export function modelHandleToVendor(handle: string): O.Option<Vendor> {
+  if (anthropicHandles.includes(handle)) {
+    return O.some("anthropic");
+  }
+
+  if (openaiHandles.includes(handle)) {
+    return O.some("openai");
+  }
+
+  if (perplexityHandles.includes(handle)) {
+    return O.some("perplexity");
+  }
+
+  return O.none;
+}
+
+export const models = ["anthropic", "openai", "perplexity"] as Vendor[];

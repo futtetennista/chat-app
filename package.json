@@ -6,7 +6,8 @@
   "private": true,
   "scripts": {
     "__before": "pnpm --filter frontend run use-tsconfig dev",
-    "format": "__prettier() { pnpm run __before && prettier --write \"${1:-$PWD}\"; }; __prettier $@",
+    "chat": "pnpm --filter 'backend' run cli:chat",
+    "format": "__prettier() { pnpm run __before && prettier --write \"${1:-$PWD}\"; }; __prettier",
     "lint": "__lint() { pnpm run __before && eslint \"${1:-$PWD}\"; }; __lint \"$@\"",
     "knip": "pnpm run __before && knip"
   },
