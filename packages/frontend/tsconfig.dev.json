@@ -10,10 +10,6 @@
     "lib": ["ES2022", "DOM"],
     "jsx": "react-jsx",
     "outDir": "./build",
-    "paths": {
-      "@chat-app/contracts/*": ["../contracts/src/*"],
-      "@chat-app/mocks/*": ["../mocks/src/*"]
-    },
     "tsBuildInfoFile": "tsconfig.tsbuildinfo"
   },
   "include": ["src/**/*", "playwright.config.ts"],

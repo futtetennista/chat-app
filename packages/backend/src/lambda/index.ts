@@ -1,15 +1,12 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import {
-  RFC9457ErrorResponse,
-  SuccessResponse,
-  Vendor,
-} from "@chat-app/contracts";
+import { ChatResponse, Vendor } from "@chat-app/contracts";
 import {
   APIGatewayEvent,
   APIGatewayProxyResult,
   Context,
   Handler,
 } from "aws-lambda";
+import * as IO from "fp-ts/IO";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
@@ -191,30 +188,42 @@ export const handler: Handler = async (
         },
       }),
     ),
+    TE.tapIO((response) => {
+      return IO.of(
+        // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+        logger.info("Response", { response }),
+      );
+    }),
+    TE.tapError((error) => {
+      return TE.fromIO(
+        IO.of(
+          // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
+          logger.error(
+            "Internal server error",
+            error instanceof Error ? error : JSON.stringify(error),
+          ),
+        ),
+      );
+    }),
     TE.match(
-      (e) => {
-        logger.error(
-          "Internal server error",
-          e instanceof Error ? e : JSON.stringify(e),
-        );
+      (error) => {
         return {
           statusCode: 500,
           headers: commonHeaders,
-          body: RFC9457ErrorResponse.encode(e),
-          // body: RFC9457ErrorResponse.encode({
-          //   type: "tag:@chat-app:internal_error",
-          //   status: "500",
-          //   title: "Internal server error",
-          //   detail: `An unexpected error occurred: ${e}`,
-          // }),
+          body: ChatResponse.encode({
+            _t: "ko",
+            error,
+          }),
         };
       },
-      (response) => {
-        logger.info("Response", { response });
+      (data) => {
         return {
           statusCode: 200,
           headers: commonHeaders,
-          body: SuccessResponse.encode(response),
+          body: ChatResponse.encode({
+            _t: "ok",
+            data,
+          }),
         };
       },
     ),

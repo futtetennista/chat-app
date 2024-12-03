@@ -4,6 +4,51 @@ import * as C from "io-ts/Codec";
 import * as D from "io-ts/Decoder";
 import * as E from "io-ts/Encoder";
 
+export const VendorD = D.literal(
+  "openai",
+  // "gpt-4",
+  // "gpt-4o",
+  // "gpt-4o-mini",
+  "perplexity",
+  "anthropic",
+  // "claude-haiku",
+);
+
+export type Vendor = D.TypeOf<typeof VendorD>;
+
+const VendorE: E.Encoder<string, Vendor> = {
+  encode: (vendor) => JSON.stringify(vendor),
+};
+
+export const Vendor: C.Codec<unknown, string, Vendor> = C.make(
+  VendorD,
+  VendorE,
+);
+const anthropicHandles = ["c", "claude", "cld"];
+const openaiHandles = ["chatgpt", "gpt"];
+const perplexityHandles = ["p", "ppx"];
+// export const modelHandles = [
+//   ...anthropicHandles,
+//   ...openaiHandles,
+//   ...perplexityHandles,
+// ];
+export function modelHandleToVendor(handle: string): O.Option<Vendor> {
+  if (anthropicHandles.includes(handle)) {
+    return O.some("anthropic");
+  }
+
+  if (openaiHandles.includes(handle)) {
+    return O.some("openai");
+  }
+
+  if (perplexityHandles.includes(handle)) {
+    return O.some("perplexity");
+  }
+
+  return O.none;
+}
+
+export const models = ["anthropic", "openai", "perplexity"] as Vendor[];
 export const MessageD = pipe(
   D.struct({
     role: D.literal("user", "assistant"),
@@ -15,12 +60,7 @@ export const MessageD = pipe(
 export type Message = D.TypeOf<typeof MessageD>;
 
 const MessageE: E.Encoder<string, Message> = {
-  encode: (message) =>
-    JSON.stringify({
-      role: message.role,
-      content: message.content,
-      timestamp: message.timestamp,
-    }),
+  encode: (message) => JSON.stringify(message),
 };
 
 export const Message: C.Codec<unknown, string, Message> = C.make(
@@ -31,11 +71,7 @@ export const Message: C.Codec<unknown, string, Message> = C.make(
 const ChatRequestD = D.struct({
   message: D.string,
   history: D.array(Message),
-  vendor: D.union(
-    D.literal("openai"),
-    D.literal("perplexity"),
-    D.literal("anthropic"),
-  ),
+  vendor: D.literal("openai", "perplexity", "anthropic"),
 });
 
 export type ChatRequest = D.TypeOf<typeof ChatRequestD>;
@@ -52,6 +88,8 @@ export const ChatRequest: C.Codec<unknown, string, ChatRequest> = C.make(
 const SuccessResponseD = pipe(
   D.struct({
     message: D.string,
+    model: D.string,
+    // model: Vendor,
   }),
   D.intersect(D.partial({ stopReason: D.string })),
 );
@@ -59,7 +97,7 @@ const SuccessResponseD = pipe(
 export type SuccessResponse = D.TypeOf<typeof SuccessResponseD>;
 
 const SuccessResponseE: E.Encoder<string, SuccessResponse> = {
-  encode: (successResponse) => JSON.stringify(successResponse.message),
+  encode: (successResponse) => JSON.stringify(successResponse),
 };
 
 export const SuccessResponse: C.Codec<unknown, string, SuccessResponse> =
@@ -113,45 +151,3 @@ export const ChatResponse: C.Codec<unknown, string, ChatResponse> = C.make(
   ChatResponseD,
   ChatResponseE,
 );
-
-export const VendorD = D.union(
-  D.literal("openai"),
-  D.literal("perplexity"),
-  D.literal("anthropic"),
-);
-
-export type Vendor = D.TypeOf<typeof VendorD>;
-
-const VendorE: E.Encoder<string, Vendor> = {
-  encode: (vendor) => JSON.stringify(vendor),
-};
-
-export const Vendor: C.Codec<unknown, string, Vendor> = C.make(
-  VendorD,
-  VendorE,
-);
-const anthropicHandles = ["c", "claude", "cld"];
-const openaiHandles = ["chatgpt", "gpt"];
-const perplexityHandles = ["p", "ppx"];
-// export const modelHandles = [
-//   ...anthropicHandles,
-//   ...openaiHandles,
-//   ...perplexityHandles,
-// ];
-export function modelHandleToVendor(handle: string): O.Option<Vendor> {
-  if (anthropicHandles.includes(handle)) {
-    return O.some("anthropic");
-  }
-
-  if (openaiHandles.includes(handle)) {
-    return O.some("openai");
-  }
-
-  if (perplexityHandles.includes(handle)) {
-    return O.some("perplexity");
-  }
-
-  return O.none;
-}
-
-export const models = ["anthropic", "openai", "perplexity"] as Vendor[];

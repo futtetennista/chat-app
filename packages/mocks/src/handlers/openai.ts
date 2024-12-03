@@ -1,4 +1,4 @@
-import * as C from "fp-ts/Console";
+import * as Console from "fp-ts/Console";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import { http, HttpResponse } from "msw";
@@ -22,9 +22,7 @@ const handlers = [
             },
           }),
         ),
-        TE.tapIO((requestBody) =>
-          C.log(`requestBody=${JSON.stringify(requestBody)}`),
-        ),
+        TE.tapIO((requestBody) => Console.log({ requestBody })),
         TE.match(
           (error) => HttpResponse.json(error, { status: 400 }),
           (requestBody) =>

@@ -1,5 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { ChatRequest, RFC9457ErrorResponse, Vendor } from "@chat-app/contracts";
+import {
+  ChatRequest,
+  RFC9457ErrorResponse,
+  SuccessResponse,
+  Vendor,
+} from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
@@ -44,7 +49,7 @@ interface ChatService {
     callback: ChatCallback,
   ) => TE.TaskEither<
     RFC9457ErrorResponse,
-    { message: string; stopReason?: string }
+    { model: string; message: string; stopReason?: string }
   >;
 }
 
@@ -72,7 +77,7 @@ function chatTE(
   callback?: ChatCallback,
 ): TE.TaskEither<
   RFC9457ErrorResponse,
-  { message: string; stopReason?: string }
+  { model: string; message: string; stopReason?: string }
 > {
   switch (data.vendor) {
     case "anthropic": {
@@ -94,10 +99,7 @@ function chatTE(
 function chatPerplexity(
   data: ChatRequest,
   callback?: ChatCallback,
-): TE.TaskEither<
-  RFC9457ErrorResponse,
-  { message: string; stopReason?: string }
-> {
+): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
   return pipe(
     TE.fromOption(() => undefined)(plugins.getPlugin("perplexity")),
     TE.matchE(
@@ -124,10 +126,7 @@ function chatOpenAI(
     plugin?: { client: OpenAI; model: string; stream: boolean };
     callback?: ChatCallback;
   },
-): TE.TaskEither<
-  RFC9457ErrorResponse,
-  { message: string; stopReason?: string }
-> {
+): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
   function _chatOpenAI({
     client,
     model,
@@ -136,10 +135,7 @@ function chatOpenAI(
     client: OpenAI;
     model: string;
     stream: boolean;
-  }): TE.TaskEither<
-    RFC9457ErrorResponse,
-    { message: string; stopReason?: string }
-  > {
+  }): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
     return pipe(
       TE.tryCatch(
         () => {
@@ -172,6 +168,7 @@ function chatOpenAI(
       TE.flatMap((responseUntyped) => {
         if (stream) {
           return TE.right({
+            model,
             message: "Streaming not implemented",
           });
         }
@@ -193,9 +190,11 @@ function chatOpenAI(
 
         return response.choices[0].finish_reason === "stop"
           ? TE.right({
+              model: response.model,
               message: response.choices[0].message.content,
             })
           : TE.right({
+              model: response.model,
               message: response.choices[0].message.content,
               stopReason: response.choices[0].finish_reason,
             });
@@ -225,10 +224,7 @@ function chatOpenAI(
 function chatAnthropic(
   data: ChatRequest,
   callback?: ChatCallback,
-): TE.TaskEither<
-  RFC9457ErrorResponse,
-  { message: string; stopReason?: string }
-> {
+): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
   function _chatAnthropic(
     client: Anthropic,
     model: string,
@@ -237,10 +233,7 @@ function chatAnthropic(
     }: {
       stream: boolean;
     },
-  ): TE.TaskEither<
-    RFC9457ErrorResponse,
-    { message: string; stopReason?: string }
-  > {
+  ): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
     return pipe(
       TE.tryCatch(
         () =>
@@ -293,11 +286,13 @@ function chatAnthropic(
 
         return response.stop_reason === "end_turn"
           ? TE.right({
+              model: response.model,
               message: response.content
                 .map((m) => (m.type === "text" ? m.text : ""))
                 .join("\n"),
             })
           : TE.right({
+              model: response.model,
               message: response.content
                 .map((m) => (m.type === "text" ? m.text : ""))
                 .join("\n"),

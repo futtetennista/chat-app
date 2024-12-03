@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "packageManager": "pnpm@9.12.2",
   "private": true,
-  "main": "./build/index.js",
-  "types": "./build/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "devDependencies": {
     "@swc/jest": "catalog:jest",
     "@tsconfig/recommended": "catalog:",
