@@ -389,12 +389,12 @@ export function chat(_cmd: Command) {
       TE.bind("messages", () => TE.of([])),
     );
 
-    type ErrorOrDone = Error | Decoder.DecodeError | "done";
+    type ChatLoopError = Error | Decoder.DecodeError;
 
     const chatLoop = (
       filePath: string,
       chat: ({ _tag: "chat" } & PersistedChat) | { _tag: "restore" },
-    ): TE.TaskEither<ErrorOrDone, unknown> =>
+    ): TE.TaskEither<ChatLoopError, unknown> =>
       pipe(
         TE.Do,
         TE.bind("messages", () => {
@@ -419,29 +419,17 @@ export function chat(_cmd: Command) {
             input({ message: "Enter your message (type '!e[xit]' to quit):" }),
           ),
         ),
-        TE.tap(({ messages, userMessageRaw }) => {
+        TE.bind("userMessage", ({ userMessageRaw }) => {
           if (/!e(xit)?/.test(userMessageRaw.toLowerCase())) {
-            return TE.left("done" as const);
+            return TE.of(O.none);
           }
-          return _chatLoop(filePath, messages, userMessageRaw);
+          return TE.of(O.some(userMessageRaw));
         }),
-        TE.tapError(() => {
-          return TE.fromIO(Console.log("👋 Goodbye!"));
+        TE.tap(({ messages, userMessage }) => {
+          return userMessage._tag === "None"
+            ? TE.fromIO(Console.log("👋 Goodbye!"))
+            : _chatLoop(filePath, messages, userMessage.value);
         }),
-        // TE.tap(({ messages, userMessageRaw }) => {
-        //   return pipe(
-        //     TE.Do,
-        //     TE.bind("exit", () => TE.of(
-        //       /!e(xit)?/.test(userMessageRaw.toLowerCase())
-        //     )),
-        //     TE.tap(({ exit }) => {
-        //       return exit ? TE.left("done" as const) : _chatLoop(filePath, messages, userMessageRaw);
-        //     }),
-        //     TE.tapError(() => {
-        //       return TE.fromIO(Console.log("👋 Goodbye!"));
-        //     }),
-        //   );
-        // }),
         TE.map(constVoid),
       );
 
@@ -449,7 +437,7 @@ export function chat(_cmd: Command) {
       filePath: string,
       chat: PersistedChat,
       userMessageRaw: string,
-    ): TE.TaskEither<ErrorOrDone, unknown> =>
+    ): TE.TaskEither<ChatLoopError, unknown> =>
       pipe(
         TE.Do,
         TE.let("modelTarget", () => {
