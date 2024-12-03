@@ -2,7 +2,7 @@ import type { Message, Vendor } from "@chat-app/contracts";
 import { baseURL, internalHandlers } from "@chat-app/mocks";
 import { setupServer } from "msw/node";
 
-import { API } from "./api";
+import type { API } from "./api";
 
 const server = setupServer(...internalHandlers);
 
@@ -53,8 +53,6 @@ describe("chat", () => {
       { role: "user", content: "Hi", timestamp: Date.now() },
     ];
 
-    await expect(
-      api.chatTE({ vendor, message, history })(),
-    ).rejects.toThrow();
+    await expect(api.chatTE({ vendor, message, history })()).rejects.toThrow();
   });
 });

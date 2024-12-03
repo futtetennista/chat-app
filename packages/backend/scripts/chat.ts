@@ -1,3 +1,12 @@
+import {
+  ChatRequest,
+  ChatResponse,
+  Message,
+  modelHandleToVendor,
+  RFC9457ErrorResponse,
+  Vendor,
+} from "@chat-app/contracts";
+import { anthropicModels, openAIModels } from "@chat-app/scripts/mkConfig";
 import { Command } from "@commander-js/extra-typings";
 import { input, search, select } from "@inquirer/prompts";
 import { apply } from "fp-ts";
@@ -14,14 +23,6 @@ import * as Codec from "io-ts/lib/Codec";
 import * as Decoder from "io-ts/lib/Decoder";
 import * as Encoder from "io-ts/lib/Encoder";
 import * as path from "path";
-
-import {
-  ChatResponse,
-  Message,
-  modelHandleToVendor,
-  RFC9457ErrorResponse,
-} from "../../contracts/src/index";
-import { anthropicModels, openAIModels } from "./mkConfig";
 
 const ChatHistoryD = Decoder.struct({
   chat_history: Decoder.array(
@@ -396,28 +397,57 @@ export function chat(_cmd: Command) {
     ): TE.TaskEither<ErrorOrDone, unknown> =>
       pipe(
         TE.Do,
+        TE.bind("messages", () => {
+          if (chat._tag === "restore") {
+            return pipe(
+              TE.Do,
+              TE.bind("persistedChat", () =>
+                TE.fromIOEither(readFileContent(filePath)),
+              ),
+              TE.map(({ persistedChat }) => persistedChat),
+              TE.tapIO((persistedChat) =>
+                Console.log(
+                  `✅ Chat restored from error (${persistedChat.messages.length.toString()})`,
+                ),
+              ),
+            );
+          }
+          return TE.of({ messages: chat.messages });
+        }),
         TE.bind("userMessageRaw", () =>
           TE.fromTask(() =>
             input({ message: "Enter your message (type '!e[xit]' to quit):" }),
           ),
         ),
-        TE.tap(({ userMessageRaw }) => {
+        TE.tap(({ messages, userMessageRaw }) => {
           if (/!e(xit)?/.test(userMessageRaw.toLowerCase())) {
-            console.log("👋 Bye");
             return TE.left("done" as const);
           }
-          return _chatLoop(filePath, chat, userMessageRaw);
+          return _chatLoop(filePath, messages, userMessageRaw);
         }),
+        TE.tapError(() => {
+          return TE.fromIO(Console.log("👋 Goodbye!"));
+        }),
+        // TE.tap(({ messages, userMessageRaw }) => {
+        //   return pipe(
+        //     TE.Do,
+        //     TE.bind("exit", () => TE.of(
+        //       /!e(xit)?/.test(userMessageRaw.toLowerCase())
+        //     )),
+        //     TE.tap(({ exit }) => {
+        //       return exit ? TE.left("done" as const) : _chatLoop(filePath, messages, userMessageRaw);
+        //     }),
+        //     TE.tapError(() => {
+        //       return TE.fromIO(Console.log("👋 Goodbye!"));
+        //     }),
+        //   );
+        // }),
         TE.map(constVoid),
       );
 
     const _chatLoop = (
       filePath: string,
-      chat:
-        | ({
-            _tag: "chat";
-          } & PersistedChat)
-        | { _tag: "restore" },
+      chat: PersistedChat,
       userMessageRaw: string,
     ): TE.TaskEither<ErrorOrDone, unknown> =>
       pipe(
@@ -427,9 +457,9 @@ export function chat(_cmd: Command) {
             /@(?<model>\w+)/.exec(userMessageRaw)?.groups?.model,
           );
         }),
-        TE.let("vendor", ({ modelTarget }) => {
+        TE.bind("vendor", ({ modelTarget }) => {
           if (modelTarget._tag === "None") {
-            return TE.of("openai");
+            return TE.of<Error, Vendor>("openai");
           }
 
           const vendorO = modelHandleToVendor(modelTarget.value);
@@ -440,7 +470,7 @@ export function chat(_cmd: Command) {
               ),
             );
           }
-          return TE.of(vendorO.value);
+          return TE.of<Error, Vendor>(vendorO.value);
         }),
         TE.let("userMessage", ({ modelTarget }) => {
           if (modelTarget._tag === "None") {
@@ -451,24 +481,13 @@ export function chat(_cmd: Command) {
         TE.bind(
           "messageHistory",
           ({ userMessage }): TE.TaskEither<Error, Message[]> => {
-            if (chat._tag === "restore") {
-              return pipe(
-                TE.Do,
-                TE.bind("chat", () =>
-                  TE.fromIOEither(readFileContent(filePath)),
-                ),
-                TE.map(({ chat }) => chat.messages),
-                TE.tapError((e) => {
-                  return TE.fromIO(Console.error(e));
-                }),
-              );
-            }
-
             const data = chat.messages;
+            console.log("Not IO", data.length);
             data.push({ content: userMessage, role: "user" });
             return TE.of(data);
           },
         ),
+        TE.tapIO(({ messageHistory }) => Console.log(messageHistory.length)),
         TE.tapIO(({ messageHistory }) => {
           return writeFile(
             filePath,
@@ -478,6 +497,7 @@ export function chat(_cmd: Command) {
             }),
           );
         }),
+        TE.tapIO(({ messageHistory }) => Console.log(messageHistory.length)),
         TE.bind("response", ({ vendor, userMessage, messageHistory }) => {
           return TE.tryCatch(
             () =>
@@ -486,7 +506,7 @@ export function chat(_cmd: Command) {
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
+                body: ChatRequest.encode({
                   vendor,
                   message: userMessage,
                   history: messageHistory.slice(0, -1),
@@ -495,19 +515,29 @@ export function chat(_cmd: Command) {
             (reason) => new Error(String(reason)),
           );
         }),
-        TE.bind("responseBody", ({ response }) => {
-          return TE.tryCatch(
-            () => response.json(),
-            (reason) => new Error(String(reason)),
+        TE.bind("responseUndecoded", ({ response }) => {
+          return pipe(
+            TE.tryCatch(
+              () => response.text(),
+              (reason) => new Error(String(reason)),
+            ),
+            TE.flatMap((text) =>
+              TE.fromIOEither(parseJSON<ChatResponse>(text)),
+            ),
           );
         }),
-        TE.bindW("chatResponse", ({ responseBody }) => {
-          return TE.fromEither(ChatResponse.decode(responseBody));
+        TE.bindW("responseDecoded", ({ responseUndecoded }) => {
+          return TE.fromIOEither(
+            decodeOrFail({
+              decoder: ChatResponse,
+              value: responseUndecoded,
+            }),
+          );
         }),
-        TE.bind("assistantResponse", ({ chatResponse }) => {
-          return chatResponse._t === "ko"
-            ? TE.left(new APIError(chatResponse.error))
-            : TE.of(chatResponse.data);
+        TE.bind("assistantResponse", ({ responseDecoded }) => {
+          return responseDecoded._t === "ko"
+            ? TE.left(new APIError(responseDecoded.error))
+            : TE.of(responseDecoded.data);
         }),
         TE.tap(({ messageHistory, assistantResponse }) => {
           messageHistory.push({
@@ -515,6 +545,11 @@ export function chat(_cmd: Command) {
             role: "assistant",
           });
           return TE.of(undefined);
+        }),
+        TE.tapIO(({ assistantResponse }) => {
+          return Console.log(
+            `${assistantResponse.model}: ${assistantResponse.message}`,
+          );
         }),
         TE.tapIO(({ messageHistory }) => {
           return writeFile(
@@ -532,8 +567,8 @@ export function chat(_cmd: Command) {
             _tag: "chat",
           });
         }),
-        TE.tapError((e) => {
-          return TE.fromIO(Console.error(e));
+        TE.tapError((error) => {
+          return TE.fromIO(Console.error(error));
         }),
         TE.alt(() => {
           return chatLoop(filePath, { _tag: "restore" });

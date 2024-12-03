@@ -3,7 +3,7 @@ import {
   ChatResponse,
   RFC9457ErrorResponse,
 } from "@chat-app/contracts";
-import * as C from "fp-ts/Console";
+import * as Console from "fp-ts/Console";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as TE from "fp-ts/TaskEither";
@@ -29,13 +29,7 @@ const handlers = [
             detail: "",
           }),
         ),
-        TE.tapIO((requestBody) =>
-          C.log(
-            `requestBody=${
-              requestBody ? JSON.stringify(requestBody) : "undefined"
-            }`,
-          ),
-        ),
+        TE.tapIO((requestBody) => Console.log({ requestBody })),
         TE.flatMap((requestBody) =>
           TE.fromEither(ChatRequest.decode(requestBody)),
         ),
@@ -91,6 +85,7 @@ const handlers = [
             return HttpResponse.json<ChatResponse>({
               _t: "ok",
               data: {
+                model: "some-model",
                 message: `Your message to ${data.vendor}: "${data.message}"`,
               },
             });
