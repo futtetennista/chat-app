@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { Model } from "@chat-app/contracts";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import OpenAI from "openai";
@@ -40,7 +41,7 @@ export function getPlugin<Name extends string>(
   name: Name,
 ): O.Option<{
   client: InferVendor<Name>;
-  model: string;
+  model: Model;
   stream: boolean;
 }> {
   return pipe(
@@ -49,7 +50,7 @@ export function getPlugin<Name extends string>(
       return plugin.instance as {
         client: InferVendor<Name>;
         stream: boolean;
-        model: string;
+        model: Model;
       };
     }),
     // O.tap((plugin) => {
@@ -63,7 +64,7 @@ export function getPlugin<Name extends string>(
 
 function registerPlugin(
   name: string,
-  instance: { client: Anthropic | OpenAI; model: string; stream: boolean },
+  instance: { client: Anthropic | OpenAI; model: Model; stream: boolean },
 ) {
   plugins.push({ name, instance });
 }

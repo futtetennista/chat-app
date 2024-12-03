@@ -1,3 +1,8 @@
+import {
+  AnthropicModelD,
+  OpenAIModelD,
+  PerplexityModelD,
+} from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as D from "io-ts/Decoder";
@@ -5,17 +10,17 @@ import * as D from "io-ts/Decoder";
 const ConfigD = D.partial({
   openai: D.struct({
     apiKey: D.string,
-    model: D.string,
+    model: OpenAIModelD,
     stream: D.boolean,
   }),
   anthropic: D.struct({
     apiKey: D.string,
-    model: D.string,
+    model: AnthropicModelD,
     stream: D.boolean,
   }),
   perplexity: D.struct({
     apiKey: D.string,
-    model: D.string,
+    model: PerplexityModelD,
     baseURL: D.string,
     stream: D.boolean,
   }),

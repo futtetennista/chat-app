@@ -1,4 +1,4 @@
-import type { Vendor } from "@chat-app/contracts";
+import { defaultModel, type Model } from "@chat-app/contracts";
 import React from "react";
 import styled from "styled-components";
 import { v4 } from "uuid";
@@ -28,7 +28,7 @@ const AppContainer = styled.div`
 
 const App: React.FC = () => {
   console.log("App component rendered");
-  const [model, setModel] = React.useState<Vendor>("openai");
+  const [model, setModel] = React.useState<Model>(defaultModel);
   const [chatId, setChatId] = React.useState<string>(v4());
 
   React.useEffect(() => {

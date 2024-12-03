@@ -1,12 +1,13 @@
 import {
   ChatRequest,
   ChatResponse,
+  defaultModel,
   Message,
-  modelHandleToVendor,
+  Model,
+  resolveModel,
   RFC9457ErrorResponse,
-  Vendor,
 } from "@chat-app/contracts";
-import { anthropicModels, openAIModels } from "@chat-app/scripts/mkConfig";
+import { anthropicModels, openaiModels } from "@chat-app/contracts";
 import { Command } from "@commander-js/extra-typings";
 import { input, search, select } from "@inquirer/prompts";
 import { apply } from "fp-ts";
@@ -442,23 +443,24 @@ export function chat(_cmd: Command) {
         TE.Do,
         TE.let("modelTarget", () => {
           return O.fromNullable(
-            /@(?<model>\w+)/.exec(userMessageRaw)?.groups?.model,
+            /@(?<modelOrHandle>\w+)/.exec(userMessageRaw)?.groups
+              ?.modelOrHandle,
           );
         }),
-        TE.bind("vendor", ({ modelTarget }) => {
+        TE.bind("model", ({ modelTarget }) => {
           if (modelTarget._tag === "None") {
-            return TE.of<Error, Vendor>("openai");
+            return TE.of<Error, Model>(defaultModel);
           }
 
-          const vendorO = modelHandleToVendor(modelTarget.value);
-          if (vendorO._tag === "None") {
+          const modelO = resolveModel(modelTarget.value);
+          if (modelO._tag === "None") {
             return TE.left(
               new Error(
-                `Model "${modelTarget.value}" not supported. Valid models are: ${[...openAIModels, ...anthropicModels].join(", ")}`,
+                `Model "${modelTarget.value}" not supported. Valid models are: ${[...openaiModels, ...anthropicModels].join(", ")}`,
               ),
             );
           }
-          return TE.of<Error, Vendor>(vendorO.value);
+          return TE.of<Error, Model>(modelO.value);
         }),
         TE.let("userMessage", ({ modelTarget }) => {
           if (modelTarget._tag === "None") {
@@ -470,12 +472,10 @@ export function chat(_cmd: Command) {
           "messageHistory",
           ({ userMessage }): TE.TaskEither<Error, Message[]> => {
             const data = chat.messages;
-            console.log("Not IO", data.length);
             data.push({ content: userMessage, role: "user" });
             return TE.of(data);
           },
         ),
-        TE.tapIO(({ messageHistory }) => Console.log(messageHistory.length)),
         TE.tapIO(({ messageHistory }) => {
           return writeFile(
             filePath,
@@ -485,8 +485,7 @@ export function chat(_cmd: Command) {
             }),
           );
         }),
-        TE.tapIO(({ messageHistory }) => Console.log(messageHistory.length)),
-        TE.bind("response", ({ vendor, userMessage, messageHistory }) => {
+        TE.bind("response", ({ model, userMessage, messageHistory }) => {
           return TE.tryCatch(
             () =>
               fetch("http://localhost:3000/v1/api/chat", {
@@ -495,7 +494,7 @@ export function chat(_cmd: Command) {
                   "Content-Type": "application/json",
                 },
                 body: ChatRequest.encode({
-                  vendor,
+                  model,
                   message: userMessage,
                   history: messageHistory.slice(0, -1),
                 }),

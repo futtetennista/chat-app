@@ -1,6 +1,7 @@
 import {
   ChatRequest,
   ChatResponse,
+  defaultModel,
   RFC9457ErrorResponse,
 } from "@chat-app/contracts";
 import * as Console from "fp-ts/Console";
@@ -43,8 +44,8 @@ const handlers = [
                     {
                       _t: "ko",
                       error: {
-                        type: "invalid_request_body",
-                        title: "Invalid request body",
+                        type: "tag:@chat-app:invalid_request_format",
+                        title: "Invalid request format",
                         status: "400",
                         detail: D.draw(error),
                       },
@@ -70,7 +71,7 @@ const handlers = [
                 {
                   _t: "ko",
                   error: {
-                    type: "i_am_a_teapot",
+                    type: "tag:@chat-app:i_am_a_teapot",
                     title: "I'm a teapot",
                     status: "418",
                     detail: "This is a test error",
@@ -85,8 +86,8 @@ const handlers = [
             return HttpResponse.json<ChatResponse>({
               _t: "ok",
               data: {
-                model: "some-model",
-                message: `Your message to ${data.vendor}: "${data.message}"`,
+                model: defaultModel,
+                message: `Your message to ${data.model}: "${data.message}"`,
               },
             });
           },

@@ -1,11 +1,16 @@
 import Anthropic from "@anthropic-ai/sdk";
 import {
   ChatRequest,
+  defaultModel,
+  errorTypesMap as errorType,
+  Model,
+  modelMap,
+  models,
   RFC9457ErrorResponse,
   SuccessResponse,
-  Vendor,
 } from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
+import * as IO from "fp-ts/IO";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
@@ -21,9 +26,9 @@ interface ChatCallback {
       | { _t: "network"; data: unknown }
       | { _t: "api"; data: Error | string },
   ) => void;
-  onMissingConfig: (x: Vendor) => void;
+  onMissingConfig: (x: "openai" | "anthropic" | "perplexity") => void;
   afterResponse: (response: unknown) => void;
-  beforeRequest?: (service: Vendor, request: ChatRequest) => void;
+  beforeRequest?: (service: Model, request: ChatRequest) => void;
 }
 
 interface ChatService {
@@ -37,7 +42,7 @@ interface ChatService {
           | { _t: "empty_body"; message: string }
           | { _t: "unknown"; error: unknown }
           | {
-              _t: "unsupported_vendor";
+              _t: "unsupported_model";
               message: string;
             },
       ) => void;
@@ -46,11 +51,9 @@ interface ChatService {
 
   chatTE: (
     data: ChatRequest,
+    headers: Record<string, string | undefined>,
     callback: ChatCallback,
-  ) => TE.TaskEither<
-    RFC9457ErrorResponse,
-    { model: string; message: string; stopReason?: string }
-  >;
+  ) => TE.TaskEither<RFC9457ErrorResponse, SuccessResponse>;
 }
 
 /**
@@ -74,30 +77,33 @@ export function mkService(
 
 function chatTE(
   data: ChatRequest,
+  headers: Record<string, string | undefined>,
   callback?: ChatCallback,
-): TE.TaskEither<
-  RFC9457ErrorResponse,
-  { model: string; message: string; stopReason?: string }
-> {
-  switch (data.vendor) {
+): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
+  switch (modelMap[data.model]) {
     case "anthropic": {
       return chatAnthropic(data, callback);
     }
     case "openai": {
-      return chatOpenAI(data, { callback });
+      return chatOpenAI(data, headers, { callback });
     }
     case "perplexity": {
-      return chatPerplexity(data, callback);
+      return chatPerplexity(data, headers, callback);
     }
     default: {
-      const _exhaustiveCheck = data.vendor;
-      return _exhaustiveCheck;
+      return TE.left({
+        type: errorType.missingModel,
+        status: "500",
+        title: "Missing model",
+        detail: `'${data.model}' should be added to the supported models list`,
+      });
     }
   }
 }
 
 function chatPerplexity(
   data: ChatRequest,
+  headers: Record<string, string | undefined>,
   callback?: ChatCallback,
 ): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
   return pipe(
@@ -106,24 +112,25 @@ function chatPerplexity(
       () => {
         callback?.onMissingConfig("perplexity");
         return TE.left({
-          type: "tag:@chat-app:perplexity_not_configured",
+          type: errorType.perplexityNotConfigured,
           status: "501",
           title: "Perplexity not configured",
           detail: "",
         });
       },
-      (plugin) => chatOpenAI(data, { plugin, callback }),
+      (plugin) => chatOpenAI(data, headers, { plugin, callback }),
     ),
   );
 }
 
 function chatOpenAI(
   data: ChatRequest,
+  headers: Record<string, string | undefined>,
   {
     plugin,
     callback,
   }: {
-    plugin?: { client: OpenAI; model: string; stream: boolean };
+    plugin?: { client: OpenAI; model: Model; stream: boolean };
     callback?: ChatCallback;
   },
 ): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
@@ -133,55 +140,68 @@ function chatOpenAI(
     stream,
   }: {
     client: OpenAI;
-    model: string;
+    model: Model;
     stream: boolean;
   }): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
     return pipe(
-      TE.tryCatch(
-        () => {
-          return client.chat.completions.create({
-            model,
-            messages: [
-              ...data.history,
-              { role: "user", content: data.message },
-            ],
-            stream,
-          });
-        },
-        (error) => {
-          callback?.onError({ _t: "network", data: error });
-          return {
-            type: "tag:@chat-app:openai_error",
-            status: "500",
-            title: "OpenAI error",
-            detail:
-              typeof error === "object" && error !== null && "message" in error
-                ? (error as { message: string }).message
-                : "",
-          };
-        },
-      ),
-      TE.tapIO((response) => {
-        callback?.afterResponse(response);
-        return TE.right(response);
+      TE.Do,
+      TE.tapIO(() => {
+        return TE.fromIO(IO.of(callback?.beforeRequest?.(model, data)));
       }),
-      TE.flatMap((responseUntyped) => {
-        if (stream) {
-          return TE.right({
-            model,
-            message: "Streaming not implemented",
-          });
-        }
-
-        const response =
-          responseUntyped as OpenAI.Chat.Completions.ChatCompletion;
+      TE.map(() => {
+        return stream
+          ? TE.left({
+              error: {
+                type: errorType.streamingNotImplemented,
+                title: "Streaming not implemented",
+                status: "501",
+                detail: "",
+              },
+            })
+          : TE.right(undefined);
+      }),
+      TE.bind("response", () =>
+        TE.tryCatch(
+          () => {
+            return client.chat.completions.create(
+              {
+                model,
+                messages: [
+                  ...data.history,
+                  { role: "user", content: data.message },
+                ],
+                stream,
+              },
+              { headers },
+            ) as Promise<OpenAI.Chat.Completions.ChatCompletion>;
+          },
+          (error) => {
+            callback?.onError({ _t: "network", data: error });
+            return {
+              type: errorType.openaiError,
+              status: "500",
+              title: "OpenAI upstream error",
+              detail:
+                typeof error === "object" &&
+                error !== null &&
+                "message" in error
+                  ? (error as { message: string }).message
+                  : "",
+            };
+          },
+        ),
+      ),
+      TE.tapIO(({ response }) => {
+        return TE.fromIO(IO.of(callback?.afterResponse(response)));
+      }),
+      TE.flatMap(({ response }) => {
         if (
           response.choices.length === 0 ||
           !response.choices[0].message.content
         ) {
           callback?.onError({ _t: "api", data: JSON.stringify(response) });
           return TE.left({
-            type: "tag:@chat-app:invalid_openai_response",
+            type: errorType.invalidOpenaiResponse,
             title: "Invalid response from OpenAI",
             status: "500",
             detail: `OpenAI response: ${JSON.stringify(response)}`,
@@ -190,19 +210,17 @@ function chatOpenAI(
 
         return response.choices[0].finish_reason === "stop"
           ? TE.right({
-              model: response.model,
+              model: response.model as Model,
               message: response.choices[0].message.content,
             })
           : TE.right({
-              model: response.model,
+              model: response.model as Model,
               message: response.choices[0].message.content,
               stopReason: response.choices[0].finish_reason,
             });
       }),
     );
   }
-
-  callback?.beforeRequest?.("openai", data);
 
   return pipe(
     TE.fromNullable(undefined)(plugin),
@@ -212,7 +230,7 @@ function chatOpenAI(
     TE.matchE(() => {
       callback?.onMissingConfig("openai");
       return TE.left({
-        type: "tag:@chat-app:openai_not_configured",
+        type: errorType.openaiNotConfigured,
         status: "501",
         title: "OpenAI not configured",
         detail: "",
@@ -250,7 +268,7 @@ function chatAnthropic(
           if (e instanceof Anthropic.APIError) {
             callback?.onError({ _t: "api", data: e });
             return {
-              type: "tag:@chat-app:anthropic_api_error",
+              type: errorType.anthropicApiError,
               status: e.status?.toString() ?? "500",
               title: `Anthropic API error: ${e.name}`,
               detail: e.message,
@@ -258,7 +276,7 @@ function chatAnthropic(
           } else {
             callback?.onError({ _t: "network", data: e });
             return {
-              type: "tag:@chat-app:anthropic_other_error",
+              type: errorType.anthropicOtherError,
               status: "400",
               title: `Anthropic API uncaught error`,
               detail: "", // e.message,
@@ -277,7 +295,7 @@ function chatAnthropic(
             message: "Streaming not supported",
           });
           return TE.left({
-            type: "tag:@chat-app:anthropic_streaming_not_supported_error",
+            type: errorType.anthropicStreamingNotSupportedError,
             status: "501",
             title: `Anthropic API uncaught error`,
             detail: "", // e.message,
@@ -286,13 +304,13 @@ function chatAnthropic(
 
         return response.stop_reason === "end_turn"
           ? TE.right({
-              model: response.model,
+              model: response.model as Model,
               message: response.content
                 .map((m) => (m.type === "text" ? m.text : ""))
                 .join("\n"),
             })
           : TE.right({
-              model: response.model,
+              model: response.model as Model,
               message: response.content
                 .map((m) => (m.type === "text" ? m.text : ""))
                 .join("\n"),
@@ -308,7 +326,7 @@ function chatAnthropic(
       () => {
         callback?.onMissingConfig("anthropic");
         return TE.left({
-          type: "tag:@chat-app:anthropic_not_configured",
+          type: errorType.anthropicNotConfigured,
           status: "501",
           title: "Anthropic not configured",
           detail: "",
@@ -318,8 +336,6 @@ function chatAnthropic(
     ),
   );
 }
-
-const supportedModels: Vendor[] = ["openai", "perplexity", "anthropic"];
 
 function validateBody(
   x: string | null,
@@ -334,7 +350,7 @@ function validateBody(
       arg:
         | { _t: "empty_body"; message: string }
         | { _t: "unknown"; error: unknown }
-        | { _t: "unsupported_vendor"; message: string }
+        | { _t: "unsupported_model"; message: string }
         | { _t: "decode"; error: D.DecodeError },
     ) => void;
   },
@@ -347,7 +363,7 @@ function validateBody(
       title: "Empty request body",
       detail: `Request body must be an instance of ChatRequest. Example:
 {
-  "vendor": "openai",
+  "model": ${defaultModel},
   "message": "Hello, world!",
   "history": []
 }
@@ -366,16 +382,16 @@ function validateBody(
         title: "Invalid request format",
       });
     }
-    if (!supportedModels.includes(validationResult.right.vendor)) {
+    if (!models.includes(validationResult.right.model)) {
       onInvalid({
-        _t: "unsupported_vendor",
-        message: `Unsupported vendor: ${validationResult.right.vendor}`,
+        _t: "unsupported_model",
+        message: `Unsupported model: ${validationResult.right.model}`,
       });
       return E.left({
         type: "tag:@chat-app:unsupported_model",
         status: "400",
         title: "Unsupported model",
-        detail: "",
+        detail: `'${validationResult.right.model}' is not one of the supported models: ${models.join(", ")}`,
       });
     }
 

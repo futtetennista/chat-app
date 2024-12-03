@@ -1,15 +1,16 @@
+import {
+  anthropicDefaultModel,
+  anthropicModels,
+  openaiDefaultModel,
+  openaiModels,
+} from "@chat-app/contracts";
 import { Argument, Command, Option } from "@commander-js/extra-typings";
 import * as fs from "fs";
 import * as path from "path";
 
 import bundle from "./bundle";
 import { chat } from "./chat";
-import mkConfig, {
-  AnthropicModels,
-  anthropicModels,
-  OpenAIModels,
-  openAIModels,
-} from "./mkConfig";
+import mkConfig from "./mkConfig";
 
 function main() {
   const cli = new Command();
@@ -37,9 +38,9 @@ function main() {
         "--openai-model <name>",
         "OpenAI model (pick 'gpt-4o-mini' for a general-purpose, fast model)",
       )
-        .choices<OpenAIModels>(openAIModels)
+        .choices<typeof openaiModels>(openaiModels)
+        .default<(typeof openaiModels)[number]>(openaiDefaultModel)
         .makeOptionMandatory(),
-      // .default<OpenAIModels[number]>("gpt-4o-mini"),
     )
     // https://docs.anthropic.com/en/docs/about-claude/models#model-comparison-table
     .addOption(
@@ -47,8 +48,8 @@ function main() {
         "--anthropic-model <name>",
         "Anthropic model (pick 'claude-3-haiku-latest' for a general-purpose, fast model)",
       )
-        .choices<AnthropicModels>(anthropicModels)
-        // .default<AnthropicModels[number]>("claude-3-haiku-latest"),
+        .choices<typeof anthropicModels>(anthropicModels)
+        .default<(typeof anthropicModels)[number]>(anthropicDefaultModel)
         .makeOptionMandatory(),
     )
     .option("--stream", "Use streaming API", false)
