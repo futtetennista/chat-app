@@ -10,7 +10,7 @@ import {
 import { anthropicModels, openaiModels } from "@chat-app/contracts";
 import { Command } from "@commander-js/extra-typings";
 import { input, search, select } from "@inquirer/prompts";
-import { apply } from "fp-ts";
+import * as apply from "fp-ts/lib/Apply";
 import * as Console from "fp-ts/lib/Console";
 import * as E from "fp-ts/lib/Either";
 import { constVoid, pipe } from "fp-ts/lib/function";
