@@ -1,5 +1,5 @@
 {
-  "$schema": "https://unpkg.com/knip/schema.json",
+  "$schema": "https://unpkg.com/knip@5.36.3/schema.json",
   "project": "**/*.{js,jsx,ts,tsx}",
   "ignore": [
     "**/dist/**",
