@@ -11,15 +11,17 @@ fi
 
 for package in $changed_packages; do
   if [ -d "packages/$package" ]; then
-    echo "[pre-commit] Running prettier for package: $package"
+    echo "[pre-commit] ⏳ Prettier for package '$package' will start."
     pnpm run format "packages/$package"
+    echo "[pre-commit] ✅ Prettier for package '$package' did end."
     # Make sure only files that prettier might have changed are staged.
     files_formatted="$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$' | sort -u)"
     if [ -n "$files_formatted" ]; then
       echo "$files_formatted" | xargs git add
     fi
-    echo "[pre-commit] Running tests for package: $package"
+    echo "[pre-commit] ⏳ Tests for package '$package' will start."
     pnpm --filter "$package" run test:unit
+    echo "[pre-commit] ✅ Tests for package '$package' did end."
   fi
 done
 
@@ -42,7 +44,7 @@ if [ -z "$changed_scripts" ]; then
   echo "[pre-commit] Changed scripts: none"
 else
   echo "[pre-commit] Changed scripts: $(echo "${changed_scripts[*]}" | tr '\n' ', ' | sed 's/,$//')"
-  echo "[pre-commit] Shellcheck will start."
+  echo "[pre-commit] ⏳ Shellcheck will start."
   echo "${changed_scripts[@]}" | xargs shellcheck -x
-  echo "[pre-commit] Shellcheck did end."
+  echo "[pre-commit] ✅ Shellcheck did end."
 fi

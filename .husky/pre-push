@@ -7,9 +7,9 @@ if [ -z "$remote_branch" ]; then
   exit 0
 fi
 
-echo "[pre-push] Knip will start."
+echo "[pre-push] ⏳ Knip will start."
 pnpm run knip
-echo "[pre-push] Knip did end."
+echo "[pre-push] ✅ Knip did end."
 
 # This script identifies JavaScript and TypeScript files that have been changed
 # between the current HEAD and the specified remote branch. It filters out deleted
@@ -24,9 +24,9 @@ if [ -z "$changed_files_ts" ]; then
   echo "[pre-push] Changed files from HEAD to '$remote_branch': none"
 else
   echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files_ts[*]}" | tr '\n' ', ' | sed 's/, $//')"
-  echo "[pre-push] ESLint will start."
+  echo "[pre-push] ⏳ ESLint will start."
   echo "$changed_files_ts" | xargs pnpm run lint
-  echo "[pre-push] ESLint did end."
+  echo "[pre-push] ✅ ESLint did end."
 fi
 
 # changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
@@ -44,8 +44,6 @@ fi
 #   fi
 # done
 
-echo "[pre-push] pre-commit will start."
+echo "[pre-push] ⏳ pre-commit checks will start."
 echo "$changed_files" | xargs pre-commit run --config=.pre-commit-config.yml --files
-echo "[pre-push] pre-commit did end."
-
-echo "[pre-push] Done."
+echo "[pre-push] ✅ pre-commit checks did end."
