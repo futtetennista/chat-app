@@ -1,4 +1,4 @@
-import { Message, Vendor } from "@chat-app/contracts";
+import { Message, Model, models, resolveModel } from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
@@ -7,7 +7,6 @@ import * as D from "io-ts/Decoder";
 import { useCallback, useEffect, useState } from "react";
 
 import api, { APIError } from "../api";
-import { modelHandleToVendor, models } from "../constants";
 
 interface ChatHistory {
   messages: Message[];
@@ -17,7 +16,7 @@ export function useChat({
   modelState: [model, setModel],
   chatId,
 }: {
-  modelState: [Vendor, React.Dispatch<React.SetStateAction<Vendor>>];
+  modelState: [Model, React.Dispatch<React.SetStateAction<Model>>];
   chatId: string;
 }): {
   messages: Message[];
@@ -65,7 +64,7 @@ export function useChat({
               () => E.right(model),
               (modelTarget) =>
                 pipe(
-                  modelHandleToVendor(modelTarget),
+                  resolveModel(modelTarget),
                   O.match(
                     () => {
                       return E.left<{ _tag: "validation"; error: string }>({
@@ -105,7 +104,7 @@ export function useChat({
           return TE.right({ model, message, history });
         }),
         TE.flatMap(({ model, message, history }) =>
-          api.chatTE({ vendor: model, message, history }),
+          api.chatTE({ model: model, message, history }),
         ),
         TE.flatMap((response) => {
           if (response._t === "ko") {

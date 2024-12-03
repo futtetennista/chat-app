@@ -1,29 +1,13 @@
 #!/usr/bin/env tsx
 
 import { LogLevel } from "@aws-lambda-powertools/logger/types";
+import { AnthropicModel, OpenAIModel } from "@chat-app/contracts";
 import { Command } from "@commander-js/extra-typings";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
 
 import { Config } from "../src/config";
-
-export const anthropicModels = [
-  "claude-3-opus-latest",
-  "claude-3-sonnet-latest",
-  "claude-3-haiku-latest",
-  "claude-3-5-sonnet-latest",
-  "claude-3-5-haiku-latest",
-] as const;
-export type AnthropicModels = typeof anthropicModels;
-
-export const openAIModels = [
-  "gpt-4o",
-  "gpt-4o-mini",
-  "o1-preview",
-  "o1-mini",
-] as const;
-export type OpenAIModels = typeof openAIModels;
 
 export default function (cmd: Command) {
   return async function ({
@@ -33,8 +17,8 @@ export default function (cmd: Command) {
     stream = false,
   }: {
     localDev?: boolean;
-    openaiModel: OpenAIModels[number];
-    anthropicModel: AnthropicModels[number];
+    openaiModel: OpenAIModel[number];
+    anthropicModel: AnthropicModel[number];
     stream?: boolean;
   }): Promise<void> {
     if (localDev) {
@@ -102,8 +86,8 @@ function createConfig({
     PERPLEXITY_API_KEY?: string;
     PERPLEXITY_BASE_URL?: string;
   };
-  openaiModel: OpenAIModels[number];
-  anthropicModel: AnthropicModels[number];
+  openaiModel: OpenAIModel[number];
+  anthropicModel: AnthropicModel[number];
   perplexityModel?: string;
   stream: boolean;
 }): Config {

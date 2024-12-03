@@ -1,4 +1,4 @@
-import { Vendor } from "@chat-app/contracts";
+import { Model } from "@chat-app/contracts";
 import React from "react";
 import { FaPaperclip, FaPaperPlane, FaTruckLoading } from "react-icons/fa";
 import styled from "styled-components";
@@ -85,7 +85,7 @@ const AttachFileButton = styled.button`
 
 interface Props {
   chatId: string;
-  modelState: [Vendor, React.Dispatch<React.SetStateAction<Vendor>>];
+  modelState: [Model, React.Dispatch<React.SetStateAction<Model>>];
 }
 
 const Chat = ({ modelState, chatId }: Props) => {

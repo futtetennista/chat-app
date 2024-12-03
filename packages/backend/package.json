@@ -16,7 +16,8 @@
     "start": "CHAT_APP_CONFIG_JSON=$(pnpm -s run bundle:before) sam local start-api --debug --template-file aws-sam.template.yml --warm-containers EAGER --parameter-overrides \"handler=$(jq -r .compilerOptions.outDir < tsconfig.json)/non-prod/index.js\"",
     "start:bundle": "pnpm run bundle:clean && pnpm run bundle:non-prod && pnpm run start",
     "start:watch": "concurrently --kill-others-on-fail \"nodemon\" \"pnpm run start\"",
-    "test:local": "curl 'http://localhost:3000/v1/api/chat' --data '{\"vendor\":\"openai\",\"message\":\"What is your knowledge cutoff date?\",\"history\":[]}'",
+    "test:local": "curl 'http://localhost:3000/v1/api/chat' --data '{\"model\":\"o1-mini\",\"message\":\"What is your knowledge cutoff date?\",\"history\":[]}'",
+    "test:local:error": "curl 'http://localhost:3000/v1/api/chat' -H 'X-Chat-App-Test-Failure: 1'  --data '{\"model\":\"o1-mini\",\"message\":\"What is your knowledge cutoff date?\",\"history\":[]}'",
     "test": "pnpm run test:unit",
     "test:unit": "jest --passWithNoTests"
   },

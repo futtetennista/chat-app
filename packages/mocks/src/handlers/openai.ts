@@ -11,26 +11,54 @@ const handlers = [
       request,
     }) /* : Promise<StrictResponse<OpenAI.Chat.Completions.ChatCompletion>> */ => {
       return pipe(
-        TE.tryCatch(
-          async () =>
-            (await request.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
-          () => ({
-            error: {
-              type: "bad_request_error",
-              name: "BadRequestError",
-              status: "400",
+        TE.Do,
+        TE.tapIO(() => Console.log({ headers: request.headers })),
+        TE.tap(
+          (): TE.TaskEither<
+            {
+              error: {
+                type: string;
+                name: string;
+                status: string;
+              };
             },
-          }),
+            undefined
+          > => {
+            return /(1|true|on)/.test(
+              request.headers.get("X-Chat-App-Test-Failure") ?? "",
+            )
+              ? TE.left({
+                  error: {
+                    type: "test_error",
+                    name: "TestError",
+                    status: "400",
+                  },
+                })
+              : TE.right(undefined);
+          },
         ),
-        TE.tapIO((requestBody) => Console.log({ requestBody })),
+        TE.bind("requestBody", () =>
+          TE.tryCatch(
+            async () =>
+              (await request.json()) as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
+            () => ({
+              error: {
+                type: "bad_request_error",
+                name: "BadRequestError",
+                status: "400",
+              },
+            }),
+          ),
+        ),
+        TE.tapIO(({ requestBody }) => Console.log({ requestBody })),
         TE.match(
           (error) => HttpResponse.json(error, { status: 400 }),
-          (requestBody) =>
+          ({ requestBody }) =>
             HttpResponse.json<OpenAI.Chat.Completions.ChatCompletion>({
               id: `chatcmpl-${new Date().toLocaleTimeString()}`,
               object: "chat.completion",
               created: Date.now(),
-              model: "gpt-4o-2024-08-06",
+              model: requestBody.model,
               choices: [
                 {
                   index: 0,

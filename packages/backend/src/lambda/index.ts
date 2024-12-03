@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { ChatResponse, Vendor } from "@chat-app/contracts";
+import { ChatResponse } from "@chat-app/contracts";
 import {
   APIGatewayEvent,
   APIGatewayProxyResult,
@@ -118,7 +118,7 @@ export const handler: Handler = async (
         },
         onInvalid(error) {
           switch (error._t) {
-            case "unsupported_vendor": {
+            case "unsupported_model": {
               logger.error(error.message);
               break;
             }
@@ -150,7 +150,7 @@ export const handler: Handler = async (
       }),
     ),
     TE.flatMap((data) =>
-      service.chatTE(data, {
+      service.chatTE(data, event.headers, {
         beforeRequest(service, request) {
           logger.info(`[${service}] Request: `, { request });
         },
@@ -180,7 +180,7 @@ export const handler: Handler = async (
             }
           }
         },
-        onMissingConfig(vendor: Vendor) {
+        onMissingConfig(vendor: "openai" | "anthropic" | "perplexity") {
           logger.error(`Missing configuration for ${vendor}`);
         },
         afterResponse(response) {
@@ -222,7 +222,11 @@ export const handler: Handler = async (
           headers: commonHeaders,
           body: ChatResponse.encode({
             _t: "ok",
-            data,
+            data: {
+              message: data.message,
+              model: data.model,
+              stopReason: data.stopReason,
+            },
           }),
         };
       },

@@ -4,51 +4,128 @@ import * as C from "io-ts/Codec";
 import * as D from "io-ts/Decoder";
 import * as E from "io-ts/Encoder";
 
-export const VendorD = D.literal(
-  "openai",
-  // "gpt-4",
+export const anthropicDefaultModel: AnthropicModel = "claude-3-5-haiku-latest";
+export const anthropicModels = [
+  "claude-3-opus-latest",
+  "claude-3-sonnet-latest",
+  "claude-3-haiku-latest",
+  "claude-3-5-sonnet-latest",
+  "claude-3-5-haiku-latest",
+] as const;
+
+export const AnthropicModelD = D.literal(
+  ...anthropicModels,
+  //   "claude-3-opus-latest",
+  //   "claude-3-sonnet-latest",
+  //   "claude-3-haiku-latest",
+  //   "claude-3-5-sonnet-latest",
+  //   "claude-3-5-haiku-latest",
+);
+export type AnthropicModel = D.TypeOf<typeof AnthropicModelD>;
+
+export const openaiDefaultModel: OpenAIModel = "o1-mini";
+export const openaiModels = [
+  "gpt-4o",
+  "gpt-4o-mini",
+  "o1-preview",
+  "o1-mini",
+] as const;
+
+export const OpenAIModelD = D.literal(
+  ...openaiModels,
   // "gpt-4o",
   // "gpt-4o-mini",
-  "perplexity",
-  "anthropic",
-  // "claude-haiku",
+  // "o1-preview",
+  // "o1-mini",
 );
+export type OpenAIModel = D.TypeOf<typeof OpenAIModelD>;
 
-export type Vendor = D.TypeOf<typeof VendorD>;
+export const perplexityModels = ["perplexity"] as const;
+export const PerplexityModelD = D.literal(...perplexityModels);
+export type PerplexityModel = D.TypeOf<typeof PerplexityModelD>;
 
-const VendorE: E.Encoder<string, Vendor> = {
-  encode: (vendor) => JSON.stringify(vendor),
+export const perplexityDefaultModel: PerplexityModel = "perplexity";
+export const ModelD = D.union(
+  ...[AnthropicModelD, OpenAIModelD, PerplexityModelD],
+);
+export type Model = D.TypeOf<typeof ModelD>;
+
+export const defaultModel: Model = "o1-mini";
+
+const ModelE: E.Encoder<string, Model> = {
+  encode: (model) => JSON.stringify(model),
 };
 
-export const Vendor: C.Codec<unknown, string, Vendor> = C.make(
-  VendorD,
-  VendorE,
-);
-const anthropicHandles = ["c", "claude", "cld"];
-const openaiHandles = ["chatgpt", "gpt"];
-const perplexityHandles = ["p", "ppx"];
-// export const modelHandles = [
-//   ...anthropicHandles,
-//   ...openaiHandles,
-//   ...perplexityHandles,
-// ];
-export function modelHandleToVendor(handle: string): O.Option<Vendor> {
-  if (anthropicHandles.includes(handle)) {
-    return O.some("anthropic");
+export const Model: C.Codec<unknown, string, Model> = C.make(ModelD, ModelE);
+
+export const modelMap: Record<
+  OpenAIModel | AnthropicModel | PerplexityModel,
+  "openai" | "anthropic" | "perplexity"
+> = Object.fromEntries(
+  Object.entries({
+    ...Object.fromEntries(anthropicModels.map((model) => [model, "anthropic"])),
+    ...Object.fromEntries(openaiModels.map((model) => [model, "openai"])),
+    ...Object.fromEntries(
+      perplexityModels.map((model) => [model, "perplexity"]),
+    ),
+  }),
+) as Record<
+  OpenAIModel | AnthropicModel | PerplexityModel,
+  "openai" | "anthropic" | "perplexity"
+>;
+
+const handleMap: Record<string, "openai" | "anthropic" | "perplexity"> = {
+  c: "anthropic",
+  claude: "anthropic",
+  cld: "anthropic",
+  chatgpt: "openai",
+  gpt: "openai",
+  p: "perplexity",
+  ppx: "perplexity",
+};
+
+export function resolveModel(maybeModel: string): O.Option<Model> {
+  function resolveModelFromHandle(
+    vendor: "openai" | "anthropic" | "perplexity" | undefined,
+  ): O.Option<Model> {
+    switch (vendor) {
+      case "openai": {
+        return O.some(openaiDefaultModel);
+      }
+      case "anthropic": {
+        return O.some(anthropicDefaultModel);
+      }
+      case "perplexity": {
+        return O.some(perplexityDefaultModel);
+      }
+      default: {
+        return O.none;
+      }
+    }
   }
 
-  if (openaiHandles.includes(handle)) {
-    return O.some("openai");
-  }
-
-  if (perplexityHandles.includes(handle)) {
-    return O.some("perplexity");
-  }
-
-  return O.none;
+  return pipe(
+    resolveModelFromHandle(handleMap[maybeModel]),
+    O.orElse(() => {
+      return anthropicModels.includes(maybeModel as AnthropicModel)
+        ? O.some(maybeModel as AnthropicModel)
+        : O.none;
+    }),
+    O.orElse(() => {
+      return openaiModels.includes(maybeModel as OpenAIModel)
+        ? O.some(maybeModel as OpenAIModel)
+        : O.none;
+    }),
+    O.orElse(() => {
+      return perplexityModels.includes(maybeModel as PerplexityModel)
+        ? O.some(maybeModel as PerplexityModel)
+        : O.none;
+    }),
+  );
 }
 
-export const models = ["anthropic", "openai", "perplexity"] as Vendor[];
+export const models: Model[] = [...anthropicModels, ...openaiModels];
+
 export const MessageD = pipe(
   D.struct({
     role: D.literal("user", "assistant"),
@@ -71,7 +148,7 @@ export const Message: C.Codec<unknown, string, Message> = C.make(
 const ChatRequestD = D.struct({
   message: D.string,
   history: D.array(Message),
-  vendor: D.literal("openai", "perplexity", "anthropic"),
+  model: Model,
 });
 
 export type ChatRequest = D.TypeOf<typeof ChatRequestD>;
@@ -88,7 +165,7 @@ export const ChatRequest: C.Codec<unknown, string, ChatRequest> = C.make(
 const SuccessResponseD = pipe(
   D.struct({
     message: D.string,
-    model: D.string,
+    model: Model,
     // model: Vendor,
   }),
   D.intersect(D.partial({ stopReason: D.string })),
@@ -103,9 +180,79 @@ const SuccessResponseE: E.Encoder<string, SuccessResponse> = {
 export const SuccessResponse: C.Codec<unknown, string, SuccessResponse> =
   C.make(SuccessResponseD, SuccessResponseE);
 
+export const errorTypes = [
+  "tag:@chat-app:anthropic_api_error",
+  "tag:@chat-app:anthropic_not_configured",
+  "tag:@chat-app:anthropic_other_error",
+  "tag:@chat-app:anthropic_streaming_not_supported_error",
+  "tag:@chat-app:empty_request_body",
+  "tag:@chat-app:i_am_a_teapot",
+  "tag:@chat-app:invalid_json",
+  "tag:@chat-app:invalid_openai_response",
+  "tag:@chat-app:invalid_request_format",
+  "tag:@chat-app:missing_model",
+  "tag:@chat-app:openai_error",
+  "tag:@chat-app:openai_not_configured",
+  "tag:@chat-app:perplexity_not_configured",
+  "tag:@chat-app:streaming_not_implemented",
+  "tag:@chat-app:unsupported_model",
+] as const;
+
+const ErrorTypeD = D.literal(...errorTypes);
+
+// This doesn't compile…
+// const ErrorTypeD = D.union(...errorTypes.map(D.literal));
+// So we have to do it manually…
+// const ErrorTypeD = D.union(
+//   D.literal(errorTypes.anthropicApiError),
+//   D.literal(errorTypes.anthropicNotConfigured),
+//   D.literal(errorTypes.anthropicOtherError),
+//   D.literal(errorTypes.anthropicStreamingNotSupportedError),
+//   D.literal(errorTypes.emptyRequestBody),
+//   D.literal(errorTypes.invalidJson),
+//   D.literal(errorTypes.invalidOpenaiResponse),
+//   D.literal(errorTypes.invalidRequestFormat),
+//   D.literal(errorTypes.missingModel),
+//   D.literal(errorTypes.openaiError),
+//   D.literal(errorTypes.openaiNotConfigured),
+//   D.literal(errorTypes.perplexityNotConfigured),
+//   D.literal(errorTypes.streamingNotImplemented),
+//   D.literal(errorTypes.unsupportedModel),
+// );
+// This is to avoid errors downstream e.g.
+// Type '"tag:@chat-app:missing_model"' is not assignable to type '"tag:@chat-app:perplexity_not_configured"'
+
+// Another way to avoid the compile error is to create a helper map
+type ErrorTypeSuffix =
+  (typeof errorTypes)[number] extends `tag:@chat-app:${infer S}` ? S : never;
+type CamelCase<S extends string> = S extends `${infer Head}_${infer Tail}`
+  ? `${Head}${Capitalize<CamelCase<Tail>>}`
+  : S;
+
+function toCamelCase(x: ErrorType): CamelCase<ErrorTypeSuffix> {
+  return x
+    .replace(/tag:@chat-app:/, "")
+    .toLowerCase()
+    .replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
+    .replace(/^./, (letter) =>
+      letter.toLowerCase(),
+    ) as CamelCase<ErrorTypeSuffix>;
+}
+
+export const errorTypesMap: Record<
+  CamelCase<ErrorTypeSuffix>,
+  ErrorType
+> = errorTypes.reduce(
+  (acc, errorType) => ({ ...acc, [toCamelCase(errorType)]: errorType }),
+  // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+  {} as Partial<Record<CamelCase<ErrorTypeSuffix>, ErrorType>>,
+) as Record<CamelCase<ErrorTypeSuffix>, ErrorType>;
+
+export type ErrorType = D.TypeOf<typeof ErrorTypeD>;
+
 const RFC9457ErrorResponseD = pipe(
   D.struct({
-    type: D.string,
+    type: ErrorTypeD,
     status: D.string,
     title: D.string,
     detail: D.string,

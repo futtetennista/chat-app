@@ -1,4 +1,4 @@
-import type { Message, Vendor } from "@chat-app/contracts";
+import { defaultModel, type Message } from "@chat-app/contracts";
 import { baseURL, internalHandlers } from "@chat-app/mocks";
 import { setupServer } from "msw/node";
 
@@ -32,7 +32,7 @@ describe("chat", () => {
     ];
 
     const response = await api.chatTE({
-      vendor: "openai",
+      model: defaultModel,
       message: "Hello, world!",
       history,
     })();
@@ -47,12 +47,13 @@ describe("chat", () => {
     //   }),
     // );
 
-    const vendor: Vendor = "openai";
     const message = "Hello, world!";
     const history: Message[] = [
       { role: "user", content: "Hi", timestamp: Date.now() },
     ];
 
-    await expect(api.chatTE({ vendor, message, history })()).rejects.toThrow();
+    await expect(
+      api.chatTE({ model: defaultModel, message, history })(),
+    ).rejects.toThrow();
   });
 });
