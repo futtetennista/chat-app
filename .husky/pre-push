@@ -45,5 +45,5 @@ fi
 # done
 
 echo "[pre-push] ⏳ pre-commit checks will start."
-echo "$changed_files" | xargs pre-commit run --config=.pre-commit-config.yml --files
+echo "$changed_files" | xargs pre-commit run --files
 echo "[pre-push] ✅ pre-commit checks did end."
