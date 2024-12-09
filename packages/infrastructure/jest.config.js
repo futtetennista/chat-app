@@ -12,6 +12,10 @@ module.exports = {
     process.env["CI"] === "true"
       ? [["github-actions", { silent: false }], "summary"]
       : undefined,
+  // Specify the root directories for Jest to scan for tests
+  roots: ["<rootDir>/src"],
+  // Define the patterns Jest uses to detect test files
+  testMatch: ["**/__tests__/**/*.[jt]s", "**/?(*.)+(spec|test).[tj]s"],
   setupFilesAfterEnv: ["<rootDir>/jest.setup-after-env.js"],
   transform: {
     "^.+\\.(t|j)sx?$": "@swc/jest",

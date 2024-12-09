@@ -1,8 +1,6 @@
 {
   "extends": ["../tsconfig.base.json", "@tsconfig/node20/tsconfig.json"],
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "node16",
     "rootDir": ".",
     "outDir": "./dist",
     "paths": {
@@ -10,6 +8,6 @@
       "@bootstrap/*": ["./src/bootstrap/*"]
     }
   },
-  "include": ["./src/**/*", "./scripts/**/*.ts"],
+  "include": ["./src/**/*.ts", "./src/**/*.json", "./scripts/**/*.ts"],
   "exclude": ["./node_modules", "./dist"]
 }

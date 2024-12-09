@@ -88,6 +88,8 @@ jobs:
         name: Set up node.js with pnpm
         with:
           install-recursive: true
+      - name: Compile
+        run: pnpm --recursive run compile
       - name: Run tests
         run: pnpm --recursive run test:unit
 
