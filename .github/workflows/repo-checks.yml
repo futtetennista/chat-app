@@ -24,4 +24,4 @@ jobs:
       - name: Run checks
         env:
           TERM: dumb
-        run: pre-commit run --config=.pre-commit-config.yml --all-files
+        run: pre-commit run --all-files
