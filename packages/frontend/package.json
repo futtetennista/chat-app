@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@9.12.2",
   "scripts": {
-    "clean": "rm -rf ./build tsconfig.tsbuildinfo",
+    "clean": "rm -rf $(jq -r .compilerOptions.outDir < tsconfig.json) tsconfig.tsbuildinfo",
     "use-tsconfig": "__use_tsconfig() { ln --force --symbolic ./tsconfig.\"$1\".json ./tsconfig.json; }; __use_tsconfig $@",
     "start": "pnpm run start:before && REACT_APP_API_BASE_URL=http://localhost DISABLE_ESLINT_PLUGIN=true react-scripts start",
     "start:before": "pnpm run use-tsconfig dev && tsc -b -v",
@@ -45,7 +45,11 @@
     "typescript": "catalog:"
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
     "development": [
       "last 1 chrome version",
       "last 1 firefox version",
@@ -53,6 +57,8 @@
     ]
   },
   "msw": {
-    "workerDirectory": ["./public"]
+    "workerDirectory": [
+      "./public"
+    ]
   }
 }

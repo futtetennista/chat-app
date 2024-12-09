@@ -19,6 +19,6 @@
   },
   "scripts": {
     "build": "tsc -b",
-    "clean": "rm -rf ./build tsconfig.tsbuildinfo"
+    "clean": "rm -rf $(jq -r .compilerOptions.outDir < tsconfig.json) tsconfig.tsbuildinfo"
   }
 }

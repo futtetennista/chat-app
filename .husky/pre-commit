@@ -9,6 +9,11 @@ else
   echo "[pre-commit] Changed packages: $(echo "${changed_packages[*]}" | tr '\n' ', ' | sed 's/,$//')"
 fi
 
+if [ -n "$changed_packages" ]; then
+  pnpm --recursive run clean
+  pnpm --recursive run compile
+fi
+
 for package in $changed_packages; do
   if [ -d "packages/$package" ]; then
     echo "[pre-commit] ⏳ Prettier for package '$package' will start."
