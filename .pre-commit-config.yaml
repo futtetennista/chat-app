@@ -5,9 +5,9 @@ repos:
     rev: v4.4.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*|npins/.*)$
+        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*|npins/.*|secret/.*)$
       - id: end-of-file-fixer
-        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*|npins/.*)$
+        exclude: ^(.*/__generated__/.*.ts|eslint-plugin/out/.*|.*/pacts/.*|npins/.*|secret/.*)$
       - id: check-yaml
         exclude: ^(packages/backend/aws-sam.template.yml)$
       - id: check-added-large-files
