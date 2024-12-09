@@ -11,6 +11,7 @@
   },
   "devDependencies": {
     "@tsconfig/recommended": "catalog:",
+    "@types/node": "catalog:typescript-node20",
     "fp-ts": "catalog:",
     "io-ts": "catalog:",
     "msw": "catalog:",

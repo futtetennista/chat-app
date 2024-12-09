@@ -9,7 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 
 import bundle from "./bundle";
-import { chat } from "./chat";
+import chat from "./chat";
 import mkConfig from "./mkConfig";
 
 function main() {
@@ -19,6 +19,7 @@ function main() {
     .command("chat")
     .description("Chat with the bot")
     .option("--chat-history-dir <dir>", "Directory to store chats")
+    .option("--api-base-url <url>", "API base URL")
     .action(chat(cli));
 
   cli

@@ -6,7 +6,7 @@ changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.[j
 if [ -z "$changed_packages" ]; then
   echo "[pre-commit] Changed packages: none"
 else
-  echo "[pre-commit] Changed packages: ${changed_packages[*]}"
+  echo "[pre-commit] Changed packages: $(echo "${changed_packages[*]}" | tr '\n' ', ' | sed 's/,$//')"
 fi
 
 for package in $changed_packages; do

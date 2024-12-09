@@ -1,7 +1,29 @@
-// import * as fs from "fs";
+import { Message } from "@chat-app/contracts";
+import {
+  baseURL as apiBaseURL,
+  internalHandlers as handlers,
+} from "@chat-app/mocks";
+import { input } from "@inquirer/prompts";
+import * as fs from "fs";
 import * as Decoder from "io-ts/lib/Decoder";
+import { setupServer } from "msw/node";
+import * as os from "os";
+import * as path from "path";
 
 import { ChatHistoryTestOnly as ChatHistory } from "./chat";
+import { chatLoopTestOnly as chatLoop } from "./chat";
+
+const server = setupServer(...handlers);
+
+beforeAll(() => {
+  server.listen();
+});
+afterEach(() => {
+  server.resetHandlers();
+});
+afterAll(() => {
+  server.close();
+});
 
 describe("ChatHistory", () => {
   it("should decode valid chat history", () => {
@@ -67,4 +89,53 @@ describe("ChatHistory", () => {
     }
     expect(result._tag).toBe("Right");
   });
+});
+
+jest.mock("@inquirer/prompts", () => ({
+  input: jest.fn(),
+}));
+
+describe("chatLoop", () => {
+  const [timeout, messageThreshold] = process.env.CI
+    ? [60_000, 10_000]
+    : [5_000, 11];
+
+  it(
+    "[perf] should NOT cause a stack overflow",
+    async function () {
+      const filePath = "test.json";
+      const chat: { _tag: "chat"; messages: Message[] } = {
+        _tag: "chat",
+        messages: [],
+      };
+      const chatHistoryDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "chat-history-"),
+      );
+      fs.writeFileSync(
+        path.join(chatHistoryDir, filePath),
+        JSON.stringify({
+          messages: [],
+        }),
+      );
+
+      const start = Date.now();
+
+      (input as jest.Mock).mockImplementation(() => {
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve(Date.now() - start > timeout - 500 ? "!e" : "test message");
+          }, 1);
+        });
+      });
+
+      return chatLoop({
+        apiBaseURL,
+        chatHistoryDir,
+        filePath,
+        chat,
+        messageThreshold,
+      })();
+    },
+    timeout,
+  );
 });

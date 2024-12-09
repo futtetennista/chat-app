@@ -4,9 +4,10 @@ import {
   defaultModel,
   RFC9457ErrorResponse,
 } from "@chat-app/contracts";
-import * as Console from "fp-ts/Console";
+// import * as Console from "fp-ts/Console";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/function";
+// import * as IO from "fp-ts/IO";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 import { http, HttpResponse, passthrough, StrictResponse } from "msw";
@@ -30,7 +31,7 @@ const handlers = [
             detail: "",
           }),
         ),
-        TE.tapIO((requestBody) => Console.log({ requestBody })),
+        // TE.tapIO((requestBody) => process.env.NODE_ENV === 'test' ? IO. of(void 0) : Console.log({ requestBody })),
         TE.flatMap((requestBody) =>
           TE.fromEither(ChatRequest.decode(requestBody)),
         ),

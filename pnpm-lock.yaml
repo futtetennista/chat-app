@@ -329,6 +329,9 @@ importers:
       '@tsconfig/recommended':
         specifier: 'catalog:'
         version: 1.0.8
+      '@types/node':
+        specifier: catalog:typescript-node20
+        version: 20.17.6
       fp-ts:
         specifier: 'catalog:'
         version: 2.16.9
@@ -337,7 +340,7 @@ importers:
         version: 2.2.21(fp-ts@2.16.9)
       msw:
         specifier: 'catalog:'
-        version: 2.6.2(@types/node@22.9.0)(typescript@5.6.3)
+        version: 2.6.2(@types/node@20.17.6)(typescript@5.6.3)
       typescript:
         specifier: 'catalog:'
         version: 5.6.3
@@ -8657,12 +8660,6 @@ snapshots:
       '@inquirer/type': 3.0.0(@types/node@20.17.6)
       '@types/node': 20.17.6
 
-  '@inquirer/confirm@5.0.1(@types/node@22.9.0)':
-    dependencies:
-      '@inquirer/core': 10.0.1(@types/node@22.9.0)
-      '@inquirer/type': 3.0.0(@types/node@22.9.0)
-      '@types/node': 22.9.0
-
   '@inquirer/confirm@5.0.2(@types/node@20.17.6)':
     dependencies:
       '@inquirer/core': 10.1.0(@types/node@20.17.6)
@@ -8673,20 +8670,6 @@ snapshots:
     dependencies:
       '@inquirer/figures': 1.0.7
       '@inquirer/type': 3.0.0(@types/node@20.17.6)
-      ansi-escapes: 4.3.2
-      cli-width: 4.1.0
-      mute-stream: 2.0.0
-      signal-exit: 4.1.0
-      strip-ansi: 6.0.1
-      wrap-ansi: 6.2.0
-      yoctocolors-cjs: 2.1.2
-    transitivePeerDependencies:
-      - '@types/node'
-
-  '@inquirer/core@10.0.1(@types/node@22.9.0)':
-    dependencies:
-      '@inquirer/figures': 1.0.7
-      '@inquirer/type': 3.0.0(@types/node@22.9.0)
       ansi-escapes: 4.3.2
       cli-width: 4.1.0
       mute-stream: 2.0.0
@@ -8789,10 +8772,6 @@ snapshots:
   '@inquirer/type@3.0.0(@types/node@20.17.6)':
     dependencies:
       '@types/node': 20.17.6
-
-  '@inquirer/type@3.0.0(@types/node@22.9.0)':
-    dependencies:
-      '@types/node': 22.9.0
 
   '@inquirer/type@3.0.1(@types/node@20.17.6)':
     dependencies:
@@ -13521,31 +13500,6 @@ snapshots:
       '@bundled-es-modules/statuses': 1.0.1
       '@bundled-es-modules/tough-cookie': 0.1.6
       '@inquirer/confirm': 5.0.1(@types/node@20.17.6)
-      '@mswjs/interceptors': 0.36.10
-      '@open-draft/deferred-promise': 2.2.0
-      '@open-draft/until': 2.1.0
-      '@types/cookie': 0.6.0
-      '@types/statuses': 2.0.5
-      chalk: 4.1.2
-      graphql: 16.9.0
-      headers-polyfill: 4.0.3
-      is-node-process: 1.2.0
-      outvariant: 1.4.3
-      path-to-regexp: 6.3.0
-      strict-event-emitter: 0.5.1
-      type-fest: 4.26.1
-      yargs: 17.7.2
-    optionalDependencies:
-      typescript: 5.6.3
-    transitivePeerDependencies:
-      - '@types/node'
-
-  msw@2.6.2(@types/node@22.9.0)(typescript@5.6.3):
-    dependencies:
-      '@bundled-es-modules/cookie': 2.0.1
-      '@bundled-es-modules/statuses': 1.0.1
-      '@bundled-es-modules/tough-cookie': 0.1.6
-      '@inquirer/confirm': 5.0.1(@types/node@22.9.0)
       '@mswjs/interceptors': 0.36.10
       '@open-draft/deferred-promise': 2.2.0
       '@open-draft/until': 2.1.0
