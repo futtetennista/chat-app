@@ -19,6 +19,7 @@ pkgs.mkShellNoCC {
     curl
     gh
     git
+    git-crypt
     jq
     nodePackages.cdktf-cli
     nodejs_20
@@ -39,5 +40,7 @@ pkgs.mkShellNoCC {
 
     # Install git hooks
     pnpm husky
+
+    git-crypt init || true
   '';
 }
