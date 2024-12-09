@@ -50,7 +50,7 @@ const PersistedChatD = Decoder.struct({
   messages: Decoder.array(Message),
 });
 
-export type PersistedChat = Decoder.TypeOf<typeof PersistedChatD>;
+type PersistedChat = Decoder.TypeOf<typeof PersistedChatD>;
 
 const PersistedChatE: Encoder.Encoder<string, PersistedChat> = {
   encode: (chat) => JSON.stringify(chat),
