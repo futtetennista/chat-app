@@ -15,6 +15,7 @@ pkgs.mkShellNoCC {
     # (aws-sam-cli.overrideAttrs (oldAttrs: {
     # }))
     awscli2
+    check-jsonschema
     curl
     gh
     git
