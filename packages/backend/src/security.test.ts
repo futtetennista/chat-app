@@ -2,11 +2,21 @@ import { obfuscateObject, obfuscateTestOnly as obfuscate } from "@/security";
 
 describe("obfuscate", () => {
   it("should obfuscate the middle part of a string", () => {
-    expect(obfuscate("123456")).toBe("12****56");
-    expect(obfuscate("abcdef")).toBe("ab****ef");
-    expect(obfuscate("0123456789")).toBe("01****89");
-    expect(obfuscate("abcde")).toBe("ab****de");
-    expect(obfuscate("abcd")).toBe("****");
+    expect(obfuscate("0123456789")).toBe("01***89");
+    expect(obfuscate("123456")).toBe("12***56");
+    expect(obfuscate("abcdef")).toBe("ab***ef");
+    expect(obfuscate("abcde")).toBe("ab***de");
+    expect(obfuscate("abcd")).toBe("a***d");
+  });
+
+  it("should handle empty strings", () => {
+    expect(obfuscate("")).toBe("***");
+  });
+
+  it("should handle short strings", () => {
+    expect(obfuscate("a")).toBe("***");
+    expect(obfuscate("ad")).toBe("***");
+    expect(obfuscate("abc")).toBe("a***c");
   });
 });
 

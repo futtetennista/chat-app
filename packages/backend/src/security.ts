@@ -1,8 +1,8 @@
 function obfuscate(value: string): string {
-  const takeN = value.length > 10 ? 5 : value.length > 4 ? 2 : 0;
-  return takeN === 0
-    ? "****"
-    : `${value.slice(0, takeN)}****${value.slice(-takeN)}`;
+  const takeN = value.length > 10 ? 5 : value.length > 4 ? 2 : 1;
+  return value.length > 2
+    ? `${value.slice(0, takeN)}***${value.slice(-takeN)}`
+    : "***";
 }
 
 export function obfuscateObject(obj: object): Record<string, unknown> {
