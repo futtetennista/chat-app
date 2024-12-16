@@ -107,8 +107,8 @@ importers:
         specifier: ^16.4.5
         version: 16.4.5
       openai:
-        specifier: ^4.71.1
-        version: 4.71.1(zod@3.23.8)
+        specifier: ^4.76.3
+        version: 4.76.3(zod@3.23.8)
     devDependencies:
       '@actions/core':
         specifier: ^1.11.1
@@ -5362,6 +5362,15 @@ packages:
 
   openai@4.71.1:
     resolution: {integrity: sha512-C6JNMaQ1eijM0lrjiRUL3MgThVP5RdwNAghpbJFdW0t11LzmyqON8Eh8MuUuEZ+CeD6bgYl2Fkn2BoptVxv9Ug==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      zod:
+        optional: true
+
+  openai@4.76.3:
+    resolution: {integrity: sha512-BISkI90m8zT7BAMljK0j00TzOoLvmc7AulPxv6EARa++3+hhIK5G6z4xkITurEaA9bvDhQ09kSNKA3DL+rDMwA==}
     hasBin: true
     peerDependencies:
       zod: ^3.23.8
@@ -13679,6 +13688,20 @@ snapshots:
       is-wsl: 2.2.0
 
   openai@4.71.1(zod@3.23.8):
+    dependencies:
+      '@types/node': 18.19.64
+      '@types/node-fetch': 2.6.11
+      abort-controller: 3.0.0
+      agentkeepalive: 4.5.0
+      form-data-encoder: 1.7.2
+      formdata-node: 4.4.1
+      node-fetch: 2.7.0
+    optionalDependencies:
+      zod: 3.23.8
+    transitivePeerDependencies:
+      - encoding
+
+  openai@4.76.3(zod@3.23.8):
     dependencies:
       '@types/node': 18.19.64
       '@types/node-fetch': 2.6.11
