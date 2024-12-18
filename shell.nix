@@ -10,6 +10,11 @@ in
 pkgs.mkShellNoCC {
   AWS_PROFILE = "softwareeng";
 
+  # Explicitly set these because the Nix shell sets them something like
+  # '/private/tmp/nix-shell-72073-0' but the folder isn't actually created.
+  TMP = "/tmp";
+  TMPDIR = "/tmp";
+
   packages = with pkgs; [
     #   doInstallCheck = false;
     # (aws-sam-cli.overrideAttrs (oldAttrs: {
@@ -38,9 +43,11 @@ pkgs.mkShellNoCC {
       sudo ln -sf "$HOME/.docker/run/docker.sock" /var/run/docker.sock
     fi
 
+    # Make sure dependencies are up-to-date
+    pnpm install
     # Install git hooks
     pnpm husky
 
-    git-crypt init || true
+    git-crypt init > /dev/null || true
   '';
 }
