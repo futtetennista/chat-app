@@ -38,9 +38,11 @@ pkgs.mkShellNoCC {
     "$(git rev-parse --show-toplevel)"/packages/backend/scripts/localdev/install-aws-sam-cli.sh
     export PATH="$PATH":"$PWD"/.bin/aws-sam-cli
     # https://github.com/aws/aws-sam-cli/issues/5059#issuecomment-1518256371
-    if [ ! -S /var/run/docker.sock ]; then
-      echo -e "\033[33m[debug] Docker socket not found, need sudo to create '/var/run/docker.sock' symlink...\033[0m"
+    if [ ! -L /var/run/docker.sock ]; then
+      echo -e "\033[33m[debug] Docker socket not found, need sudo to create '/var/run/docker.sock' symlink (https://github.com/aws/aws-sam-cli/issues/5059#issuecomment-1518256371)\033[0m"
       sudo ln -sf "$HOME/.docker/run/docker.sock" /var/run/docker.sock
+    else
+      echo '[debug] Docker socket found'
     fi
 
     # Make sure dependencies are up-to-date
@@ -48,6 +50,6 @@ pkgs.mkShellNoCC {
     # Install git hooks
     pnpm husky
 
-    git-crypt init > /dev/null || true
+    git-crypt init 2>/dev/null || true
   '';
 }
