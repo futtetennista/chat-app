@@ -8669,7 +8669,7 @@ snapshots:
   '@inquirer/core@10.0.1(@types/node@20.17.6)':
     dependencies:
       '@inquirer/figures': 1.0.7
-      '@inquirer/type': 3.0.0(@types/node@20.17.6)
+      '@inquirer/type': 3.0.1(@types/node@20.17.6)
       ansi-escapes: 4.3.2
       cli-width: 4.1.0
       mute-stream: 2.0.0
