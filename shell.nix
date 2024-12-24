@@ -8,7 +8,7 @@ let
   aws-sam-cli-macos = (pkgs.callPackage ./nix/vendor/aws-sam-cli { });
 in
 pkgs.mkShellNoCC {
-  AWS_PROFILE = "softwareeng";
+  # AWS_PROFILE = "softwareeng";
 
   # Explicitly set these because the Nix shell sets them something like
   # '/private/tmp/nix-shell-72073-0' but the folder isn't actually created.
@@ -35,8 +35,18 @@ pkgs.mkShellNoCC {
   ];
 
   shellHook = ''
+    export AWS_CONFIG_FILE="$PWD/.aws/config"
+    export AWS_SHARED_CREDENTIALS_FILE="$PWD/.aws/credentials"
+
+    # Install aws-cli
     "$(git rev-parse --show-toplevel)"/packages/backend/scripts/localdev/install-aws-sam-cli.sh
     export PATH="$PATH":"$PWD"/.bin/aws-sam-cli
+
+    aws configure import --csv file://secret/softwareng_accessKeys.csv
+
+    # Enable aws-cli autocompletion
+    complete -C "$(which aws_completer)" aws
+
     # https://github.com/aws/aws-sam-cli/issues/5059#issuecomment-1518256371
     if [ ! -L /var/run/docker.sock ]; then
       echo -e "\033[33m[debug] Docker socket not found, need sudo to create '/var/run/docker.sock' symlink (https://github.com/aws/aws-sam-cli/issues/5059#issuecomment-1518256371)\033[0m"

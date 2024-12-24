@@ -6,3 +6,4 @@ tsconfig.tsbuildinfo
 .bin
 .chat_history
 .direnv
+.aws
