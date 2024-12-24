@@ -54,6 +54,15 @@ jobs:
         name: Set up node.js with pnpm
         with:
           install-filter: infrastructure
+      - name: Load secrets
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0 # v2
+        with:
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          AWS_ACCOUNT_ID: op://chat-app/aws/account-id
+          AWS_ACCESS_KEY_ID: op://chat-app/aws/access-key-id
+          AWS_SECRET_ACCESS_KEY: op://chat-app/aws/secret-access-key
       - name: Test stack
         working-directory: ./packages/infrastructure
         run: pnpm run test:unit
@@ -73,11 +82,11 @@ jobs:
       - name: Make config
         working-directory: ./packages/infrastructure/scripts
         env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          # AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_LAMBDA_FUNC_HANDLER: index.handler
           AWS_LAMBDA_FUNC_NAME: backend
           AWS_LAMBDA_FUNC_RUNTIME: nodejs20.x
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           # Sets BACKEND_INFRASTRUCTURE_JSON_CONFIG
           pnpm run config:backend:create \
