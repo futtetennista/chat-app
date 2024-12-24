@@ -14,14 +14,14 @@ const nonProdBuildOptions = {
   ...defaultBuildOptions,
   minify: false,
   sourcemap: false,
-  outfile: "dist/non-prod/index.js",
+  outfile: "bundle/non-prod/index.js",
 };
 
 const prodBuildOptions = {
   ...defaultBuildOptions,
   minify: false,
   sourcemap: true,
-  outfile: "dist/prod/index.js",
+  outfile: "bundle/prod/index.js",
 };
 
 export default function bundle(cmd: Command) {

@@ -15,7 +15,7 @@ Resources:
   chat:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/non-prod/index.handler
+      Handler: bundle/non-prod/index.handler
       Runtime: nodejs20.x
       Architectures:
         - x86_64
