@@ -10,7 +10,10 @@
       "s3:DeleteObject",
       "s3:PutBucketTagging"
     ],
-    "Resource": "*"
+    "Resource": [
+      "arn:aws:s3:::chat-app-backend",
+      "arn:aws:s3:::chat-app-backend/*"
+    ]
   },
   {
     "Effect": "Allow",
@@ -24,7 +27,7 @@
       "lambda:AddPermission",
       "lambda:RemovePermission"
     ],
-    "Resource": "*"
+    "Resource": "arn:aws:lambda:*:*:function:chat-app-*"
   },
   {
     "Effect": "Allow",
@@ -39,7 +42,7 @@
       "iam:GetPolicyVersion",
       "iam:ListAttachedRolePolicies"
     ],
-    "Resource": "*"
+    "Resource": "arn:aws:iam::*:role/chat-app-*"
   },
   {
     "Effect": "Allow",
@@ -49,20 +52,8 @@
       "apigatewayv2:GetApi",
       "apigatewayv2:UpdateApi",
       "apigatewayv2:ListApis",
-      "apigatewayv2:PutIntegration",
-      "apigatewayv2:PutIntegrationResponse",
-      "apigatewayv2:PutRoute",
-      "apigatewayv2:PutRouteResponse"
+      "apigatewayv2:PutIntegration"
     ],
-    "Resource": "*"
-  },
-  {
-    "Effect": "Allow",
-    "Action": [
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ],
-    "Resource": "*"
+    "Resource": "arn:aws:apigateway:*::/apis/chat-app-*"
   }
 ]

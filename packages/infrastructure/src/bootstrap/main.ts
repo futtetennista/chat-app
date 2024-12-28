@@ -51,18 +51,31 @@ function main() {
   } = checkEnvironment();
 
   const app = new App();
-  new TerraformUserStack(app, "tfUserStack", {
-    region,
+
+  const policyName = process.env.AWS_USER_POLICY_NAME;
+  const userName = process.env.AWS_USERNAME;
+  const groupName = process.env.AWS_GROUP_NAME;
+  new TerraformUserStack(app, {
     accessKey,
+    groupName,
+    policyName,
+    region,
     secretKey,
+    userName,
   });
-  new TerraformRoleStack(app, "tfRoleStack", {
-    region,
+
+  const clientIdList = process.env.AWS_OIDC_GITHUB_CLIENT_ID_CSV;
+  const thumbprintList = process.env.AWS_OIDC_GITHUB_THUMBPRINT_CSV;
+  new TerraformRoleStack(app, {
     accessKey,
-    secretKey,
+    clientIdList: clientIdList?.split(","),
     githubRepository,
     githubUsername,
+    region,
+    secretKey,
+    thumbprintList: thumbprintList?.split(","),
   });
+
   app.synth();
 }
 

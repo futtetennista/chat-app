@@ -34,7 +34,15 @@ pkgs.mkShellNoCC {
     terraform
   ];
 
+  AWS_GROUP_NAME = "ChatAppGroup";
+  AWS_REGION = "eu-west-1";
+  AWS_USERNAME = "ChatApp";
+  GITHUB_REPOSITORY = "chat-app";
+  GITHUB_USERNAME = "futtetennista";
+
   shellHook = ''
+    REPO_ROOT="$(git rev-parse --show-toplevel)"
+
     export AWS_CONFIG_FILE="$PWD/.aws/config"
     export AWS_SHARED_CREDENTIALS_FILE="$PWD/.aws/credentials"
 
@@ -42,10 +50,10 @@ pkgs.mkShellNoCC {
     "$(git rev-parse --show-toplevel)"/packages/backend/scripts/localdev/install-aws-sam-cli.sh
     export PATH="$PATH":"$PWD"/.bin/aws-sam-cli
 
-    aws configure import --csv file://secret/softwareng_accessKeys.csv
-
     # Enable aws-cli autocompletion
     complete -C "$(which aws_completer)" aws
+
+    # aws configure import --csv file://secret/softwareng_accessKeys.csv
 
     # https://github.com/aws/aws-sam-cli/issues/5059#issuecomment-1518256371
     if [ ! -L /var/run/docker.sock ]; then

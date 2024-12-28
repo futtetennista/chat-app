@@ -4,29 +4,34 @@ import { IamPolicy } from "@cdktf/provider-aws/lib/iam-policy";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { IamRolePolicyAttachment } from "@cdktf/provider-aws/lib/iam-role-policy-attachment";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
-import { TerraformOutput, TerraformStack } from "cdktf";
+import { LocalBackend, TerraformOutput, TerraformStack } from "cdktf";
 import { Construct } from "constructs";
+import * as path from "path";
 
 export class TerraformRoleStack extends TerraformStack {
   private readonly oidcProviderURL = "token.actions.githubusercontent.com";
 
   constructor(
     scope: Construct,
-    id: string,
     {
-      region,
       accessKey,
-      secretKey,
+      clientIdList = ["sts.amazonaws.com"],
       githubRepository,
       githubUsername,
+      region,
+      secretKey,
+      thumbprintList = ["6938fd4d98bab03faadb97b34396831e3780aea1"],
     }: {
-      region: string;
       accessKey: string;
-      secretKey: string;
+      clientIdList?: string[];
       githubRepository: string;
       githubUsername: string;
+      region: string;
+      secretKey: string;
+      thumbprintList?: string[];
     },
   ) {
+    const id = "RoleStack";
     super(scope, id);
 
     new AwsProvider(this, "awsp", {
@@ -36,7 +41,10 @@ export class TerraformRoleStack extends TerraformStack {
       secretKey,
     });
 
-    const arn = this.createGitHubOIDCProvider();
+    const arn = this.createGitHubOIDCProvider({
+      clientIdList,
+      thumbprintList,
+    });
 
     const awsCallerIdentity = new DataAwsCallerIdentity(
       this,
@@ -89,19 +97,25 @@ export class TerraformRoleStack extends TerraformStack {
     new TerraformOutput(this, "roleArn", {
       value: role.arn,
     });
+
+    new LocalBackend(this, {
+      path: path.join(__dirname, `../../../tfstate/${id}.tfstate`),
+    });
   }
 
   // https://docs.github.com/en/actions/security-for-github-actions/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services#adding-the-identity-provider-to-aws
-  createGitHubOIDCProvider() {
+  createGitHubOIDCProvider({
+    clientIdList,
+    thumbprintList,
+  }: {
+    clientIdList: string[];
+    thumbprintList: string[];
+  }) {
     const oidcProvider = new IamOpenidConnectProvider(this, "iamoidcp", {
       url: `https://${this.oidcProviderURL}`,
-      clientIdList: process.env.AWS_OIDC_GITHUB_CLIENT_ID_CSV
-        ? process.env.AWS_OIDC_GITHUB_CLIENT_ID_CSV.split(",")
-        : ["sts.amazonaws.com"],
+      clientIdList,
       // GitHub's current thumbprint
-      thumbprintList: process.env.AWS_OIDC_GITHUB_THUMBPRINT_CSV
-        ? process.env.AWS_OIDC_GITHUB_THUMBPRINT_CSV.split(",")
-        : ["6938fd4d98bab03faadb97b34396831e3780aea1"],
+      thumbprintList,
     });
 
     return oidcProvider.arn;

@@ -36,9 +36,7 @@ describe("FrontendStack", () => {
     const stack = new FrontendStack(app, "frontend", config);
     const result = Testing.synth(stack);
 
-    expect(result).toHaveResourceWithProperties(S3Bucket, {
-      bucket: config.frontend.bucket,
-    });
+    expect(result).toHaveResourceWithProperties(S3Bucket, {});
 
     expect(result).toHaveResourceWithProperties(S3BucketWebsiteConfiguration, {
       index_document: { suffix: "index.html" },

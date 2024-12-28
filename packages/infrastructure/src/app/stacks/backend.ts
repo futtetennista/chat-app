@@ -44,7 +44,7 @@ export class BackendStack extends TerraformStack {
     });
 
     const bucket = new S3Bucket(this, "s3b_backend", {
-      bucketPrefix: `${config.backend.name}-backend`,
+      bucketPrefix: "chat-app-backend",
     });
 
     const lambdaArchive = new S3Object(this, "s3o_backend", {

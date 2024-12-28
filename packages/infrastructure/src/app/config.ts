@@ -19,7 +19,7 @@ const LambdaFunctionConfigD = pipe(
 export type LambdaFunctionConfig = D.TypeOf<typeof LambdaFunctionConfigD>;
 
 const FrontendConfigD = D.struct({
-  bucket: D.string,
+  // bucket: D.string,
 });
 
 export type FrontendConfig = D.TypeOf<typeof FrontendConfigD>;

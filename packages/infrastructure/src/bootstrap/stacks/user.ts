@@ -1,12 +1,13 @@
 import backendStatements from "@bootstrap/policies/policy_statements_backend.json";
 import frontendStatements from "@bootstrap/policies/policy_statements_frontend.json";
+import { IamAccessKey } from "@cdktf/provider-aws/lib/iam-access-key";
 import { IamGroup } from "@cdktf/provider-aws/lib/iam-group";
 import { IamPolicy } from "@cdktf/provider-aws/lib/iam-policy";
 import { IamUser } from "@cdktf/provider-aws/lib/iam-user";
 import { IamUserGroupMembership } from "@cdktf/provider-aws/lib/iam-user-group-membership";
 import { IamUserPolicyAttachment } from "@cdktf/provider-aws/lib/iam-user-policy-attachment";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
-import { TerraformOutput, TerraformStack } from "cdktf";
+import { LocalBackend, TerraformOutput, TerraformStack } from "cdktf";
 import { Construct } from "constructs";
 import * as fs from "fs";
 import * as os from "os";
@@ -15,17 +16,23 @@ import * as path from "path";
 export class TerraformUserStack extends TerraformStack {
   constructor(
     scope: Construct,
-    id: string,
     {
-      region,
       accessKey,
+      groupName = "TerraformGroup",
+      policyName = "TerraformPolicy",
+      region,
       secretKey,
+      userName = "TerraformUser",
     }: {
-      region: string;
       accessKey: string;
+      groupName?: string;
+      policyName?: string;
+      region: string;
       secretKey: string;
+      userName?: string;
     },
   ) {
+    const id = "UserStack";
     super(scope, id);
 
     new AwsProvider(this, "awsp", {
@@ -33,9 +40,6 @@ export class TerraformUserStack extends TerraformStack {
       region,
       secretKey,
     });
-
-    const policyName =
-      process.env.POLICY_NAME?.toLowerCase() ?? "TerraformPolicy";
 
     const dir = fs.mkdtempSync(
       path.join(os.tmpdir(), "aws-terraform-boostrap"),
@@ -49,34 +53,48 @@ export class TerraformUserStack extends TerraformStack {
     };
     fs.writeFileSync(policyPath, JSON.stringify(policyDocument, null, 2));
 
-    const policy = new IamPolicy(this, "iamp", {
+    const policy = new IamPolicy(this, "iamPolicy", {
       name: policyName,
       policy: JSON.stringify(policyDocument),
     });
 
-    const userName = process.env.AWS_USERNAME ?? "TerraformUser";
-    const groupName = process.env.AWS_GROUP_NAME ?? "TerraformGroup";
-
-    const user = new IamUser(this, "aimu", {
+    const user = new IamUser(this, "aimUser", {
       name: userName,
     });
 
-    const group = new IamGroup(this, "iamg", {
+    const group = new IamGroup(this, "iamGroup", {
       name: groupName,
     });
 
-    new IamUserGroupMembership(this, "iamugm", {
+    new IamUserGroupMembership(this, "iamUserGroupMemebership", {
       user: user.name,
       groups: [group.name],
     });
 
-    new IamUserPolicyAttachment(this, "iamupa", {
+    new IamUserPolicyAttachment(this, "iamUserPolicyAttachment", {
       user: user.name,
       policyArn: policy.arn,
     });
 
     new TerraformOutput(this, "userArn", {
       value: user.arn,
+    });
+
+    const userAccessKey = new IamAccessKey(this, "accessKey", {
+      user: user.name,
+    });
+
+    new TerraformOutput(this, "accessKeyId", {
+      value: userAccessKey.id,
+    });
+
+    new TerraformOutput(this, "secretAccessKey", {
+      value: userAccessKey.secret,
+      sensitive: true,
+    });
+
+    new LocalBackend(this, {
+      path: path.join(__dirname, `../../../tfstate/${id}.tfstate`),
     });
   }
 }

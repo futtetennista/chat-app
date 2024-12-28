@@ -27,7 +27,7 @@ export class FrontendStack extends TerraformStack {
     });
 
     const bucket = new S3Bucket(this, FrontendStack.s3BucketId, {
-      bucket: config.frontend.bucket,
+      bucket: "chat-app-frontend",
     });
 
     new S3BucketWebsiteConfiguration(this, "s3bwc", {
@@ -73,7 +73,7 @@ export class FrontendStack extends TerraformStack {
       },
     });
 
-    new TerraformOutput(this, "distribution_id", {
+    new TerraformOutput(this, "distributionId", {
       value: cfd.id,
     });
   }
