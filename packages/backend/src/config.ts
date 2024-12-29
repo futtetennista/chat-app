@@ -1,7 +1,9 @@
 import {
   AnthropicModelD,
+  errorTypesMap as errorType,
   OpenAIModelD,
   PerplexityModelD,
+  RFC9457ErrorResponse,
 } from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
@@ -47,54 +49,90 @@ const ConfigD = D.partial({
 
 export type Config = D.TypeOf<typeof ConfigD>;
 
-export function mkConfig({
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onConfigParsed = () => {},
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onConfigRead = () => {},
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  onError = () => {},
-}: {
-  onConfigRead?: (config: string) => void;
-  onConfigParsed?: (config: Config) => void;
-  onError?: (
-    error:
-      | { _t: "config"; error: Error }
-      | { _t: "decode"; error: D.DecodeError },
-  ) => void;
-}): Config {
+export function mkConfig(env?: "production" | "dev"): E.Either<
+  RFC9457ErrorResponse,
+  {
+    configDecoded: Config;
+    configRaw: string;
+    configParsed: Record<string, unknown>;
+  }
+> {
   return pipe(
-    E.fromNullable(new Error("CHAT_APP_CONFIG_JSON is not set"))(
-      process.env.CHAT_APP_CONFIG_JSON,
-    ),
-    E.tap((config) => {
-      onConfigRead(config);
-      return E.of(config);
+    E.Do,
+    E.bind("configRaw", () => {
+      return E.fromNullable<{ _t: "notFound"; value: string }>({
+        _t: "notFound",
+        value: "CHAT_APP_CONFIG_JSON is not set",
+      })(process.env.CHAT_APP_CONFIG_JSON);
     }),
-    E.flatMap((configRaw) => {
-      return E.tryCatch(
+    E.bindW("configParsed", ({ configRaw }) => {
+      return E.tryCatch<
+        { _t: "parse"; configRaw: string; value: string },
+        Config
+      >(
         () => JSON.parse(configRaw) as Config,
-        (e: unknown) => {
-          return e as Error;
+        () => {
+          return {
+            _t: "parse",
+            value: "Failed to parse JSON configuration",
+            configRaw,
+          };
         },
       );
     }),
-    E.tap((config) => {
-      onConfigParsed(config);
-      return E.of(config);
+    E.bindW("configDecoded", ({ configParsed }) => {
+      return pipe(
+        ConfigD.decode(configParsed),
+        E.mapLeft<
+          D.DecodeError,
+          { _t: "decode"; configParsed: unknown; value: D.DecodeError }
+        >((e) => ({
+          _t: "decode",
+          configParsed,
+          value: e,
+        })),
+      );
     }),
-    E.flatMap(ConfigD.decode),
-    E.match(
+    E.bimap(
       (e) => {
-        if (e instanceof Error) {
-          onError({ _t: "config", error: e });
-          throw e;
+        switch (e._t) {
+          case "notFound": {
+            return {
+              detail: "",
+              status: "500",
+              title: e.value,
+              type: errorType.configurationNotFoundError,
+            };
+          }
+          case "parse": {
+            return {
+              detail:
+                env !== "production" ? e.configRaw || "<empty-string>" : "",
+              status: "500",
+              title: e.value,
+              type: errorType.configurationParseError,
+            };
+          }
+          case "decode": {
+            return {
+              detail:
+                env !== "production"
+                  ? JSON.stringify(e.configParsed) || "<empty-string>"
+                  : "",
+              status: "500",
+              title: D.draw(e.value),
+              type: errorType.configurationNotFoundError,
+            };
+          }
+          default: {
+            const _exhaustiveCheck: never = e;
+            return _exhaustiveCheck;
+          }
         }
-
-        onError({ _t: "decode", error: e });
-        throw new Error("Failed to decode JSON configuration");
       },
-      (config) => config,
+      ({ configParsed, configDecoded, configRaw }) => {
+        return { configDecoded, configRaw, configParsed };
+      },
     ),
   );
 }

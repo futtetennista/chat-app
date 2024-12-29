@@ -6,8 +6,8 @@
   "packageManager": "pnpm@9.12.2",
   "private": true,
   "scripts": {
-    "_cdktf:bootstrap": "op run --env-file=../../.softwareng.env -- cdktf",
-    "_cdktf:app": "op run --env-file=../../.app.env -- cdktf",
+    "_cdktf:bootstrap": "op run --env-file=./softwareng.env -- cdktf",
+    "_cdktf:app": "op run --env-file=./app.env -- cdktf",
     "before:app": "jq '. + {\"app\":\"pnpm tsx ./src/app/main.ts\"}' cdktf.base.json > cdktf.json",
     "before:bootstrap": "jq '. + {\"app\":\"pnpm tsx ./src/bootstrap/main.ts\"}' cdktf.base.json > cdktf.json",
     "clean:cdktf": "__cdktf_clean() { if [ -d ./cdktf.out ]; then rm ./cdktf.out/manifest.json || true ; find ./cdktf.out/stacks/\"${1}\" -name \"*.json\" -type f -exec rm {} \\; ; fi; }; __cdktf_clean",

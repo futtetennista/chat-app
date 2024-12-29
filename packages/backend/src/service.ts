@@ -34,9 +34,9 @@ interface ChatCallback {
 interface ChatService {
   validateBody: (
     x: string | null,
-    callback: {
-      onValid: (data: ChatRequest) => void;
-      onInvalid: (
+    callback?: {
+      onValid?: (data: ChatRequest) => void;
+      onInvalid?: (
         arg:
           | { _t: "decode"; error: D.DecodeError }
           | { _t: "empty_body"; message: string }
@@ -52,7 +52,7 @@ interface ChatService {
   chatTE: (
     data: ChatRequest,
     headers: Record<string, string | undefined>,
-    callback: ChatCallback,
+    callback?: ChatCallback,
   ) => TE.TaskEither<RFC9457ErrorResponse, SuccessResponse>;
 }
 
@@ -65,14 +65,17 @@ interface ChatService {
  */
 export function mkService(
   config: Config,
-  { callback }: { callback: Parameters<typeof plugins.registerPlugins>[1] },
-): ChatService {
-  plugins.registerPlugins(config, callback);
-
-  return {
-    chatTE,
-    validateBody,
-  };
+  // { callback: _ }: { callback: Parameters<typeof plugins.registerPlugins>[1] },
+): E.Either<RFC9457ErrorResponse, ChatService> {
+  return pipe(
+    plugins.registerPlugins(config),
+    E.map(() => {
+      return {
+        chatTE,
+        validateBody,
+      };
+    }),
+  );
 }
 
 function chatTE(
@@ -92,10 +95,10 @@ function chatTE(
     }
     default: {
       return TE.left({
-        type: errorType.missingModel,
+        detail: `'${data.model}' should be added to the supported models list`,
         status: "500",
         title: "Missing model",
-        detail: `'${data.model}' should be added to the supported models list`,
+        type: errorType.missingModel,
       });
     }
   }
@@ -112,10 +115,10 @@ function chatPerplexity(
       () => {
         callback?.onMissingConfig("perplexity");
         return TE.left({
-          type: errorType.perplexityNotConfigured,
+          detail: "",
           status: "501",
           title: "Perplexity not configured",
-          detail: "",
+          type: errorType.perplexityNotConfigured,
         });
       },
       (plugin) => chatOpenAI(data, headers, { plugin, callback }),
@@ -152,10 +155,10 @@ function chatOpenAI(
         return stream
           ? TE.left({
               error: {
-                type: errorType.streamingNotImplemented,
-                title: "Streaming not implemented",
-                status: "501",
                 detail: "",
+                status: "501",
+                title: "Streaming not implemented",
+                type: errorType.streamingNotImplemented,
               },
             })
           : TE.right(undefined);
@@ -201,10 +204,10 @@ function chatOpenAI(
         ) {
           callback?.onError({ _t: "api", data: JSON.stringify(response) });
           return TE.left({
-            type: errorType.invalidOpenaiResponse,
-            title: "Invalid response from OpenAI",
-            status: "500",
             detail: `OpenAI response: ${JSON.stringify(response)}`,
+            status: "500",
+            title: "Invalid response from OpenAI",
+            type: errorType.invalidOpenaiResponse,
           });
         }
 
@@ -230,10 +233,10 @@ function chatOpenAI(
     TE.matchE(() => {
       callback?.onMissingConfig("openai");
       return TE.left({
-        type: errorType.openaiNotConfigured,
+        detail: "",
         status: "501",
         title: "OpenAI not configured",
-        detail: "",
+        type: errorType.openaiNotConfigured,
       });
     }, _chatOpenAI),
   );
@@ -268,18 +271,18 @@ function chatAnthropic(
           if (e instanceof Anthropic.APIError) {
             callback?.onError({ _t: "api", data: e });
             return {
-              type: errorType.anthropicApiError,
+              detail: e.message,
               status: e.status?.toString() ?? "500",
               title: `Anthropic API error: ${e.name}`,
-              detail: e.message,
+              type: errorType.anthropicApiError,
             };
           } else {
             callback?.onError({ _t: "network", data: e });
             return {
-              type: errorType.anthropicOtherError,
+              detail: "", // e.message,
               status: "400",
               title: `Anthropic API uncaught error`,
-              detail: "", // e.message,
+              type: errorType.anthropicOtherError,
             };
           }
         },
@@ -295,10 +298,10 @@ function chatAnthropic(
             message: "Streaming not supported",
           });
           return TE.left({
-            type: errorType.anthropicStreamingNotSupportedError,
+            detail: "", // e.message,
             status: "501",
             title: `Anthropic API uncaught error`,
-            detail: "", // e.message,
+            type: errorType.anthropicStreamingNotSupportedError,
           });
         }
 
@@ -326,10 +329,10 @@ function chatAnthropic(
       () => {
         callback?.onMissingConfig("anthropic");
         return TE.left({
-          type: errorType.anthropicNotConfigured,
+          detail: "",
           status: "501",
           title: "Anthropic not configured",
-          detail: "",
+          type: errorType.anthropicNotConfigured,
         });
       },
       ({ client, model, stream }) => _chatAnthropic(client, model, { stream }),
@@ -339,28 +342,21 @@ function chatAnthropic(
 
 function validateBody(
   x: string | null,
-  {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    onInvalid = () => {},
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    onValid = () => {},
-  }: {
-    onValid: (data: ChatRequest) => void;
-    onInvalid: (
-      arg:
-        | { _t: "empty_body"; message: string }
-        | { _t: "unknown"; error: unknown }
-        | { _t: "unsupported_model"; message: string }
-        | { _t: "decode"; error: D.DecodeError },
-    ) => void;
-  },
+  _:
+    | {
+        onValid?: (data: ChatRequest) => void;
+        onInvalid?: (
+          arg:
+            | { _t: "empty_body"; message: string }
+            | { _t: "unknown"; error: unknown }
+            | { _t: "unsupported_model"; message: string }
+            | { _t: "decode"; error: D.DecodeError },
+        ) => void;
+      }
+    | undefined,
 ): E.Either<RFC9457ErrorResponse, ChatRequest> {
   if (!x) {
-    onInvalid({ _t: "empty_body", message: "Request body is empty" });
     return E.left({
-      type: "tag:@chat-app:empty_request_body",
-      status: "400",
-      title: "Empty request body",
       detail: `Request body must be an instance of ChatRequest. Example:
 {
   "model": ${defaultModel},
@@ -368,42 +364,68 @@ function validateBody(
   "history": []
 }
 `,
-    });
-  }
-
-  try {
-    const validationResult = ChatRequest.decode(JSON.parse(x));
-    if (E.isLeft(validationResult)) {
-      onInvalid({ _t: "decode", error: validationResult.left });
-      return E.left({
-        type: "tag:@chat-app:invalid_request_format",
-        status: "400",
-        detail: D.draw(validationResult.left),
-        title: "Invalid request format",
-      });
-    }
-    if (!models.includes(validationResult.right.model)) {
-      onInvalid({
-        _t: "unsupported_model",
-        message: `Unsupported model: ${validationResult.right.model}`,
-      });
-      return E.left({
-        type: "tag:@chat-app:unsupported_model",
-        status: "400",
-        title: "Unsupported model",
-        detail: `'${validationResult.right.model}' is not one of the supported models: ${models.join(", ")}`,
-      });
-    }
-
-    onValid(validationResult.right);
-    return E.right(validationResult.right);
-  } catch (e) {
-    onInvalid({ _t: "unknown", error: e });
-    return E.left({
-      type: "tag:@chat-app:invalid_json",
       status: "400",
-      title: "Invalid JSON in request body",
-      detail: "",
+      title: "Empty request body",
+      type: errorType.emptyRequestBody,
     });
   }
+
+  return pipe(
+    E.Do,
+    E.bind("bodyParsed", () =>
+      E.tryCatch<{ _t: "parse"; error: unknown }, ChatRequest>(
+        () => JSON.parse(x) as ChatRequest,
+        (error: unknown) => ({ _t: "parse", error }),
+      ),
+    ),
+    E.bindW("bodyDecoded", ({ bodyParsed }) => {
+      return pipe(
+        ChatRequest.decode(bodyParsed),
+        E.mapLeft<D.DecodeError, { _t: "decode"; error: D.DecodeError }>(
+          (error) => ({
+            _t: "decode",
+            error,
+          }),
+        ),
+      );
+    }),
+    E.match(
+      (error) => {
+        switch (error._t) {
+          case "parse": {
+            return E.left({
+              detail: "",
+              status: "400",
+              title: "Invalid JSON in request body",
+              type: errorType.invalidJson,
+            });
+          }
+          case "decode": {
+            return E.left({
+              detail: D.draw(error.error),
+              status: "400",
+              title: "Invalid request format",
+              type: errorType.invalidRequestFormat,
+            });
+          }
+          default: {
+            const _exhaustiveCheck: never = error;
+            return _exhaustiveCheck;
+          }
+        }
+      },
+      ({ bodyDecoded }) => {
+        if (!models.includes(bodyDecoded.model)) {
+          return E.left({
+            detail: `'${bodyDecoded.model}' is not one of the supported models: ${models.join(", ")}`,
+            status: "400",
+            title: "Unsupported model",
+            type: errorType.unsupportedModel,
+          });
+        }
+
+        return E.of(bodyDecoded);
+      },
+    ),
+  );
 }

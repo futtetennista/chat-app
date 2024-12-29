@@ -1,5 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { Model } from "@chat-app/contracts";
+import {
+  errorTypesMap as errorType,
+  Model,
+  RFC9457ErrorResponse,
+} from "@chat-app/contracts";
+import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import OpenAI from "openai";
@@ -22,8 +27,6 @@ type InferVendor<Name extends string> = Name extends "anthropic"
     : Name extends "perplexity"
       ? OpenAI
       : never;
-
-const onEmptyPluginsMessage = "No plugins registered.";
 
 /**
  * Retrieves a plugin by its name.
@@ -69,6 +72,99 @@ function registerPlugin(
   plugins.push({ name, instance });
 }
 
+function mkOpenAIPlugin(
+  config: Exclude<Config["openai"], undefined>,
+): E.Either<
+  RFC9457ErrorResponse,
+  { client: OpenAI; model: Model; stream: boolean }
+> {
+  const apiKey = config.apiKey;
+  if (!apiKey) {
+    return E.left({
+      detail: "",
+      status: "500",
+      title: "Missing configuration: openai.apiKey",
+      type: errorType.pluginConfigurationApiKeyMissingError,
+    });
+  }
+  if (config.stream) {
+    return E.left({
+      detail: "",
+      status: "500",
+      title: "Streaming not supported for OpenAI API",
+      type: errorType.pluginConfigurationStreamUnsupportedError,
+    });
+  }
+
+  return E.of({
+    client: new OpenAI({ apiKey }),
+    model: config.model,
+    stream: config.stream,
+  });
+}
+
+function mkPerplexityPlugin(
+  config: Exclude<Config["perplexity"], undefined>,
+): E.Either<
+  RFC9457ErrorResponse,
+  { client: OpenAI; model: Model; stream: boolean }
+> {
+  const apiKey = config.apiKey;
+  if (!apiKey) {
+    return E.left({
+      detail: "",
+      status: "500",
+      title: "Missing configuration: perplexity.apiKey",
+      type: errorType.pluginConfigurationApiKeyMissingError,
+    });
+  }
+  if (!config.baseURL) {
+    return E.left({
+      detail: "",
+      status: "500",
+      title: "Missing configuration: perplexity.baseURL",
+      type: errorType.pluginConfigurationBaseUrlMissingError,
+    });
+  }
+
+  return E.of({
+    client: new OpenAI({ apiKey, baseURL: config.baseURL }),
+    model: config.model,
+    stream: config.stream,
+  });
+}
+
+function mkAnthropicPlugin(
+  config: Exclude<Config["anthropic"], undefined>,
+): E.Either<
+  RFC9457ErrorResponse,
+  { client: Anthropic; model: Model; stream: boolean }
+> {
+  const apiKey = config.apiKey;
+  if (!apiKey) {
+    return E.left({
+      detail: "",
+      status: "500",
+      title: "Missing configuration: anthropic.apiKey",
+      type: errorType.pluginConfigurationApiKeyMissingError,
+    });
+  }
+  if (config.stream) {
+    return E.left({
+      detail: "",
+      status: "500",
+      title: "Streaming not supported for Anthropic API",
+      type: errorType.pluginConfigurationStreamUnsupportedError,
+    });
+  }
+
+  return E.of({
+    client: new Anthropic({ apiKey }),
+    stream: config.stream,
+    model: config.model,
+  });
+}
+
 /**
  * Registers plugins based on the provided configuration.
  *
@@ -84,83 +180,51 @@ function registerPlugin(
  */
 export function registerPlugins(
   config: Config,
-  callback: {
-    onEmptyPlugins: (message: typeof onEmptyPluginsMessage) => void;
-    onError: (error: { _t: "apiKey" | "baseURL"; error: Error }) => void;
-    onUnsupported: (message: string) => void;
-  },
-) {
-  if (config.openai) {
-    registerPlugin(
-      "openai",
-      (function () {
-        const apiKey = config.openai.apiKey;
-        if (!apiKey) {
-          const error = new Error("Missing configuration: openai.apiKey");
-          callback.onError({ _t: "apiKey", error });
-          throw error;
-        }
-        if (config.openai.stream) {
-          callback.onUnsupported("Streaming not supported for OpenAI API");
-        }
-        return {
-          client: new OpenAI({ apiKey }),
-          model: config.openai.model,
-          stream: config.openai.stream,
-        };
-      })(),
-    );
-  }
-
-  if (config.perplexity) {
-    registerPlugin(
-      "perplexity",
-      (function () {
-        const apiKey = config.perplexity.apiKey;
-        if (!apiKey) {
-          const error = new Error("Missing configuration: perplexity.apiKey");
-          callback.onError({ _t: "apiKey", error });
-          throw error;
-        }
-        if (!config.perplexity.baseURL) {
-          const error = new Error("Missing configuration: perplexity.baseURL");
-          callback.onError({ _t: "baseURL", error });
-          throw error;
-        }
-
-        return {
-          client: new OpenAI({ apiKey, baseURL: config.perplexity.baseURL }),
-          model: config.perplexity.model,
-          stream: config.perplexity.stream,
-        };
-      })(),
-    );
-  }
-
-  if (config.anthropic) {
-    registerPlugin(
-      "anthropic",
-      (function () {
-        const apiKey = config.anthropic.apiKey;
-        if (!apiKey) {
-          const error = new Error("Missing configuration: anthropic.apiKey");
-          callback.onError({ _t: "apiKey", error });
-          throw error;
-        }
-        if (config.anthropic.stream) {
-          callback.onUnsupported("Streaming not supported for Anthropic API");
-        }
-
-        return {
-          client: new Anthropic({ apiKey }),
-          stream: config.anthropic.stream,
-          model: config.anthropic.model,
-        };
-      })(),
-    );
-  }
-
-  if (plugins.length === 0) {
-    callback.onEmptyPlugins(onEmptyPluginsMessage);
-  }
+): E.Either<RFC9457ErrorResponse, unknown> {
+  return pipe(
+    E.of(config),
+    E.bind("openAIPlugin", (config) => {
+      if (config.openai) {
+        return mkOpenAIPlugin(config.openai);
+      }
+      return E.of(undefined);
+    }),
+    E.bind("perplexityPlugin", (config) => {
+      if (config.perplexity) {
+        return mkPerplexityPlugin(config.perplexity);
+      }
+      return E.of(undefined);
+    }),
+    E.bind("anthropicPlugin", (config) => {
+      if (config.anthropic) {
+        return mkAnthropicPlugin(config.anthropic);
+      }
+      return E.of(undefined);
+    }),
+    E.tap(({ openAIPlugin, perplexityPlugin, anthropicPlugin }) => {
+      if (openAIPlugin) {
+        registerPlugin("openai", openAIPlugin);
+      }
+      if (perplexityPlugin) {
+        registerPlugin("openai", perplexityPlugin);
+      }
+      if (anthropicPlugin) {
+        registerPlugin("anthropic", anthropicPlugin);
+      }
+      return E.of(undefined);
+    }),
+    E.match(
+      (e) => E.left(e),
+      () => {
+        return plugins.length === 0
+          ? E.left({
+              detail: "",
+              status: "500",
+              title: "No plugins registered",
+              type: errorType.emptyPluginsError,
+            })
+          : E.of(undefined);
+      },
+    ),
+  );
 }

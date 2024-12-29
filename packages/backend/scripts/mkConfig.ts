@@ -3,13 +3,10 @@
 import { LogLevel } from "@aws-lambda-powertools/logger/types";
 import { AnthropicModel, OpenAIModel } from "@chat-app/contracts";
 import { Command } from "@commander-js/extra-typings";
-import * as dotenv from "dotenv";
-import * as fs from "fs";
-import * as path from "path";
 
 import { Config } from "../src/config";
 
-export default function (cmd: Command) {
+export default function (_cmd: Command) {
   return async function ({
     localDev,
     openaiModel,
@@ -22,32 +19,25 @@ export default function (cmd: Command) {
     stream?: boolean;
   }): Promise<void> {
     if (localDev) {
-      const envPath = path.resolve(__dirname, "../../../secret.env");
-      if (fs.existsSync(envPath)) {
-        const result = dotenv.config({ path: envPath });
+      // const envPath = path.resolve(__dirname, "../../../secret.env");
+      // if (!fs.existsSync(envPath)) {
+      //   return cmd.error(`File not found: ${envPath}`);
+      // }
 
-        if (result.error) {
-          cmd.error(`Error loading environment variables from ${envPath}`);
-        }
+      const config = createConfig({
+        env: {
+          OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
+          PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
+          PERPLEXITY_BASE_URL: process.env.PERPLEXITY_BASE_URL,
+          LOG_LEVEL: process.env.LOG_LEVEL ?? "debug",
+        },
+        openaiModel,
+        anthropicModel,
+        stream,
+      });
 
-        if (!result.parsed) {
-          cmd.error("No environment variables loaded");
-        }
-
-        const config = createConfig({
-          env: {
-            ...result.parsed,
-            LOG_LEVEL: process.env.LOG_LEVEL ?? "debug",
-          },
-          openaiModel,
-          anthropicModel,
-          stream,
-        });
-
-        console.log(JSON.stringify(config));
-      } else {
-        cmd.error(`File not found: ${envPath}`);
-      }
+      console.log(JSON.stringify(config));
     }
 
     // if (missingVars.length > 0) {
@@ -65,6 +55,7 @@ export default function (cmd: Command) {
       anthropicModel,
       stream,
     });
+
     if (process.env.CI === "true") {
       const core = await import("@actions/core");
       core.setOutput("config", config);

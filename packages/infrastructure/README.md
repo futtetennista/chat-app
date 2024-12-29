@@ -1,5 +1,16 @@
 # Infrastructure
 
+## Bootstrapping
+
+```bash
+✗ pnpm run generate-bindings
+✗ pnpm run plan:bootstrap <UserStack|RoleStack>
+
+creates:
+
+1. A user with the required permissions
+2. A CI integration with GitHub using OIDC
+
 ## AWS
 
 ### Resources
@@ -28,3 +39,4 @@
 
 - https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-deployments
 - https://github.com/hashicorp/terraform-cdk-action
+```

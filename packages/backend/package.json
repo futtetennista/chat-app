@@ -5,7 +5,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "bundle:before": "tsx ./scripts/cli.ts config:create --local-dev --openai-model gpt-4o-mini --anthropic-model claude-3-haiku-latest",
+    "bundle:before": "op run --env-file=./app.env -- tsx ./scripts/cli.ts config:create --local-dev --openai-model gpt-4o-mini --anthropic-model claude-3-haiku-latest",
     "bundle:non-prod": "tsx ./scripts/cli.ts bundle non-prod",
     "bundle:prod": "tsx ./scripts/cli.ts bundle prod",
     "bundle:clean": "rm -rf $(jq -r .compilerOptions.outDir < tsconfig.json)",
@@ -27,7 +27,6 @@
     "@aws-lambda-powertools/logger": "^2.10.0",
     "@chat-app/contracts": "workspace:*",
     "aws-lambda": "^1.0.7",
-    "dotenv": "^16.4.5",
     "openai": "^4.71.1"
   },
   "devDependencies": {
