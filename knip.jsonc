@@ -6,18 +6,19 @@
     "**/build/**",
     "**/*.test.{js,jsx,ts,tsx}",
     "packages/frontend/src/index.dev.tsx",
+    "packages/infrastructure/scripts/saveUserCredentials.ts",
   ],
   "ignoreBinaries": [
     "cdktf",
     "jq",
+    "op",
     "sam",
-    "__cdktf_clean",
     "__cdktf_deploy",
     "__use_tsconfig",
     "__lint",
     "__prettier",
   ],
-  "ignoreDependencies": ["husky", "lint-staged", "nodemon"],
+  "ignoreDependencies": ["@1password/sdk", "husky", "lint-staged", "nodemon"],
   "workspaces": {
     "packages/backend": {
       "entry": ["src/lambda/index.ts", "scripts/cli.ts"],

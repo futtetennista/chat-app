@@ -39,7 +39,7 @@ export default async function saveUserCredentials({
   });
 
   fs.writeFileSync(
-    path.join(__dirname, "../../../.app.env"),
+    path.join(__dirname, "./app.env"),
     `AWS_ACCESS_KEY_ID = op://chat-app/aws-user/access-key-id
 AWS_SECRET_ACCESS_KEY = op://chat-app/aws-user/secret-access-key
 `,
