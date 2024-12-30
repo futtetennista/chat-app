@@ -1,6 +1,5 @@
 import {
   AnthropicModelD,
-  errorTypesMap as errorType,
   OpenAIModelD,
   PerplexityModelD,
   RFC9457ErrorResponse,
@@ -49,14 +48,15 @@ const ConfigD = D.partial({
 
 export type Config = D.TypeOf<typeof ConfigD>;
 
-export function mkConfig(env?: "production" | "dev"): E.Either<
-  RFC9457ErrorResponse,
-  {
-    configDecoded: Config;
-    configRaw: string;
-    configParsed: Record<string, unknown>;
-  }
-> {
+export interface MkConfigResult {
+  configDecoded: Config;
+  configRaw: string;
+  configParsed: Record<string, unknown>;
+}
+
+export function mkConfig(
+  env?: "production" | "dev",
+): E.Either<RFC9457ErrorResponse, MkConfigResult> {
   return pipe(
     E.Do,
     E.bind("configRaw", () => {
@@ -93,7 +93,14 @@ export function mkConfig(env?: "production" | "dev"): E.Either<
         })),
       );
     }),
-    E.bimap(
+    E.bimap<
+      | { _t: "parse"; configRaw: string; value: string }
+      | { _t: "notFound"; value: string }
+      | { _t: "decode"; configParsed: unknown; value: D.DecodeError },
+      RFC9457ErrorResponse,
+      MkConfigResult,
+      MkConfigResult
+    >(
       (e) => {
         switch (e._t) {
           case "notFound": {
@@ -101,7 +108,7 @@ export function mkConfig(env?: "production" | "dev"): E.Either<
               detail: "",
               status: "500",
               title: e.value,
-              type: errorType.configurationNotFoundError,
+              type: "tag:@chat-app:configuration_not_found_error",
             };
           }
           case "parse": {
@@ -110,7 +117,7 @@ export function mkConfig(env?: "production" | "dev"): E.Either<
                 env !== "production" ? e.configRaw || "<empty-string>" : "",
               status: "500",
               title: e.value,
-              type: errorType.configurationParseError,
+              type: "tag:@chat-app:configuration_parse_error",
             };
           }
           case "decode": {
@@ -121,7 +128,7 @@ export function mkConfig(env?: "production" | "dev"): E.Either<
                   : "",
               status: "500",
               title: D.draw(e.value),
-              type: errorType.configurationNotFoundError,
+              type: "tag:@chat-app:configuration_not_found_error",
             };
           }
           default: {

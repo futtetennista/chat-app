@@ -182,9 +182,7 @@ export const SuccessResponse: C.Codec<unknown, string, SuccessResponse> =
 
 export const errorTypes = [
   "tag:@chat-app:anthropic_api_error",
-  "tag:@chat-app:anthropic_not_configured",
   "tag:@chat-app:anthropic_other_error",
-  "tag:@chat-app:anthropic_streaming_not_supported_error",
   "tag:@chat-app:configuration_decode_error",
   "tag:@chat-app:configuration_not_found_error",
   "tag:@chat-app:configuration_parse_error",
@@ -196,11 +194,11 @@ export const errorTypes = [
   "tag:@chat-app:invalid_request_format",
   "tag:@chat-app:missing_model",
   "tag:@chat-app:openai_error",
-  "tag:@chat-app:openai_not_configured",
   "tag:@chat-app:perplexity_not_configured",
   "tag:@chat-app:plugin_configuration_api_key_missing_error",
   "tag:@chat-app:plugin_configuration_base_url_missing_error",
   "tag:@chat-app:plugin_configuration_stream_unsupported_error",
+  "tag:@chat-app:provider_not_configured",
   "tag:@chat-app:streaming_not_implemented",
   "tag:@chat-app:unsupported_model",
 ] as const;
@@ -230,30 +228,30 @@ const ErrorTypeD = D.literal(...errorTypes);
 // Type '"tag:@chat-app:missing_model"' is not assignable to type '"tag:@chat-app:perplexity_not_configured"'
 
 // Another way to avoid the compile error is to create a helper map
-type ErrorTypeSuffix =
-  (typeof errorTypes)[number] extends `tag:@chat-app:${infer S}` ? S : never;
-type CamelCase<S extends string> = S extends `${infer Head}_${infer Tail}`
-  ? `${Head}${Capitalize<CamelCase<Tail>>}`
-  : S;
+// type ErrorTypeSuffix =
+//   (typeof errorTypes)[number] extends `tag:@chat-app:${infer S}` ? S : never;
+// type CamelCase<S extends string> = S extends `${infer Head}_${infer Tail}`
+//   ? `${Head}${Capitalize<CamelCase<Tail>>}`
+//   : S;
 
-function toCamelCase(x: ErrorType): CamelCase<ErrorTypeSuffix> {
-  return x
-    .replace(/tag:@chat-app:/, "")
-    .toLowerCase()
-    .replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
-    .replace(/^./, (letter) =>
-      letter.toLowerCase(),
-    ) as CamelCase<ErrorTypeSuffix>;
-}
+// function toCamelCase(x: ErrorType): CamelCase<ErrorTypeSuffix> {
+//   return x
+//     .replace(/tag:@chat-app:/, "")
+//     .toLowerCase()
+//     .replace(/_([a-z])/g, (_, letter: string) => letter.toUpperCase())
+//     .replace(/^./, (letter) =>
+//       letter.toLowerCase(),
+//     ) as CamelCase<ErrorTypeSuffix>;
+// }
 
-export const errorTypesMap: Record<
-  CamelCase<ErrorTypeSuffix>,
-  ErrorType
-> = errorTypes.reduce(
-  (acc, errorType) => ({ ...acc, [toCamelCase(errorType)]: errorType }),
-  // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-  {} as Partial<Record<CamelCase<ErrorTypeSuffix>, ErrorType>>,
-) as Record<CamelCase<ErrorTypeSuffix>, ErrorType>;
+// const errorTypesMap: Record<
+//   CamelCase<ErrorTypeSuffix>,
+//   ErrorType
+// > = errorTypes.reduce(
+//   (acc, errorType) => ({ ...acc, [toCamelCase(errorType)]: errorType }),
+//   // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
+//   {} as Partial<Record<CamelCase<ErrorTypeSuffix>, ErrorType>>,
+// ) as Record<CamelCase<ErrorTypeSuffix>, ErrorType>;
 
 export type ErrorType = D.TypeOf<typeof ErrorTypeD>;
 

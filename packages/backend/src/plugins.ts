@@ -1,9 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import {
-  errorTypesMap as errorType,
-  Model,
-  RFC9457ErrorResponse,
-} from "@chat-app/contracts";
+import { Model, RFC9457ErrorResponse } from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
@@ -80,19 +76,19 @@ function mkOpenAIPlugin(
 > {
   const apiKey = config.apiKey;
   if (!apiKey) {
-    return E.left({
+    return E.left<RFC9457ErrorResponse>({
       detail: "",
       status: "500",
       title: "Missing configuration: openai.apiKey",
-      type: errorType.pluginConfigurationApiKeyMissingError,
+      type: "tag:@chat-app:plugin_configuration_api_key_missing_error",
     });
   }
   if (config.stream) {
-    return E.left({
+    return E.left<RFC9457ErrorResponse>({
       detail: "",
       status: "500",
       title: "Streaming not supported for OpenAI API",
-      type: errorType.pluginConfigurationStreamUnsupportedError,
+      type: "tag:@chat-app:streaming_not_implemented",
     });
   }
 
@@ -111,19 +107,19 @@ function mkPerplexityPlugin(
 > {
   const apiKey = config.apiKey;
   if (!apiKey) {
-    return E.left({
+    return E.left<RFC9457ErrorResponse>({
       detail: "",
       status: "500",
       title: "Missing configuration: perplexity.apiKey",
-      type: errorType.pluginConfigurationApiKeyMissingError,
+      type: "tag:@chat-app:plugin_configuration_api_key_missing_error",
     });
   }
   if (!config.baseURL) {
-    return E.left({
+    return E.left<RFC9457ErrorResponse>({
       detail: "",
       status: "500",
       title: "Missing configuration: perplexity.baseURL",
-      type: errorType.pluginConfigurationBaseUrlMissingError,
+      type: "tag:@chat-app:plugin_configuration_base_url_missing_error",
     });
   }
 
@@ -142,19 +138,19 @@ function mkAnthropicPlugin(
 > {
   const apiKey = config.apiKey;
   if (!apiKey) {
-    return E.left({
+    return E.left<RFC9457ErrorResponse>({
       detail: "",
       status: "500",
       title: "Missing configuration: anthropic.apiKey",
-      type: errorType.pluginConfigurationApiKeyMissingError,
+      type: "tag:@chat-app:plugin_configuration_api_key_missing_error",
     });
   }
   if (config.stream) {
-    return E.left({
+    return E.left<RFC9457ErrorResponse>({
       detail: "",
       status: "500",
       title: "Streaming not supported for Anthropic API",
-      type: errorType.pluginConfigurationStreamUnsupportedError,
+      type: "tag:@chat-app:streaming_not_implemented",
     });
   }
 
@@ -217,11 +213,11 @@ export function registerPlugins(
       (e) => E.left(e),
       () => {
         return plugins.length === 0
-          ? E.left({
+          ? E.left<RFC9457ErrorResponse>({
               detail: "",
               status: "500",
               title: "No plugins registered",
-              type: errorType.emptyPluginsError,
+              type: "tag:@chat-app:empty_plugins_error",
             })
           : E.of(undefined);
       },
