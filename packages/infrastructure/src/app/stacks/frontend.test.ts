@@ -12,6 +12,7 @@ import type {} from "cdktf/lib/testing/adapters/jest";
 
 describe("FrontendStack", () => {
   const config: Config = {
+    accountId: "some-account-id",
     frontend: {
       bucket: "some-bucket-name",
     },
@@ -59,4 +60,6 @@ describe("FrontendStack", () => {
       // ]),
     });
   });
+
+  it.todo("should create CloudTrail");
 });

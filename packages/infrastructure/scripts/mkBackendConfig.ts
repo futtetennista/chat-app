@@ -7,19 +7,19 @@ export default function (
   { printConfig }: { printConfig: boolean },
 ) {
   return async function ({
+    functionName,
     handler,
-    name,
     runtime,
     version,
   }: {
+    functionName: string;
     handler: string;
-    name: string;
     runtime: string;
     version: string;
   }): Promise<LambdaFunctionConfig> {
     const config: LambdaFunctionConfig = {
       handler,
-      name,
+      name: functionName,
       runtime,
       version,
     };
@@ -27,9 +27,7 @@ export default function (
     if (process.env.CI === "true") {
       const core = await import("@actions/core");
       core.exportVariable("BACKEND_INFRASTRUCTURE_JSON_CONFIG", config);
-    }
-
-    if (process.env.CI !== "true" && printConfig) {
+    } else if (printConfig) {
       console.log(JSON.stringify(config));
     }
 

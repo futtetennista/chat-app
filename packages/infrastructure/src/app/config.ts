@@ -26,6 +26,7 @@ export type FrontendConfig = D.TypeOf<typeof FrontendConfigD>;
 
 export const Config = pipe(
   D.struct({
+    accountId: D.string,
     frontend: FrontendConfigD,
     backend: LambdaFunctionConfigD,
     region: D.string,

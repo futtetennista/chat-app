@@ -9,6 +9,7 @@ import * as path from "path";
 
 describe("BackendStack", () => {
   const config: Config = {
+    accountId: "some-account-id",
     backend: {
       handler: "index.handler",
       name: "backend-function",
@@ -31,4 +32,10 @@ describe("BackendStack", () => {
       region: config.region,
     });
   });
+
+  it.todo("should create S3 bucket for lambda function code");
+  it.todo("should create IAM role and policy for lambda function");
+  it.todo("should create lambda function");
+  it.todo("should create API gateway");
+  it.todo("should create CloudTrail");
 });

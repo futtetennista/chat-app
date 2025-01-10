@@ -1,3 +1,4 @@
+import { Config } from "@app/config";
 import { Command } from "@commander-js/extra-typings";
 import * as fs from "fs";
 import * as path from "path";
@@ -5,35 +6,59 @@ import * as path from "path";
 import mkBackendConfig from "./mkBackendConfig";
 import mkFrontendConfig from "./mkFrontendConfig";
 
+function checkEnv(envVars: string[]): string[] {
+  return envVars.reduce<string[]>((tally, envVar) => {
+    return process.env[envVar] ? tally : [...tally, envVar];
+  }, []);
+}
+
 function mkConfig(cmd: Command) {
   return async function ({
+    accountId,
+    bucketName,
+    region,
+    roleArn,
+    functionName,
     handler,
-    name,
     runtime,
     version,
-    awsBucket,
-    awsRegion,
   }: {
+    accountId: string;
+    bucketName: string;
+    functionName: string;
     handler: string;
-    name: string;
+    region: string;
+    roleArn: string;
     runtime: string;
     version: string;
-    awsBucket: string;
-    awsRegion: string;
   }): Promise<void> {
-    const config = {
-      backend: mkBackendConfig(cmd, { printConfig: false })({
+    const missingEnvVars = checkEnv([
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY",
+    ]);
+    if (missingEnvVars.length > 0) {
+      return cmd.error(
+        `The following required environment variable(s) are not set: ${missingEnvVars.join(", ")}`,
+      );
+    }
+
+    const config: Config = {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      accessKey: process.env.AWS_ACCESS_KEY_ID!,
+      accountId,
+      backend: await mkBackendConfig(cmd, { printConfig: false })({
         handler,
-        name,
+        functionName,
         runtime,
         version,
       }),
-      frontend: mkFrontendConfig(cmd, { printConfig: false })({
-        awsBucket,
+      frontend: await mkFrontendConfig(cmd, { printConfig: false })({
+        bucketName: bucketName,
       }),
-      awsRegion,
-      accessKey: process.env.AWS_ACCESS_KEY_ID,
-      secretKey: process.env.AWS_SECRET_ACCESS_KEY,
+      region,
+      roleArn,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      secretKey: process.env.AWS_SECRET_ACCESS_KEY!,
     };
 
     if (process.env.CI === "true") {
@@ -57,7 +82,7 @@ function main() {
       process.env.AWS_LAMBDA_FUNC_HANDLER,
     )
     .requiredOption(
-      "--name <name>",
+      "--function-name <name>",
       "Function name",
       process.env.AWS_LAMBDA_FUNC_NAME,
     )
@@ -80,7 +105,7 @@ function main() {
     .command("config:frontend:create")
     .description("Create the config file for the frontend stack.")
     .requiredOption(
-      "--aws-bucket <name>",
+      "--bucket-name <name>",
       "S3 bucket",
       process.env.AWS_S3_BUCKET_NAME,
     )
@@ -98,7 +123,7 @@ function main() {
       process.env.AWS_LAMBDA_FUNC_HANDLER,
     )
     .requiredOption(
-      "--name <name>",
+      "--function-name <name>",
       "Function name",
       process.env.AWS_LAMBDA_FUNC_NAME,
     )
@@ -113,14 +138,20 @@ function main() {
       process.env.AWS_LAMBDA_FUNC_VERSION,
     )
     .requiredOption(
-      "--aws-region <region>",
-      "AWS region",
-      process.env.AWS_REGION,
+      "--account-id <id>",
+      "The account ID of the AWS account",
+      process.env.AWS_ACCOUNT_ID,
     )
+    .requiredOption("--region <region>", "AWS region", process.env.AWS_REGION)
     .requiredOption(
-      "--aws-bucket <name>",
+      "--bucket-name <name>",
       "S3 bucket",
       process.env.AWS_S3_BUCKET_NAME,
+    )
+    .requiredOption(
+      "--role-arn <name>",
+      "The ARN of the role to assume",
+      process.env.AWS_ROLE_ARN,
     )
     .action(mkConfig(cli));
 

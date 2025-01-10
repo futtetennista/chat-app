@@ -1,5 +1,6 @@
 import { Config as ConfigBase } from "@app/config";
 import { Apigatewayv2Api } from "@cdktf/provider-aws/lib/apigatewayv2-api";
+import { Cloudtrail } from "@cdktf/provider-aws/lib/cloudtrail";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { IamRolePolicyAttachment } from "@cdktf/provider-aws/lib/iam-role-policy-attachment";
 import { LambdaFunction } from "@cdktf/provider-aws/lib/lambda-function";
@@ -26,7 +27,7 @@ export class BackendStack extends TerraformStack {
   constructor(scope: Construct, id: string, config: Config) {
     super(scope, id);
 
-    new AwsProvider(this, "awsp", {
+    new AwsProvider(this, "awsprovider", {
       region: config.region,
       // accessKey: config.accessKey,
       // secretKey: config.secretKey,
@@ -38,22 +39,29 @@ export class BackendStack extends TerraformStack {
       ],
     });
 
-    const asset = new TerraformAsset(this, "tf_backend", {
+    const asset = new TerraformAsset(this, "terraformasset_codearchive", {
       path: config.backend.codePath,
       type: AssetType.ARCHIVE,
     });
 
-    const bucket = new S3Bucket(this, "s3b_backend", {
+    const bucket = new S3Bucket(this, "s3bucket", {
       bucketPrefix: "chat-app-backend",
+      serverSideEncryptionConfiguration: {
+        rule: {
+          applyServerSideEncryptionByDefault: {
+            sseAlgorithm: "AES256",
+          },
+        },
+      },
     });
 
-    const lambdaArchive = new S3Object(this, "s3o_backend", {
+    const lambdaArchive = new S3Object(this, "s3object", {
       bucket: bucket.bucket,
       key: `${config.backend.version}/${asset.fileName}`,
       source: asset.path,
     });
 
-    const role = new IamRole(this, "iamr_backend", {
+    const role = new IamRole(this, "iamrole_assumerole", {
       assumeRolePolicy: JSON.stringify({
         Version: "2012-10-17",
         Statement: [
@@ -69,13 +77,13 @@ export class BackendStack extends TerraformStack {
       }),
     });
 
-    new IamRolePolicyAttachment(this, "iamrpa_backend", {
+    new IamRolePolicyAttachment(this, "iamrolepolicyatttachment", {
       policyArn:
         "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
       role: role.name,
     });
 
-    const lambdaFunction = new LambdaFunction(this, "lf_backend", {
+    const lambdaFunction = new LambdaFunction(this, "lambdafunction", {
       functionName: config.backend.name,
       s3Bucket: bucket.bucket,
       s3Key: lambdaArchive.key,
@@ -84,17 +92,44 @@ export class BackendStack extends TerraformStack {
       role: role.arn,
     });
 
-    const apiGateway = new Apigatewayv2Api(this, "apig_backend", {
+    const apiGateway = new Apigatewayv2Api(this, "apigatewayv2api", {
       name: `${config.backend.name}-api-gateway`,
       protocolType: "HTTP",
       target: lambdaFunction.arn,
     });
 
-    new LambdaPermission(this, "lp_backend", {
+    new LambdaPermission(this, "lambdapermission_invokefunction", {
       functionName: lambdaFunction.functionName,
       action: "lambda:InvokeFunction",
       principal: "apigateway.amazonaws.com",
       sourceArn: `${apiGateway.executionArn}/*/*`,
+    });
+
+    new Cloudtrail(this, "cloudtrail", {
+      name: "chat-app-backend-trail",
+      s3BucketName: bucket.id,
+      // includeGlobalServiceEvents: true,
+      isMultiRegionTrail: false,
+      enableLogFileValidation: true,
+      enableLogging: true,
+      eventSelector: [
+        {
+          readWriteType: "All",
+          includeManagementEvents: true,
+          dataResource: [
+            {
+              type: "AWS::S3::Object",
+              values: [`arn:aws:s3:::${bucket.bucket}/`],
+            },
+            {
+              type: "AWS::Lambda::Function",
+              values: [
+                `arn:aws:lambda:${config.region}:${config.accountId}:function:${config.backend.name}`,
+              ],
+            },
+          ],
+        },
+      ],
     });
 
     new TerraformOutput(this, "endpoint_url", {

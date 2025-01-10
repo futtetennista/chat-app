@@ -7,12 +7,12 @@ export default function (
   { printConfig }: { printConfig: boolean },
 ) {
   return async function ({
-    awsBucket,
+    bucketName,
   }: {
-    awsBucket: string;
+    bucketName: string;
   }): Promise<FrontendConfig> {
     const config: FrontendConfig = {
-      bucket: awsBucket,
+      bucket: bucketName,
     };
 
     if (process.env.CI === "true") {

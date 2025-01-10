@@ -8,6 +8,7 @@ import type {} from "cdktf/lib/testing/adapters/jest";
 
 describe("IdentityStack", () => {
   const config: Config = {
+    accountId: "some-account-id",
     region: "eu-west-1",
     accessKey: "some-access-key",
     secretKey: "some-secret-key",

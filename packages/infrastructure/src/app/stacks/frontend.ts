@@ -1,5 +1,6 @@
 import { Config as ConfigBase } from "@app/config";
 import { CloudfrontDistribution } from "@cdktf/provider-aws/lib/cloudfront-distribution";
+import { Cloudtrail } from "@cdktf/provider-aws/lib/cloudtrail";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 import { S3Bucket } from "@cdktf/provider-aws/lib/s3-bucket";
 import { S3BucketWebsiteConfiguration } from "@cdktf/provider-aws/lib/s3-bucket-website-configuration";
@@ -9,12 +10,12 @@ import { Construct } from "constructs";
 export type Config = Omit<ConfigBase, "backend" | "accessKey" | "secretKey">;
 
 export class FrontendStack extends TerraformStack {
-  static readonly s3BucketId = "s3b";
+  static readonly s3BucketId = "s3bucket";
 
   constructor(scope: Construct, id: string, config: Config) {
     super(scope, id);
 
-    new AwsProvider(this, "aws", {
+    new AwsProvider(this, "awsprovider", {
       region: config.region,
       // accessKey: config.accessKey,
       // secretKey: config.secretKey,
@@ -27,10 +28,17 @@ export class FrontendStack extends TerraformStack {
     });
 
     const bucket = new S3Bucket(this, FrontendStack.s3BucketId, {
-      bucket: "chat-app-frontend",
+      bucketPrefix: "chat-app-frontend",
+      serverSideEncryptionConfiguration: {
+        rule: {
+          applyServerSideEncryptionByDefault: {
+            sseAlgorithm: "AES256",
+          },
+        },
+      },
     });
 
-    new S3BucketWebsiteConfiguration(this, "s3bwc", {
+    new S3BucketWebsiteConfiguration(this, "s3bucketwebsiteconfiguration", {
       bucket: bucket.id,
       indexDocument: {
         suffix: "index.html",
@@ -40,7 +48,7 @@ export class FrontendStack extends TerraformStack {
       },
     });
 
-    const cfd = new CloudfrontDistribution(this, "cfd", {
+    const cfd = new CloudfrontDistribution(this, "cloudfrontdistribution", {
       enabled: true,
       defaultCacheBehavior: {
         allowedMethods: ["GET", "HEAD"],
@@ -73,7 +81,28 @@ export class FrontendStack extends TerraformStack {
       },
     });
 
-    new TerraformOutput(this, "distributionId", {
+    new Cloudtrail(this, "cloudtrail", {
+      name: "chat-app-frontend-trail",
+      s3BucketName: bucket.id,
+      // includeGlobalServiceEvents: true,
+      isMultiRegionTrail: false,
+      enableLogFileValidation: true,
+      enableLogging: true,
+      eventSelector: [
+        {
+          readWriteType: "All",
+          includeManagementEvents: true,
+          dataResource: [
+            {
+              type: "AWS::S3::Object",
+              values: [`arn:aws:s3:::${bucket.bucket}/`],
+            },
+          ],
+        },
+      ],
+    });
+
+    new TerraformOutput(this, "distribution_id", {
       value: cfd.id,
     });
   }

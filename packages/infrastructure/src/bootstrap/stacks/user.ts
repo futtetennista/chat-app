@@ -1,6 +1,5 @@
 import backendStatements from "@bootstrap/policies/policy_statements_backend.json";
 import frontendStatements from "@bootstrap/policies/policy_statements_frontend.json";
-import { IamAccessKey } from "@cdktf/provider-aws/lib/iam-access-key";
 import { IamGroup } from "@cdktf/provider-aws/lib/iam-group";
 import { IamPolicy } from "@cdktf/provider-aws/lib/iam-policy";
 import { IamUser } from "@cdktf/provider-aws/lib/iam-user";
@@ -80,18 +79,19 @@ export class TerraformUserStack extends TerraformStack {
       value: user.arn,
     });
 
-    const userAccessKey = new IamAccessKey(this, "accessKey", {
-      user: user.name,
-    });
+    // TODO: create the access key in a separate script to be able to save it in 1Password
+    // const userAccessKey = new IamAccessKey(this, "accessKey", {
+    //   user: user.name,
+    // });
 
-    new TerraformOutput(this, "accessKeyId", {
-      value: userAccessKey.id,
-    });
+    // new TerraformOutput(this, "accessKeyId", {
+    //   value: userAccessKey.id,
+    // });
 
-    new TerraformOutput(this, "secretAccessKey", {
-      value: userAccessKey.secret,
-      sensitive: true,
-    });
+    // new TerraformOutput(this, "secretAccessKey", {
+    //   value: userAccessKey.secret,
+    //   sensitive: true,
+    // });
 
     new LocalBackend(this, {
       path: path.join(__dirname, `../../../tfstate/${id}.tfstate`),
