@@ -94,9 +94,9 @@ export function mkConfig(
       );
     }),
     E.bimap<
-      | { _t: "parse"; configRaw: string; value: string }
+      | { _t: "decode"; configParsed: unknown; value: D.DecodeError }
       | { _t: "notFound"; value: string }
-      | { _t: "decode"; configParsed: unknown; value: D.DecodeError },
+      | { _t: "parse"; configRaw: string; value: string },
       RFC9457ErrorResponse,
       MkConfigResult,
       MkConfigResult

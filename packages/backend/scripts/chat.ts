@@ -92,7 +92,7 @@ export default function (_cmd: Command) {
     return pipe(
       TE.Do,
       TE.bind("chatHistory", () =>
-        TE.fromIO(getChatHistory({ chatHistoryDir })),
+        TE.fromIO(getOrCreateChatHistory({ chatHistoryDir })),
       ),
       TE.bind("choice", ({ chatHistory }) =>
         TE.fromTask(selectAction(chatHistory.map((chat) => chat.name))),
@@ -353,13 +353,22 @@ function _chatLoop({
   );
 }
 
-function readChatHistory(
+function _getOrCreateChatHistory(
   dirPath: string,
 ): IOE.IOEither<Error, ChatHistory["chat_history"]> {
   return pipe(
     IOE.Do,
+    IOE.tapIO(() => createChatHistoryDir(dirPath)),
     IOE.bind("chatHistory", () =>
-      readFile(path.resolve(dirPath, "chat_history.json")),
+      fs.existsSync(path.resolve(dirPath, "chat_history.json"))
+        ? readFile(path.resolve(dirPath, "chat_history.json"))
+        : pipe(
+            writeFile(
+              path.resolve(dirPath, "chat_history.json"),
+              JSON.stringify({ chat_history: [] }),
+            ),
+            IOE.map(() => JSON.stringify({ chat_history: [] })),
+          ),
     ),
     IOE.bind("parsed", ({ chatHistory }) => {
       return parseJSON<ChatHistory>(chatHistory);
@@ -434,11 +443,11 @@ function readFileContent({
 function writeFile(
   filePath: string,
   payload: string,
-): IOE.IOEither<Error, string> {
+): IOE.IOEither<Error, { basename: string }> {
   return IOE.tryCatch(
     () => {
       fs.writeFileSync(filePath, payload, { encoding: "utf8" });
-      return path.basename(filePath);
+      return { basename: path.basename(filePath) };
     },
     (reason) => new Error(String(reason)),
   );
@@ -481,14 +490,14 @@ function decodeOrFail<T>({
   );
 }
 
-function getChatHistory({
+function getOrCreateChatHistory({
   chatHistoryDir,
 }: {
   chatHistoryDir: string;
 }): IO.IO<ChatHistory["chat_history"]> {
   return pipe(
     IOE.Do,
-    IOE.bind("chatHistory", () => readChatHistory(chatHistoryDir)),
+    IOE.bind("chatHistory", () => _getOrCreateChatHistory(chatHistoryDir)),
     IOE.matchE(
       (_) => IO.of([]),
       ({ chatHistory }) => IO.of(chatHistory),
@@ -597,7 +606,7 @@ function createChatFile({
   filename: string;
   name: string;
   chatHistoryDir: string;
-}): IOE.IOEither<Error, string> {
+}): IOE.IOEither<Error, { basename: string }> {
   return writeFile(
     path.resolve(chatHistoryDir, filename),
     PersistedChat.encode({
@@ -625,7 +634,7 @@ function updateChatHistory(
 ): IOE.IOEither<Error, void> {
   return pipe(
     IOE.Do,
-    IOE.bind("chatHistory", () => readChatHistory(dirPath)),
+    IOE.bind("chatHistory", () => _getOrCreateChatHistory(dirPath)),
     IOE.bind("updatedChatHistory", ({ chatHistory }) => {
       return IOE.right([...chatHistory, { name, filename }]);
     }),

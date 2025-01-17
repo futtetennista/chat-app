@@ -8,23 +8,25 @@ import { Config } from "../src/config";
 
 export default function (_cmd: Command) {
   return async function ({
+    anthropicModel,
     localDev,
     openaiModel,
-    anthropicModel,
     stream = false,
   }: {
+    anthropicModel: AnthropicModel[number];
     localDev?: boolean;
     openaiModel: OpenAIModel[number];
-    anthropicModel: AnthropicModel[number];
     stream?: boolean;
   }): Promise<void> {
+    let config: Config;
+
     if (localDev) {
       // const envPath = path.resolve(__dirname, "../../../secret.env");
       // if (!fs.existsSync(envPath)) {
       //   return cmd.error(`File not found: ${envPath}`);
       // }
 
-      const config = createConfig({
+      config = createConfig({
         env: {
           OPENAI_API_KEY: process.env.OPENAI_API_KEY,
           ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
@@ -36,8 +38,6 @@ export default function (_cmd: Command) {
         anthropicModel,
         stream,
       });
-
-      console.log(JSON.stringify(config));
     }
 
     // if (missingVars.length > 0) {
@@ -49,7 +49,7 @@ export default function (_cmd: Command) {
     //   cmd.error(`Missing environment variables: ${missingVars.join(", ")}`);
     // }
 
-    const config = createConfig({
+    config = createConfig({
       env: process.env,
       openaiModel,
       anthropicModel,
@@ -59,7 +59,10 @@ export default function (_cmd: Command) {
     if (process.env.CI === "true") {
       const core = await import("@actions/core");
       core.setOutput("config", config);
+      return;
     }
+
+    console.log(JSON.stringify(config));
   };
 }
 
