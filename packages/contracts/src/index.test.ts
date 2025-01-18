@@ -5,6 +5,7 @@ import {
   anthropicModels,
   ChatRequest,
   ChatResponse,
+  ChatSuccessResponse,
   defaultModel,
   Message,
   Model,
@@ -14,7 +15,6 @@ import {
   perplexityModels,
   resolveModel,
   RFC9457ErrorResponse,
-  SuccessResponse,
 } from "./index";
 
 describe("ChatRequest", () => {
@@ -100,9 +100,7 @@ describe("ChatRequest", () => {
       const decoded = Model.decode(JSON.parse(encoded));
 
       expect(decoded._tag).toBe("Right");
-      if (decoded._tag === "Right") {
-        expect(decoded.right).toEqual(defaultModel);
-      }
+      expect((decoded as E.Right<Model>).right).toEqual(defaultModel);
     });
   });
 
@@ -117,27 +115,53 @@ describe("ChatRequest", () => {
       const decoded = Message.decode(JSON.parse(encoded));
 
       expect(decoded._tag).toBe("Right");
-      if (decoded._tag === "Right") {
-        expect(decoded.right).toEqual(message);
-      }
+      expect((decoded as E.Right<Message>).right).toEqual(message);
     });
   });
 
   describe("SuccessResponse", () => {
     it("should encode and decode SuccessResponse correctly", () => {
-      const successResponse: SuccessResponse = [
-        {
-          message: "Success",
-          model: defaultModel,
-        },
-      ];
-      const encoded = SuccessResponse.encode(successResponse);
-      const decoded = SuccessResponse.decode(JSON.parse(encoded));
+      const successResponse: ChatSuccessResponse = {
+        responses: [
+          {
+            message: "Success",
+            model: defaultModel,
+          },
+        ],
+      };
+      const encoded = ChatSuccessResponse.encode(successResponse);
+      const decoded = ChatSuccessResponse.decode(JSON.parse(encoded));
 
       expect(decoded._tag).toBe("Right");
-      if (decoded._tag === "Right") {
-        expect(decoded.right).toEqual(successResponse);
-      }
+      expect((decoded as E.Right<ChatSuccessResponse>).right).toEqual(
+        successResponse,
+      );
+    });
+
+    it("should encode and decode SuccessResponse with errors correctly", () => {
+      const successResponse: ChatSuccessResponse = {
+        responses: [
+          {
+            message: "Success",
+            model: defaultModel,
+          },
+        ],
+        errors: [
+          {
+            type: "tag:@chat-app:i_am_a_teapot",
+            status: "400",
+            title: "Bad Request",
+            detail: "Invalid input",
+          },
+        ],
+      };
+      const encoded = ChatSuccessResponse.encode(successResponse);
+      const decoded = ChatSuccessResponse.decode(JSON.parse(encoded));
+
+      expect(decoded._tag).toBe("Right");
+      expect((decoded as E.Right<ChatSuccessResponse>).right).toEqual(
+        successResponse,
+      );
     });
   });
 
@@ -153,9 +177,9 @@ describe("ChatRequest", () => {
       const decoded = RFC9457ErrorResponse.decode(JSON.parse(encoded));
 
       expect(decoded._tag).toBe("Right");
-      if (decoded._tag === "Right") {
-        expect(decoded.right).toEqual(errorResponse);
-      }
+      expect((decoded as E.Right<RFC9457ErrorResponse>).right).toEqual(
+        errorResponse,
+      );
     });
   });
 
@@ -163,34 +187,32 @@ describe("ChatRequest", () => {
     it("should encode and decode ChatResponse correctly for success", () => {
       const chatResponse: ChatResponse = {
         _t: "ok",
-        data: [{ message: "Success", model: defaultModel }],
+        data: { responses: [{ message: "Success", model: defaultModel }] },
       };
       const encoded = ChatResponse.encode(chatResponse);
       const decoded = ChatResponse.decode(JSON.parse(encoded));
 
       expect(decoded._tag).toBe("Right");
-      if (decoded._tag === "Right") {
-        expect(decoded.right).toEqual(chatResponse);
-      }
+      expect((decoded as E.Right<ChatResponse>).right).toEqual(chatResponse);
     });
 
     it("should encode and decode ChatResponse correctly for error", () => {
       const chatResponse: ChatResponse = {
         _t: "ko",
-        error: {
-          type: "tag:@chat-app:i_am_a_teapot",
-          status: "400",
-          title: "Bad Request",
-          detail: "Invalid input",
-        },
+        errors: [
+          {
+            type: "tag:@chat-app:i_am_a_teapot",
+            status: "400",
+            title: "Bad Request",
+            detail: "Invalid input",
+          },
+        ],
       };
       const encoded = ChatResponse.encode(chatResponse);
       const decoded = ChatResponse.decode(JSON.parse(encoded));
 
       expect(decoded._tag).toBe("Right");
-      if (decoded._tag === "Right") {
-        expect(decoded.right).toEqual(chatResponse);
-      }
+      expect((decoded as E.Right<ChatResponse>).right).toEqual(chatResponse);
     });
   });
 });

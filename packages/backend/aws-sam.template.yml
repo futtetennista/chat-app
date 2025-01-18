@@ -19,13 +19,14 @@ Resources:
       Runtime: nodejs20.x
       Architectures:
         - x86_64
+        - arm64
       MemorySize: 128
       Timeout: 100
       Environment:
         Variables:
           CHAT_APP_CONFIG_JSON: !Sub "${CHAT_APP_CONFIG_JSON}"
           EAGER_START_FUNCTION: true
-          USE_MOCKS: !Sub "${USE_MOCKS}"
+          USE_MOCK_API: !Sub "${USE_MOCK_API}"
       Events:
         Api:
           Type: Api

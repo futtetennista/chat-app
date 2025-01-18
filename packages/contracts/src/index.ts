@@ -166,26 +166,6 @@ export const ChatRequest: C.Codec<unknown, string, ChatRequest> = C.make(
   ChatRequestE,
 );
 
-const SuccessResponseD = D.readonly(
-  D.array(
-    pipe(
-      D.struct({
-        message: D.string,
-        model: Model,
-      }),
-      D.intersect(D.partial({ stopReason: D.string })),
-    ),
-  ),
-);
-export type SuccessResponse = D.TypeOf<typeof SuccessResponseD>;
-
-const SuccessResponseE: E.Encoder<string, SuccessResponse> = {
-  encode: (successResponse) => JSON.stringify(successResponse),
-};
-
-export const SuccessResponse: C.Codec<unknown, string, SuccessResponse> =
-  C.make(SuccessResponseD, SuccessResponseE);
-
 export const errorTypes = [
   "tag:@chat-app:anthropic_api_error",
   "tag:@chat-app:anthropic_other_error",
@@ -210,6 +190,43 @@ export const errorTypes = [
 ] as const;
 
 const ErrorTypeD = D.literal(...errorTypes);
+
+export type ErrorType = D.TypeOf<typeof ErrorTypeD>;
+
+const RFC9457ErrorResponseD = pipe(
+  D.struct({
+    type: ErrorTypeD,
+    status: D.string,
+    title: D.string,
+    detail: D.string,
+  }),
+  D.intersect(
+    D.partial({
+      instance: D.string,
+    }),
+  ),
+);
+export type RFC9457ErrorResponse = D.TypeOf<typeof RFC9457ErrorResponseD>;
+
+const RFC9457ErrorResponseE: E.Encoder<string, RFC9457ErrorResponse> = {
+  encode: (errorResponse) => JSON.stringify(errorResponse),
+};
+
+export const RFC9457ErrorResponse: C.Codec<
+  unknown,
+  string,
+  RFC9457ErrorResponse
+> = C.make(RFC9457ErrorResponseD, RFC9457ErrorResponseE);
+
+export const ChatErrorResponseD = D.readonly(D.array(RFC9457ErrorResponseD));
+export type ChatErrorResponse = D.TypeOf<typeof ChatErrorResponseD>;
+
+const ChatErrorResponseE: E.Encoder<string, ChatErrorResponse> = {
+  encode: (errorResponse) => JSON.stringify(errorResponse),
+};
+
+export const ChatErrorResponse: C.Codec<unknown, string, ChatErrorResponse> =
+  C.make(ChatErrorResponseD, ChatErrorResponseE);
 
 // This doesn't compile…
 // const ErrorTypeD = D.union(...errorTypes.map(D.literal));
@@ -259,44 +276,48 @@ const ErrorTypeD = D.literal(...errorTypes);
 //   {} as Partial<Record<CamelCase<ErrorTypeSuffix>, ErrorType>>,
 // ) as Record<CamelCase<ErrorTypeSuffix>, ErrorType>;
 
-export type ErrorType = D.TypeOf<typeof ErrorTypeD>;
-
-const RFC9457ErrorResponseD = pipe(
+const VendorSuccessResponseD = pipe(
   D.struct({
-    type: ErrorTypeD,
-    status: D.string,
-    title: D.string,
-    detail: D.string,
+    message: D.string,
+    model: Model,
+  }),
+  D.intersect(D.partial({ stopReason: D.string })),
+);
+export type VendorSuccessResponse = D.TypeOf<typeof VendorSuccessResponseD>;
+
+const ChatSuccessResponseD = pipe(
+  D.struct({
+    responses: D.readonly(D.array(VendorSuccessResponseD)),
   }),
   D.intersect(
-    D.partial({
-      instance: D.string,
-    }),
+    D.partial({ errors: D.readonly(D.array(RFC9457ErrorResponseD)) }),
   ),
 );
+export type ChatSuccessResponse = D.TypeOf<typeof ChatSuccessResponseD>;
 
-export type RFC9457ErrorResponse = D.TypeOf<typeof RFC9457ErrorResponseD>;
-
-const RFC9457ErrorResponseE: E.Encoder<string, RFC9457ErrorResponse> = {
-  encode: (errorResponse) => JSON.stringify(errorResponse),
+const ChatSuccessResponseE: E.Encoder<string, ChatSuccessResponse> = {
+  encode: (successResponse) => JSON.stringify(successResponse),
 };
+
+export const ChatSuccessResponse: C.Codec<
+  unknown,
+  string,
+  ChatSuccessResponse
+> = C.make(ChatSuccessResponseD, ChatSuccessResponseE);
 
 const okTag = "ok";
 const koTag = "ko";
 
 type ChatResponseT =
-  | { _t: typeof okTag; data: SuccessResponse }
-  | { _t: typeof koTag; error: RFC9457ErrorResponse };
-
-export const RFC9457ErrorResponse: C.Codec<
-  unknown,
-  string,
-  RFC9457ErrorResponse
-> = C.make(RFC9457ErrorResponseD, RFC9457ErrorResponseE);
+  | { _t: typeof okTag; data: ChatSuccessResponse }
+  | { _t: typeof koTag; errors: ChatErrorResponse };
 
 const ChatResponseD: D.Decoder<unknown, ChatResponseT> = D.sum("_t")({
-  [okTag]: D.struct({ _t: D.literal(okTag), data: SuccessResponse }),
-  [koTag]: D.struct({ _t: D.literal(koTag), error: RFC9457ErrorResponse }),
+  [okTag]: D.struct({ _t: D.literal(okTag), data: ChatSuccessResponse }),
+  [koTag]: D.struct({
+    _t: D.literal(koTag),
+    errors: ChatErrorResponse,
+  }),
 });
 
 export type ChatResponse = D.TypeOf<typeof ChatResponseD>;

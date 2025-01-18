@@ -1,11 +1,11 @@
 import {
+  ChatErrorResponse,
   ChatRequest,
   ChatResponse,
   defaultModels,
   Message,
   Model,
   resolveModel,
-  RFC9457ErrorResponse,
 } from "@chat-app/contracts";
 import { anthropicModels, openaiModels } from "@chat-app/contracts";
 import { Command } from "@commander-js/extra-typings";
@@ -13,7 +13,7 @@ import { input, search, select } from "@inquirer/prompts";
 import * as apply from "fp-ts/lib/Apply";
 import * as Console from "fp-ts/lib/Console";
 import * as E from "fp-ts/lib/Either";
-import { constVoid, pipe } from "fp-ts/lib/function";
+import { constant, constVoid, pipe } from "fp-ts/lib/function";
 import * as IO from "fp-ts/lib/IO";
 import * as IOE from "fp-ts/lib/IOEither";
 import * as O from "fp-ts/lib/Option";
@@ -61,18 +61,12 @@ const PersistedChat: Codec.Codec<unknown, string, PersistedChat> = Codec.make(
   PersistedChatE,
 );
 
-class APIError extends Error {
-  public readonly detail;
-  public readonly instance;
-  public readonly status;
-  public readonly type;
+class ChatError extends Error {
+  public readonly errors: ChatErrorResponse;
 
-  constructor(errorResponse: RFC9457ErrorResponse) {
-    super(errorResponse.title);
-    this.status = errorResponse.status;
-    this.type = errorResponse.type;
-    this.detail = errorResponse.detail;
-    this.instance = errorResponse.instance;
+  constructor(errors: ChatErrorResponse) {
+    super();
+    this.errors = errors;
   }
 }
 
@@ -316,11 +310,11 @@ function _chatLoop({
     }),
     TE.bind("assistantResponse", ({ responseDecoded }) => {
       return responseDecoded._t === "ko"
-        ? TE.left(new APIError(responseDecoded.error))
+        ? TE.left(new ChatError(responseDecoded.errors))
         : TE.of(responseDecoded.data);
     }),
     TE.tap(({ messageHistory, assistantResponse }) => {
-      assistantResponse.forEach(({ message: content }) => {
+      assistantResponse.responses.forEach(({ message: content }) => {
         messageHistory.push({
           content,
           role: "assistant",
@@ -338,10 +332,19 @@ function _chatLoop({
       );
     }),
     TE.tapIO(({ assistantResponse }) => {
-      return Console.log(
-        assistantResponse
-          .map(({ model, message }) => `${model}: ${message}`)
-          .join("\n"),
+      return IO.asUnit(
+        pipe(
+          Console.log(
+            assistantResponse.responses
+              .map(({ model, message }) => `${model}: ${message}`)
+              .join("\n"),
+          ),
+          constant(
+            assistantResponse.errors
+              ? Console.error(assistantResponse.errors)
+              : IO.of(undefined),
+          ),
+        ),
       );
     }),
     TE.tap(({ messageHistory }) => {

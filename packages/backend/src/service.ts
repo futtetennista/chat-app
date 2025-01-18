@@ -1,16 +1,20 @@
 import Anthropic from "@anthropic-ai/sdk";
 import {
+  ChatErrorResponse,
   ChatRequest,
+  ChatSuccessResponse,
   defaultModel,
   Model,
   modelMap,
   models,
   RFC9457ErrorResponse,
-  SuccessResponse,
+  VendorSuccessResponse,
 } from "@chat-app/contracts";
+import * as A from "fp-ts/Array";
 import * as E from "fp-ts/Either";
 import * as IO from "fp-ts/IO";
 import { pipe } from "fp-ts/lib/function";
+import * as T from "fp-ts/Task";
 import * as TE from "fp-ts/TaskEither";
 import * as D from "io-ts/Decoder";
 import OpenAI from "openai";
@@ -52,7 +56,7 @@ interface ChatService {
     data: ChatRequest,
     headers: Record<string, string | undefined>,
     callback?: ChatCallback,
-  ) => TE.TaskEither<RFC9457ErrorResponse, SuccessResponse>;
+  ) => TE.TaskEither<ChatErrorResponse, ChatSuccessResponse>;
 }
 
 /**
@@ -65,9 +69,10 @@ interface ChatService {
 export function mkService(
   config: Config,
   // { callback: _ }: { callback: Parameters<typeof plugins.registerPlugins>[1] },
-): E.Either<RFC9457ErrorResponse, ChatService> {
+): E.Either<ChatErrorResponse, ChatService> {
   return pipe(
     plugins.registerPlugins(config),
+    E.mapLeft((error) => [error]),
     E.map(() => ({
       chatTE,
       validateBody,
@@ -79,10 +84,13 @@ function chatTE(
   data: ChatRequest,
   headers: Record<string, string | undefined>,
   callback?: ChatCallback,
-): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
+): TE.TaskEither<ChatErrorResponse, ChatSuccessResponse> {
   return pipe(
-    TE.sequenceArray(
-      data.models.map((model) => {
+    // TE.sequenceArray(
+    // A.sequence(T.ApplicativePar)(
+    A.wilt(T.ApplicativePar)(
+      // A.wilt(T.ApplicativePar)<Model, RFC9457ErrorResponse, SimpleSuccessResponse>(
+      (model: Model) => {
         switch (modelMap[model]) {
           case "anthropic": {
             return chatAnthropic(data, callback);
@@ -102,8 +110,16 @@ function chatTE(
             });
           }
         }
-      }),
-    ),
+      },
+    )([...data.models]),
+    T.map((x) => {
+      return x.right.length === 0
+        ? E.left(x.left)
+        : E.right({
+            responses: x.right,
+            errors: x.left,
+          });
+    }),
   );
 }
 
@@ -111,7 +127,7 @@ function chatPerplexity(
   data: ChatRequest,
   headers: Record<string, string | undefined>,
   callback?: ChatCallback,
-): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
+): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
   return pipe(
     TE.fromOption(() => undefined)(plugins.getPlugin("perplexity")),
     TE.matchE(
@@ -139,7 +155,7 @@ function chatOpenAI(
     plugin?: { client: OpenAI; model: Model; stream: boolean };
     callback?: ChatCallback;
   },
-): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
+): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
   function _chatOpenAI({
     client,
     model,
@@ -148,7 +164,7 @@ function chatOpenAI(
     client: OpenAI;
     model: Model;
     stream: boolean;
-  }): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
+  }): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
     return pipe(
       TE.Do,
       TE.tapIO(() => {
@@ -251,7 +267,7 @@ function chatOpenAI(
 function chatAnthropic(
   data: ChatRequest,
   callback?: ChatCallback,
-): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
+): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
   function _chatAnthropic(
     client: Anthropic,
     model: string,
@@ -260,7 +276,7 @@ function chatAnthropic(
     }: {
       stream: boolean;
     },
-  ): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
+  ): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
     return pipe(
       TE.tryCatch<RFC9457ErrorResponse, Anthropic.Message>(
         () =>

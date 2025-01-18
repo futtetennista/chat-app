@@ -50,8 +50,8 @@ export type Config = D.TypeOf<typeof ConfigD>;
 
 export interface MkConfigResult {
   configDecoded: Config;
-  configRaw: string;
   configParsed: Record<string, unknown>;
+  configUnparsed: string;
 }
 
 export function mkConfig(
@@ -59,23 +59,23 @@ export function mkConfig(
 ): E.Either<RFC9457ErrorResponse, MkConfigResult> {
   return pipe(
     E.Do,
-    E.bind("configRaw", () => {
+    E.bind("configUnparsed", () => {
       return E.fromNullable<{ _t: "notFound"; value: string }>({
         _t: "notFound",
         value: "CHAT_APP_CONFIG_JSON is not set",
       })(process.env.CHAT_APP_CONFIG_JSON);
     }),
-    E.bindW("configParsed", ({ configRaw }) => {
+    E.bindW("configParsed", ({ configUnparsed }) => {
       return E.tryCatch<
-        { _t: "parse"; configRaw: string; value: string },
+        { _t: "parse"; configUnparsed: string; value: string },
         Config
       >(
-        () => JSON.parse(configRaw) as Config,
+        () => JSON.parse(configUnparsed) as Config,
         () => {
           return {
             _t: "parse",
             value: "Failed to parse JSON configuration",
-            configRaw,
+            configUnparsed,
           };
         },
       );
@@ -96,7 +96,7 @@ export function mkConfig(
     E.bimap<
       | { _t: "decode"; configParsed: unknown; value: D.DecodeError }
       | { _t: "notFound"; value: string }
-      | { _t: "parse"; configRaw: string; value: string },
+      | { _t: "parse"; configUnparsed: string; value: string },
       RFC9457ErrorResponse,
       MkConfigResult,
       MkConfigResult
@@ -114,7 +114,9 @@ export function mkConfig(
           case "parse": {
             return {
               detail:
-                env !== "production" ? e.configRaw || "<empty-string>" : "",
+                env !== "production"
+                  ? e.configUnparsed || "<empty-string>"
+                  : "",
               status: "500",
               title: e.value,
               type: "tag:@chat-app:configuration_parse_error",
@@ -137,8 +139,8 @@ export function mkConfig(
           }
         }
       },
-      ({ configParsed, configDecoded, configRaw }) => {
-        return { configDecoded, configRaw, configParsed };
+      ({ configParsed, configDecoded, configUnparsed }) => {
+        return { configDecoded, configUnparsed, configParsed };
       },
     ),
   );

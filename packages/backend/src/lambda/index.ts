@@ -44,7 +44,7 @@ export const handler: Handler = async (
   logger.addContext(context);
   logger.logEventIfEnabled(event);
 
-  await startMockServer(process.env.NODE_ENV, process.env.USE_MOCKS);
+  await startMockServer(process.env.NODE_ENV, process.env.USE_MOCK_API);
 
   return pipe(
     TE.Do,
@@ -64,7 +64,8 @@ export const handler: Handler = async (
         // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
         logger.info("Config", {
           decoded: obfuscateObject(config.configDecoded),
-          raw: process.env.NODE_ENV === "production" ? "" : config.configRaw,
+          raw:
+            process.env.NODE_ENV === "production" ? "" : config.configUnparsed,
         }),
       );
     }),
@@ -84,50 +85,14 @@ export const handler: Handler = async (
 
       return TE.of(undefined);
     }),
-    TE.bind("service", ({ config: { configDecoded } }) => {
+    TE.bindW("service", ({ config: { configDecoded } }) => {
       return TE.fromEither(mkService(configDecoded));
     }),
-    TE.bind("data", ({ service }) => {
+    TE.bindW("data", ({ service }) => {
       return TE.fromEither(service.validateBody(event.body));
     }),
-    TE.bind("response", ({ service, data }) => {
+    TE.bindW("response", ({ service, data }) => {
       return service.chatTE(data, event.headers); //, {
-      // beforeRequest(service, request) {
-      //   logger.info(`[${service}] Request: `, { request });
-      // },
-      // onError(e) {
-      //   switch (e._t) {
-      //     case "network": {
-      //       if (e.data instanceof Error) {
-      //         logger.error("Network error", e.data);
-      //       }
-      //       break;
-      //     }
-      //     case "api": {
-      //       if (e.data instanceof Error) {
-      //         logger.error("API error", e.data);
-      //       } else {
-      //         logger.error("API error", e.data);
-      //       }
-      //       break;
-      //     }
-      //     case "unsupported": {
-      //       logger.error(e.message);
-      //       break;
-      //     }
-      //     default: {
-      //       const _exhaustiveCheck: never = e;
-      //       return _exhaustiveCheck;
-      //     }
-      //   }
-      // },
-      // onMissingConfig(vendor: "openai" | "anthropic" | "perplexity") {
-      //   logger.error(`Missing configuration for ${vendor}`);
-      // },
-      // afterResponse(response) {
-      //   logger.info("Response", { response });
-      // },
-      // });
     }),
     TE.tapIO(({ response }) => {
       return IO.of(
@@ -140,20 +105,27 @@ export const handler: Handler = async (
         IO.of(
           // eslint-disable-next-line @typescript-eslint/no-confusing-void-expression
           logger.error(
-            error instanceof Error ? error.message : error.type,
+            error instanceof Error
+              ? error.message
+              : {
+                  message:
+                    !Array.isArray(error) && "title" in error
+                      ? error.title
+                      : "Multiple errors",
+                },
             error instanceof Error ? error : JSON.stringify(error),
           ),
         ),
       );
     }),
     TE.match(
-      (error) => {
+      (e) => {
         return {
           statusCode: 500,
           headers: commonHeaders,
           body: ChatResponse.encode({
             _t: "ko",
-            error,
+            errors: Array.isArray(e) ? e : [e],
           }),
         };
       },

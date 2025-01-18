@@ -25,7 +25,7 @@ const handlers = [
         TE.tryCatch(
           () => request.json(),
           () => ({
-            type: "empty_request_body",
+            type: "tag:@chat-app:empty_request_body",
             title: "Empty request body",
             status: "400",
             detail: "",
@@ -44,12 +44,14 @@ const handlers = [
                   HttpResponse.json<ChatResponse>(
                     {
                       _t: "ko",
-                      error: {
-                        type: "tag:@chat-app:invalid_request_format",
-                        title: "Invalid request format",
-                        status: "400",
-                        detail: D.draw(error),
-                      },
+                      errors: [
+                        {
+                          type: "tag:@chat-app:invalid_request_format",
+                          title: "Invalid request format",
+                          status: "400",
+                          detail: D.draw(error),
+                        },
+                      ],
                     },
                     { status: 400 },
                   ),
@@ -57,7 +59,7 @@ const handlers = [
                   HttpResponse.json<ChatResponse>(
                     {
                       _t: "ko",
-                      error,
+                      errors: [error],
                     },
                     {
                       status: Number(error.status),
@@ -67,16 +69,18 @@ const handlers = [
             );
           },
           (data) => {
-            if (data.message === "teapot418") {
+            if (data.message === "response=teapot418") {
               return HttpResponse.json<ChatResponse>(
                 {
                   _t: "ko",
-                  error: {
-                    type: "tag:@chat-app:i_am_a_teapot",
-                    title: "I'm a teapot",
-                    status: "418",
-                    detail: "This is a test error",
-                  },
+                  errors: [
+                    {
+                      type: "tag:@chat-app:i_am_a_teapot",
+                      title: "I'm a teapot",
+                      status: "418",
+                      detail: "This is a test error",
+                    },
+                  ],
                 },
                 {
                   status: 418,
@@ -84,12 +88,39 @@ const handlers = [
               );
             }
 
+            if (data.message === "response=mixed") {
+              return HttpResponse.json<ChatResponse>(
+                {
+                  _t: "ok",
+                  data: {
+                    responses: data.models.map((model) => ({
+                      model: defaultModel,
+                      message: `Your message to ${model}: "${data.message}"`,
+                    })),
+                    errors: [
+                      {
+                        type: "tag:@chat-app:i_am_a_teapot",
+                        title: "I'm a teapot",
+                        status: "418",
+                        detail: "This is a test error",
+                      },
+                    ],
+                  },
+                },
+                {
+                  status: 200,
+                },
+              );
+            }
+
             return HttpResponse.json<ChatResponse>({
               _t: "ok",
-              data: data.models.map((model) => ({
-                model: defaultModel,
-                message: `Your message to ${model}: "${data.message}"`,
-              })),
+              data: {
+                responses: data.models.map((model) => ({
+                  model: defaultModel,
+                  message: `Your message to ${model}: "${data.message}"`,
+                })),
+              },
             });
           },
         ),
