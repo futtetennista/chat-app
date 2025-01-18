@@ -20,7 +20,7 @@ for package in $changed_packages; do
     pnpm run format "packages/$package"
     echo "[pre-commit] ✅ Prettier for package '$package' did end."
     # Make sure only files that prettier might have changed are staged.
-    files_formatted="$(git diff --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$' | sort -u)"
+    files_formatted="$(git diff --diff-filter=d --staged --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$' | sort -u)"
     if [ -n "$files_formatted" ]; then
       echo "$files_formatted" | xargs git add
     fi
