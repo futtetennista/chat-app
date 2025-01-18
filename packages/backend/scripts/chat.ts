@@ -1,7 +1,7 @@
 import {
   ChatRequest,
   ChatResponse,
-  defaultModel,
+  defaultModels,
   Message,
   Model,
   resolveModel,
@@ -219,31 +219,48 @@ function _chatLoop({
 }): TE.TaskEither<ChatLoopError, unknown> {
   return pipe(
     TE.Do,
-    TE.let("modelTarget", () => {
-      return O.fromNullable(
-        /@(?<modelOrHandle>\w+)/.exec(userMessageRaw)?.groups?.modelOrHandle,
-      );
+    TE.let("modelTargets", () => {
+      return O.fromNullable(userMessageRaw.match(/@\w+/g));
     }),
-    TE.bind("model", ({ modelTarget }) => {
-      if (modelTarget._tag === "None") {
-        return TE.of<Error, Model>(defaultModel);
+    TE.bind("models", ({ modelTargets }) => {
+      if (modelTargets._tag === "None") {
+        return TE.of<Error, Model[]>(defaultModels);
       }
 
-      const modelO = resolveModel(modelTarget.value);
-      if (modelO._tag === "None") {
-        return TE.left(
-          new Error(
-            `Model "${modelTarget.value}" not supported. Valid models are: ${[...openaiModels, ...anthropicModels].join(", ")}`,
-          ),
-        );
-      }
-      return TE.of<Error, Model>(modelO.value);
+      return pipe(
+        E.sequenceArray(modelTargets.value.map(resolveModel)),
+        E.match(
+          () => {
+            return TE.left(
+              new Error(
+                `One or more models in "${modelTargets.value.join(", ")}" are not supported. Valid models are: ${[...openaiModels, ...anthropicModels].join(", ")}`,
+              ),
+            );
+          },
+          (models) => TE.right<Error, readonly Model[]>(models),
+        ),
+      );
+
+      // const modelO = modelTarget.value.map(resolveModel);
+      // if (modelO._tag === "None") {
+      //   return TE.left(
+      //     new Error(
+      //       `Model "${modelTarget.value}" not supported. Valid models are: ${[...openaiModels, ...anthropicModels].join(", ")}`,
+      //     ),
+      //   );
+      // }
+      // return TE.of<Error, Model>(modelO.value);
     }),
-    TE.let("userMessage", ({ modelTarget }) => {
-      if (modelTarget._tag === "None") {
+    TE.let("userMessage", ({ modelTargets }) => {
+      if (modelTargets._tag === "None") {
         return userMessageRaw;
       }
-      return userMessageRaw.replace(modelTarget.value, "").trim();
+
+      return modelTargets.value
+        .reduce<string>((tally, model) => {
+          return tally.replace(model, "");
+        }, userMessageRaw)
+        .trim();
     }),
     TE.bind(
       "messageHistory",
@@ -262,7 +279,7 @@ function _chatLoop({
         }),
       );
     }),
-    TE.bind("response", ({ model, userMessage, messageHistory }) => {
+    TE.bind("response", ({ models, userMessage, messageHistory }) => {
       return TE.tryCatch(
         () =>
           fetch(new URL(`${apiBaseURL}/v1/api/chat`), {
@@ -272,7 +289,7 @@ function _chatLoop({
               "Content-Type": "application/json",
             },
             body: ChatRequest.encode({
-              model,
+              models,
               message: userMessage,
               history: messageHistory.slice(0, -1),
             }),
@@ -280,7 +297,7 @@ function _chatLoop({
         (reason) => new Error(String(reason)),
       );
     }),
-    TE.bind("responseUndecoded", ({ response }) => {
+    TE.bind("responseText", ({ response }) => {
       return pipe(
         TE.tryCatch(
           () => response.text(),
@@ -289,11 +306,11 @@ function _chatLoop({
         TE.flatMap((text) => TE.fromIOEither(parseJSON<ChatResponse>(text))),
       );
     }),
-    TE.bindW("responseDecoded", ({ responseUndecoded }) => {
+    TE.bindW("responseDecoded", ({ responseText }) => {
       return TE.fromIOEither(
         decodeOrFail({
           decoder: ChatResponse,
-          value: responseUndecoded,
+          value: responseText,
         }),
       );
     }),
@@ -303,9 +320,11 @@ function _chatLoop({
         : TE.of(responseDecoded.data);
     }),
     TE.tap(({ messageHistory, assistantResponse }) => {
-      messageHistory.push({
-        content: assistantResponse.message,
-        role: "assistant",
+      assistantResponse.forEach(({ message: content }) => {
+        messageHistory.push({
+          content,
+          role: "assistant",
+        });
       });
       return TE.of(undefined);
     }),
@@ -320,7 +339,9 @@ function _chatLoop({
     }),
     TE.tapIO(({ assistantResponse }) => {
       return Console.log(
-        `${assistantResponse.model}: ${assistantResponse.message}`,
+        assistantResponse
+          .map(({ model, message }) => `${model}: ${message}`)
+          .join("\n"),
       );
     }),
     TE.tap(({ messageHistory }) => {

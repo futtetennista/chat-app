@@ -29,8 +29,10 @@ async function startMockServer(
     logger.info("Using mock API");
     // https://www.webdevtutor.net/blog/typescript-dynamic-import-javascript
     const { setupServer } = await import("msw/node");
-    const { openaiHandlers } = await import("@chat-app/mocks");
-    const server = setupServer(...openaiHandlers);
+    const { openaiHandlers, anthropicHandlers } = await import(
+      "@chat-app/mocks"
+    );
+    const server = setupServer(...openaiHandlers, ...anthropicHandlers);
     server.listen();
   }
 }
@@ -155,17 +157,13 @@ export const handler: Handler = async (
           }),
         };
       },
-      ({ response: { message, model, stopReason } }) => {
+      ({ response: data }) => {
         return {
           statusCode: 200,
           headers: commonHeaders,
           body: ChatResponse.encode({
             _t: "ok",
-            data: {
-              message,
-              model,
-              stopReason,
-            },
+            data,
           }),
         };
       },

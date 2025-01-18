@@ -68,12 +68,10 @@ export function mkService(
 ): E.Either<RFC9457ErrorResponse, ChatService> {
   return pipe(
     plugins.registerPlugins(config),
-    E.map(() => {
-      return {
-        chatTE,
-        validateBody,
-      };
-    }),
+    E.map(() => ({
+      chatTE,
+      validateBody,
+    })),
   );
 }
 
@@ -82,32 +80,38 @@ function chatTE(
   headers: Record<string, string | undefined>,
   callback?: ChatCallback,
 ): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
-  switch (modelMap[data.model]) {
-    case "anthropic": {
-      return chatAnthropic(data, callback);
-    }
-    case "openai": {
-      return chatOpenAI(data, headers, { callback });
-    }
-    case "perplexity": {
-      return chatPerplexity(data, headers, callback);
-    }
-    default: {
-      return TE.left<RFC9457ErrorResponse>({
-        detail: `'${data.model}' should be added to the supported models list`,
-        status: "500",
-        title: "Missing model",
-        type: "tag:@chat-app:missing_model",
-      });
-    }
-  }
+  return pipe(
+    TE.sequenceArray(
+      data.models.map((model) => {
+        switch (modelMap[model]) {
+          case "anthropic": {
+            return chatAnthropic(data, callback);
+          }
+          case "openai": {
+            return chatOpenAI(data, headers, { callback });
+          }
+          case "perplexity": {
+            return chatPerplexity(data, headers, callback);
+          }
+          default: {
+            return TE.left<RFC9457ErrorResponse>({
+              detail: `'${model}' is not one of the supported models: ${models.join(", ")}`,
+              status: "400",
+              title: "Unsupported model",
+              type: "tag:@chat-app:unsupported_model",
+            });
+          }
+        }
+      }),
+    ),
+  );
 }
 
 function chatPerplexity(
   data: ChatRequest,
   headers: Record<string, string | undefined>,
   callback?: ChatCallback,
-): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
+): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
   return pipe(
     TE.fromOption(() => undefined)(plugins.getPlugin("perplexity")),
     TE.matchE(
@@ -135,7 +139,7 @@ function chatOpenAI(
     plugin?: { client: OpenAI; model: Model; stream: boolean };
     callback?: ChatCallback;
   },
-): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
+): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
   function _chatOpenAI({
     client,
     model,
@@ -144,7 +148,7 @@ function chatOpenAI(
     client: OpenAI;
     model: Model;
     stream: boolean;
-  }): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
+  }): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
     return pipe(
       TE.Do,
       TE.tapIO(() => {
@@ -247,7 +251,7 @@ function chatOpenAI(
 function chatAnthropic(
   data: ChatRequest,
   callback?: ChatCallback,
-): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
+): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
   function _chatAnthropic(
     client: Anthropic,
     model: string,
@@ -256,7 +260,7 @@ function chatAnthropic(
     }: {
       stream: boolean;
     },
-  ): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse> {
+  ): TE.TaskEither<RFC9457ErrorResponse, SuccessResponse[number]> {
     return pipe(
       TE.tryCatch<RFC9457ErrorResponse, Anthropic.Message>(
         () =>
@@ -417,15 +421,6 @@ function validateBody(
         }
       },
       ({ bodyDecoded }) => {
-        if (!models.includes(bodyDecoded.model)) {
-          return E.left<RFC9457ErrorResponse>({
-            detail: `'${bodyDecoded.model}' is not one of the supported models: ${models.join(", ")}`,
-            status: "400",
-            title: "Unsupported model",
-            type: "tag:@chat-app:unsupported_model",
-          });
-        }
-
         return E.of(bodyDecoded);
       },
     ),

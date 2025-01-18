@@ -1,4 +1,4 @@
-import * as O from "fp-ts/Option";
+import * as E from "fp-ts/Either";
 
 import {
   anthropicDefaultModel,
@@ -23,7 +23,7 @@ describe("ChatRequest", () => {
       const chatRequest: ChatRequest = {
         message: "Hello, world!",
         history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-        model: defaultModel,
+        models: [defaultModel],
       };
 
       const encoded = ChatRequest.encode(chatRequest);
@@ -31,7 +31,7 @@ describe("ChatRequest", () => {
         JSON.stringify({
           message: "Hello, world!",
           history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-          model: defaultModel,
+          models: [defaultModel],
         }),
       );
     });
@@ -39,10 +39,10 @@ describe("ChatRequest", () => {
 
   describe("decode", () => {
     it("should decode JSON string to ChatRequest", () => {
-      const o = {
+      const o: ChatRequest = {
         message: "Hello, world!",
         history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-        model: defaultModel,
+        models: [defaultModel],
       };
 
       const decoded = ChatRequest.decode(o);
@@ -51,7 +51,7 @@ describe("ChatRequest", () => {
         expect(decoded.right).toEqual({
           message: "Hello, world!",
           history: [{ role: "user", content: "Hi", timestamp: 1633024800000 }],
-          model: defaultModel,
+          models: [defaultModel],
         });
       }
     });
@@ -60,9 +60,9 @@ describe("ChatRequest", () => {
       const o = {
         message: "Hello, world!",
         history: [
-          { role: "user", content: "Hi", timestamp: "invalid-timestamp" },
+          { role: "user", content: "Hi", timestamp: "invalid_timestamp" },
         ],
-        model: defaultModel,
+        models: [defaultModel],
       };
 
       const decoded = ChatRequest.decode(o);
@@ -72,13 +72,13 @@ describe("ChatRequest", () => {
 
   describe("resolveModel", () => {
     it("should resolve model handle to the default model", () => {
-      expect(resolveModel("c")).toEqual(O.some(anthropicDefaultModel));
-      expect(resolveModel("claude")).toEqual(O.some(anthropicDefaultModel));
-      expect(resolveModel("cld")).toEqual(O.some(anthropicDefaultModel));
-      expect(resolveModel("chatgpt")).toEqual(O.some(openaiDefaultModel));
-      expect(resolveModel("gpt")).toEqual(O.some(openaiDefaultModel));
-      expect(resolveModel("p")).toEqual(O.some(perplexityDefaultModel));
-      expect(resolveModel("ppx")).toEqual(O.some(perplexityDefaultModel));
+      expect(resolveModel("c")).toEqual(E.right(anthropicDefaultModel));
+      expect(resolveModel("claude")).toEqual(E.right(anthropicDefaultModel));
+      expect(resolveModel("cld")).toEqual(E.right(anthropicDefaultModel));
+      expect(resolveModel("chatgpt")).toEqual(E.right(openaiDefaultModel));
+      expect(resolveModel("gpt")).toEqual(E.right(openaiDefaultModel));
+      expect(resolveModel("p")).toEqual(E.right(perplexityDefaultModel));
+      expect(resolveModel("ppx")).toEqual(E.right(perplexityDefaultModel));
     });
 
     it.each<Model[]>([
@@ -86,11 +86,11 @@ describe("ChatRequest", () => {
       ...openaiModels.map((x) => [x, x]),
       ...perplexityModels.map((x) => [x, x]),
     ])("should resolve '%s' to '%s'", (x, y) => {
-      expect(resolveModel(x)).toEqual(O.some(y));
+      expect(resolveModel(x)).toEqual(E.right(y));
     });
 
     it("should return none for unknown models", () => {
-      expect(resolveModel("unknown-model")).toEqual(O.none);
+      expect(resolveModel("unknown-model")).toEqual(E.left("unknown-model"));
     });
   });
 
@@ -125,10 +125,12 @@ describe("ChatRequest", () => {
 
   describe("SuccessResponse", () => {
     it("should encode and decode SuccessResponse correctly", () => {
-      const successResponse: SuccessResponse = {
-        message: "Success",
-        model: defaultModel,
-      };
+      const successResponse: SuccessResponse = [
+        {
+          message: "Success",
+          model: defaultModel,
+        },
+      ];
       const encoded = SuccessResponse.encode(successResponse);
       const decoded = SuccessResponse.decode(JSON.parse(encoded));
 
@@ -161,7 +163,7 @@ describe("ChatRequest", () => {
     it("should encode and decode ChatResponse correctly for success", () => {
       const chatResponse: ChatResponse = {
         _t: "ok",
-        data: { message: "Success", model: defaultModel },
+        data: [{ message: "Success", model: defaultModel }],
       };
       const encoded = ChatResponse.encode(chatResponse);
       const decoded = ChatResponse.decode(JSON.parse(encoded));

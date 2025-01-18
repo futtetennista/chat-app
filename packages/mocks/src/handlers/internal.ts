@@ -86,10 +86,10 @@ const handlers = [
 
             return HttpResponse.json<ChatResponse>({
               _t: "ok",
-              data: {
+              data: data.models.map((model) => ({
                 model: defaultModel,
-                message: `Your message to ${data.model}: "${data.message}"`,
-              },
+                message: `Your message to ${model}: "${data.message}"`,
+              })),
             });
           },
         ),

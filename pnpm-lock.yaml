@@ -6,6 +6,9 @@ settings:
 
 catalogs:
   default:
+    '@anthropic-ai/sdk':
+      specifier: ^0.32.1
+      version: 0.32.1
     '@tsconfig/recommended':
       specifier: ^1.0.8
       version: 1.0.8
@@ -92,7 +95,7 @@ importers:
   packages/backend:
     dependencies:
       '@anthropic-ai/sdk':
-        specifier: ^0.32.1
+        specifier: 'catalog:'
         version: 0.32.1
       '@aws-lambda-powertools/logger':
         specifier: ^2.10.0
@@ -319,6 +322,9 @@ importers:
 
   packages/mocks:
     dependencies:
+      '@anthropic-ai/sdk':
+        specifier: 'catalog:'
+        version: 0.32.1
       '@chat-app/contracts':
         specifier: workspace:*
         version: link:../contracts

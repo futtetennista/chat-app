@@ -1,3 +1,4 @@
+import * as Either from "fp-ts/lib/Either";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as C from "io-ts/Codec";
@@ -51,6 +52,7 @@ export const ModelD = D.union(
 export type Model = D.TypeOf<typeof ModelD>;
 
 export const defaultModel: Model = "o1-mini";
+export const defaultModels: Model[] = ["o1-mini", "claude-3-5-haiku-latest"];
 
 const ModelE: E.Encoder<string, Model> = {
   encode: (model) => JSON.stringify(model),
@@ -84,7 +86,7 @@ const handleMap: Record<string, "openai" | "anthropic" | "perplexity"> = {
   ppx: "perplexity",
 };
 
-export function resolveModel(maybeModel: string): O.Option<Model> {
+export function resolveModel(maybeModel: string): Either.Either<string, Model> {
   function resolveModelFromHandle(
     vendor: "openai" | "anthropic" | "perplexity" | undefined,
   ): O.Option<Model> {
@@ -105,21 +107,23 @@ export function resolveModel(maybeModel: string): O.Option<Model> {
   }
 
   return pipe(
-    resolveModelFromHandle(handleMap[maybeModel]),
-    O.orElse(() => {
+    Either.fromOption(() => maybeModel)(
+      resolveModelFromHandle(handleMap[maybeModel]),
+    ),
+    Either.orElse(() => {
       return anthropicModels.includes(maybeModel as AnthropicModel)
-        ? O.some(maybeModel as AnthropicModel)
-        : O.none;
+        ? Either.right(maybeModel as AnthropicModel)
+        : Either.left(maybeModel);
     }),
-    O.orElse(() => {
+    Either.orElse(() => {
       return openaiModels.includes(maybeModel as OpenAIModel)
-        ? O.some(maybeModel as OpenAIModel)
-        : O.none;
+        ? Either.right(maybeModel as OpenAIModel)
+        : Either.left(maybeModel);
     }),
-    O.orElse(() => {
+    Either.orElse(() => {
       return perplexityModels.includes(maybeModel as PerplexityModel)
-        ? O.some(maybeModel as PerplexityModel)
-        : O.none;
+        ? Either.right(maybeModel as PerplexityModel)
+        : Either.left(maybeModel);
     }),
   );
 }
@@ -147,8 +151,8 @@ export const Message: C.Codec<unknown, string, Message> = C.make(
 
 const ChatRequestD = D.struct({
   message: D.string,
-  history: D.array(Message),
-  model: Model,
+  history: D.readonly(D.array(Message)),
+  models: D.readonly(D.array(Model)),
 });
 
 export type ChatRequest = D.TypeOf<typeof ChatRequestD>;
@@ -162,15 +166,17 @@ export const ChatRequest: C.Codec<unknown, string, ChatRequest> = C.make(
   ChatRequestE,
 );
 
-const SuccessResponseD = pipe(
-  D.struct({
-    message: D.string,
-    model: Model,
-    // model: Vendor,
-  }),
-  D.intersect(D.partial({ stopReason: D.string })),
+const SuccessResponseD = D.readonly(
+  D.array(
+    pipe(
+      D.struct({
+        message: D.string,
+        model: Model,
+      }),
+      D.intersect(D.partial({ stopReason: D.string })),
+    ),
+  ),
 );
-
 export type SuccessResponse = D.TypeOf<typeof SuccessResponseD>;
 
 const SuccessResponseE: E.Encoder<string, SuccessResponse> = {
