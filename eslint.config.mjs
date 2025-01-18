@@ -26,6 +26,7 @@ export default tseslint.config(
       "**/node_modules/**",
       "**/dist/**",
       "**/build/**",
+      "**/bundle/**",
       "**/public/**",
       "**/tests-examples/**",
       "eslint.config.mjs",
