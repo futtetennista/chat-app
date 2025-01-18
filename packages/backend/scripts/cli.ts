@@ -33,7 +33,6 @@ function main() {
   cli
     .command("config:create")
     .description("Create the config file.")
-    .option("--local-dev", "Create config for local dev", false)
     .addOption(
       new Option(
         "--openai-model <name>",

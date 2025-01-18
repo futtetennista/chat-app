@@ -9,47 +9,14 @@ import { Config } from "../src/config";
 export default function (_cmd: Command) {
   return async function ({
     anthropicModel,
-    localDev,
     openaiModel,
     stream = false,
   }: {
     anthropicModel: AnthropicModel[number];
-    localDev?: boolean;
     openaiModel: OpenAIModel[number];
     stream?: boolean;
   }): Promise<void> {
-    let config: Config;
-
-    if (localDev) {
-      // const envPath = path.resolve(__dirname, "../../../secret.env");
-      // if (!fs.existsSync(envPath)) {
-      //   return cmd.error(`File not found: ${envPath}`);
-      // }
-
-      config = createConfig({
-        env: {
-          OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-          ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY,
-          PERPLEXITY_API_KEY: process.env.PERPLEXITY_API_KEY,
-          PERPLEXITY_BASE_URL: process.env.PERPLEXITY_BASE_URL,
-          LOG_LEVEL: process.env.LOG_LEVEL ?? "debug",
-        },
-        openaiModel,
-        anthropicModel,
-        stream,
-      });
-    }
-
-    // if (missingVars.length > 0) {
-    //   console.error(
-    //     `\x1b[31mThe following environment variables are not set: ${missingVars.join(
-    //       ", ",
-    //     )}\x1b[0m`,
-    //   );
-    //   cmd.error(`Missing environment variables: ${missingVars.join(", ")}`);
-    // }
-
-    config = createConfig({
+    const config = createConfig({
       env: process.env,
       openaiModel,
       anthropicModel,
