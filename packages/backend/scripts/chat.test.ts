@@ -103,7 +103,6 @@ describe("chatLoop", () => {
   it(
     "[perf] should NOT cause a stack overflow",
     async function () {
-      const filePath = "test.json";
       const chat: { _tag: "chat"; messages: Message[] } = {
         _tag: "chat",
         messages: [],
@@ -111,11 +110,13 @@ describe("chatLoop", () => {
       const chatHistoryDir = fs.mkdtempSync(
         path.join(os.tmpdir(), "chat-history-"),
       );
+      const filePath = path.join(chatHistoryDir, "test-chat.json");
       fs.writeFileSync(
-        path.join(chatHistoryDir, filePath),
+        filePath,
         JSON.stringify({
           messages: [],
         }),
+        "utf8",
       );
 
       const start = Date.now();
