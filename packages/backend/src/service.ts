@@ -85,33 +85,33 @@ function chatTE(
   headers: Record<string, string | undefined>,
   callback?: ChatCallback,
 ): TE.TaskEither<ChatErrorResponse, ChatSuccessResponse> {
+  function toTaskEither(model: Model) {
+    switch (modelMap[model]) {
+      case "anthropic": {
+        return chatAnthropic(data, callback);
+      }
+      case "openai": {
+        return chatOpenAI(data, headers, { callback });
+      }
+      case "perplexity": {
+        return chatPerplexity(data, headers, callback);
+      }
+      default: {
+        return TE.left<RFC9457ErrorResponse>({
+          detail: `'${model}' is not one of the supported models: ${models.join(", ")}`,
+          status: "400",
+          title: "Unsupported model",
+          type: "tag:@chat-app:unsupported_model",
+        });
+      }
+    }
+  }
+
   return pipe(
     // TE.sequenceArray(
     // A.sequence(T.ApplicativePar)(
-    A.wilt(T.ApplicativePar)(
-      // A.wilt(T.ApplicativePar)<Model, RFC9457ErrorResponse, SimpleSuccessResponse>(
-      (model: Model) => {
-        switch (modelMap[model]) {
-          case "anthropic": {
-            return chatAnthropic(data, callback);
-          }
-          case "openai": {
-            return chatOpenAI(data, headers, { callback });
-          }
-          case "perplexity": {
-            return chatPerplexity(data, headers, callback);
-          }
-          default: {
-            return TE.left<RFC9457ErrorResponse>({
-              detail: `'${model}' is not one of the supported models: ${models.join(", ")}`,
-              status: "400",
-              title: "Unsupported model",
-              type: "tag:@chat-app:unsupported_model",
-            });
-          }
-        }
-      },
-    )([...data.models]),
+    // A.wilt(T.ApplicativePar)<Model, RFC9457ErrorResponse, SimpleSuccessResponse>(
+    A.wilt(T.ApplicativePar)(toTaskEither)([...data.models]),
     T.map((x) => {
       return x.right.length === 0
         ? E.left(x.left)
@@ -291,7 +291,7 @@ function chatAnthropic(
           }) as Promise<Anthropic.Message>,
         (e) => {
           if (e instanceof Anthropic.APIError) {
-            callback?.onError({ _t: "api", data: e });
+            // callback?.onError({ _t: "api", data: e });
             return {
               detail: e.message,
               status: e.status?.toString() ?? "500",
@@ -299,7 +299,7 @@ function chatAnthropic(
               type: "tag:@chat-app:anthropic_api_error",
             };
           } else {
-            callback?.onError({ _t: "network", data: e });
+            // callback?.onError({ _t: "network", data: e });
             return {
               detail: "", // e.message,
               status: "400",
@@ -309,16 +309,16 @@ function chatAnthropic(
           }
         },
       ),
-      TE.tapIO((response) => {
-        callback?.afterResponse(response);
-        return TE.right(response);
-      }),
+      // TE.tapIO((response) => {
+      //   callback?.afterResponse(response);
+      //   return TE.right(response);
+      // }),
       TE.flatMap((response) => {
         if (!("id" in response)) {
-          callback?.onError({
-            _t: "unsupported",
-            message: "Streaming not supported",
-          });
+          // callback?.onError({
+          //   _t: "unsupported",
+          //   message: "Streaming not supported",
+          // });
           return TE.left<RFC9457ErrorResponse>({
             detail: "", // e.message,
             status: "501",
