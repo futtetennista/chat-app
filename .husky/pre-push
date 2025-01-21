@@ -1,49 +1,75 @@
 # shellcheck disable=SC2148
 
-remote_branch=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}")
+pre_push () {
+  remote_branch=$(git rev-parse --abbrev-ref --symbolic-full-name "@{u}")
 
-if [ -z "$remote_branch" ]; then
-  echo "[pre-push] No remote branch found, skipping."
-  exit 0
-fi
+  if [ -z "$remote_branch" ]; then
+    echo "[pre-push] No remote branch found, skipping."
+    exit 0
+  fi
 
-echo "[pre-push] ⏳ Knip will start."
-pnpm run knip
-echo "[pre-push] ✅ Knip did end."
+  echo "[pre-push] ⏳ Knip will start."
+  pnpm run knip
+  echo "[pre-push] ✅ Knip did end."
 
-# This script identifies JavaScript and TypeScript files that have been changed
-# between the current HEAD and the specified remote branch. It filters out deleted
-# files and sorts the list of changed files in a unique, alphabetical order.
-# The resulting list includes files with the following extensions: .js, .jsx, .ts, .tsx.
-# Sorting is not strictly necessary, it's a workaround to swallow non-zero codes that grep
-# returns if no match is found so that the command always returns a zero code.
-changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=d | sort -u)
-changed_files_ts=$(echo "$changed_files" | grep -E '\.(j|t)sx?$' | sort -u)
+  # This script identifies JavaScript and TypeScript files that have been changed
+  # between the current HEAD and the specified remote branch. It filters out deleted
+  # files and sorts the list of changed files in a unique, alphabetical order.
+  # The resulting list includes files with the following extensions: .js, .jsx, .ts, .tsx.
+  # Sorting is not strictly necessary, it's a workaround to swallow non-zero codes that grep
+  # returns if no match is found so that the command always returns a zero code.
+  changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=d | sort -u)
+  changed_files_ts=$(echo "$changed_files" | grep -E '\.(j|t)sx?$' | sort -u)
 
-if [ -z "$changed_files_ts" ]; then
-  echo "[pre-push] Changed files from HEAD to '$remote_branch': none"
-else
-  echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files_ts[*]}" | tr '\n' ', ' | sed 's/, $//')"
-  echo "[pre-push] ⏳ ESLint will start."
-  echo "$changed_files_ts" | xargs pnpm run lint
-  echo "[pre-push] ✅ ESLint did end."
-fi
+  if [ -z "$changed_files_ts" ]; then
+    echo "[pre-push] Changed files from HEAD to '$remote_branch': none"
+  else
+    echo "[pre-push] Changed TS files from HEAD to '$remote_branch': $(echo "${changed_files_ts[*]}" | tr '\n' ', ' | sed 's/, $//')"
+    echo "[pre-push] ⏳ ESLint will start."
+    echo "$changed_files_ts" | xargs pnpm run lint
+    echo "[pre-push] ✅ ESLint did end."
+  fi
 
-# changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
-# if [ -z "$changed_packages" ]; then
-#   echo "[pre-push] Changed packages: none"
-#   echo "[pre-push] Done."
-#   exit 0
-# fi
+  # changed_packages=$(echo "$changed_files" | cut -d'/' -f2 | sort -u)
+  # if [ -z "$changed_packages" ]; then
+  #   echo "[pre-push] Changed packages: none"
+  #   echo "[pre-push] Done."
+  #   exit 0
+  # fi
 
-# echo "[pre-push] Changed packages: ${changed_packages[*]}"
-# for package in $changed_packages; do
-#   if [ -d "packages/$package" ]; then
-#     echo "[pre-push] Running tests for package: $package"
-#     pnpm --filter "$package" run test:unit
-#   fi
-# done
+  # echo "[pre-push] Changed packages: ${changed_packages[*]}"
+  # for package in $changed_packages; do
+  #   if [ -d "packages/$package" ]; then
+  #     echo "[pre-push] Running tests for package: $package"
+  #     pnpm --filter "$package" run test:unit
+  #   fi
+  # done
 
-echo "[pre-push] ⏳ pre-commit checks will start."
-echo "$changed_files" | xargs pre-commit run --files
-echo "[pre-push] ✅ pre-commit checks did end."
+  echo "[pre-push] ⏳ pre-commit checks will start."
+  echo "$changed_files" | xargs pre-commit run --files
+  echo "[pre-push] ✅ pre-commit checks did end."
+}
+
+show_metrics() {
+  if [ ! -d ./.husky/metrics ]; then
+    mkdir -p ./.husky/metrics
+  fi
+
+  exec_time=$((end_time - start_time))
+  echo "$exec_time" >> ./.husky/metrics/pre-push-exec-times
+  printf "[pre-push] ⏱️ Total execution time: %.1fs\n" "$exec_time"
+  mean_exec_time=$(awk '{ total += $1 } END { printf "%.1f", total/NR }' ./.husky/metrics/pre-push-exec-times)
+  echo "[pre-push] 📊 Average execution time: ${mean_exec_time}s"
+  if (( $(echo "$exec_time > $mean_exec_time" | bc -l) )); then
+    echo -e "\033[33m[pre-push] ⚠️ Current execution time is above average\033[0m"
+  fi
+}
+
+main () {
+  start_time=$(date +%s)
+  pre_push
+  end_time=$(date +%s)
+  show_metrics
+}
+
+main "$@"
