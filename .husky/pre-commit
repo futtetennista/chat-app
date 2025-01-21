@@ -1,55 +1,81 @@
 # shellcheck disable=SC2148
 
-pnpm exec lint-staged
+pre_commit () {
+  pnpm exec lint-staged
 
-changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.[jt]sx?$' | cut -d'/' -f2 | sort -u)
-if [ -z "$changed_packages" ]; then
-  echo "[pre-commit] Changed packages: none"
-else
-  echo "[pre-commit] Changed packages: $(echo "${changed_packages[*]}" | tr '\n' ', ' | sed 's/,$//')"
-fi
-
-if [ -n "$changed_packages" ]; then
-  pnpm --recursive run clean
-  pnpm --recursive run compile
-fi
-
-for package in $changed_packages; do
-  if [ -d "packages/$package" ]; then
-    echo "[pre-commit] ⏳ Prettier for package '$package' will start."
-    pnpm run format "packages/$package"
-    echo "[pre-commit] ✅ Prettier for package '$package' did end."
-    # Make sure only files that prettier might have changed are staged.
-    files_formatted="$(git diff --diff-filter=d --staged --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$' | sort -u)"
-    if [ -n "$files_formatted" ]; then
-      echo "$files_formatted" | xargs git add
-    fi
-    echo "[pre-commit] ⏳ Tests for package '$package' will start."
-    pnpm --filter "$package" run test:unit
-    echo "[pre-commit] ✅ Tests for package '$package' did end."
+  changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.[jt]sx?$' | cut -d'/' -f2 | sort -u)
+  if [ -z "$changed_packages" ]; then
+    echo "[pre-commit] Changed packages: none"
+  else
+    echo "[pre-commit] Changed packages: $(echo "${changed_packages[*]}" | tr '\n' ', ' | sed 's/,$//')"
   fi
-done
 
-git diff --cached --name-only --diff-filter=d | while read -r file; do
-  if [ -f "$file" ]; then
-    # Ensure files have ending newline
-    if [ "$(tail -c1 "$file")" != "" ]; then
-      echo "[pre-commit] Adding newline to $file"
-      echo "" >> "$file"
-    fi
-
-    # Remove trailing whitespace and add back to staging
-    sed -i 's/\s*$//' "$file"
-    git add "$file"
+  if [ -n "$changed_packages" ]; then
+    pnpm --recursive run clean
+    pnpm --recursive run compile
   fi
-done
 
-changed_scripts=$(git diff --cached --name-only --diff-filter=d | grep -E '(.husky|\.sh$)' | sort -u)
-if [ -z "$changed_scripts" ]; then
-  echo "[pre-commit] Changed scripts: none"
-else
-  echo "[pre-commit] Changed scripts: $(echo "${changed_scripts[*]}" | tr '\n' ', ' | sed 's/,$//')"
-  echo "[pre-commit] ⏳ Shellcheck will start."
-  echo "${changed_scripts[@]}" | xargs shellcheck -x
-  echo "[pre-commit] ✅ Shellcheck did end."
-fi
+  for package in $changed_packages; do
+    if [ -d "packages/$package" ]; then
+      echo "[pre-commit] ⏳ Prettier for package '$package' will start."
+      pnpm run format "packages/$package"
+      echo "[pre-commit] ✅ Prettier for package '$package' did end."
+      # Make sure only files that prettier might have changed are staged.
+      files_formatted="$(git diff --diff-filter=d --staged --name-only "packages/$package" | grep -E '\.([jt]sx?|json)$' | sort -u)"
+      if [ -n "$files_formatted" ]; then
+        echo "$files_formatted" | xargs git add
+      fi
+      echo "[pre-commit] ⏳ Tests for package '$package' will start."
+      pnpm --filter "$package" run test:unit
+      echo "[pre-commit] ✅ Tests for package '$package' did end."
+    fi
+  done
+
+  git diff --cached --name-only --diff-filter=d | while read -r file; do
+    if [ -f "$file" ]; then
+      # Ensure files have ending newline
+      if [ "$(tail -c1 "$file")" != "" ]; then
+        echo "[pre-commit] Adding newline to $file"
+        echo "" >> "$file"
+      fi
+
+      # Remove trailing whitespace and add back to staging
+      sed -i 's/\s*$//' "$file"
+      git add "$file"
+    fi
+  done
+
+  changed_scripts=$(git diff --cached --name-only --diff-filter=d | grep -E '(.husky|\.sh$)' | sort -u)
+  if [ -z "$changed_scripts" ]; then
+    echo "[pre-commit] Changed scripts: none"
+  else
+    echo "[pre-commit] Changed scripts: $(echo "${changed_scripts[*]}" | tr '\n' ', ' | sed 's/,$//')"
+    echo "[pre-commit] ⏳ Shellcheck will start."
+    echo "${changed_scripts[@]}" | xargs shellcheck -x
+    echo "[pre-commit] ✅ Shellcheck did end."
+  fi
+}
+
+show_metrics() {
+  if [ ! -d ./.husky/metrics ]; then
+    mkdir -p ./.husky/metrics
+  fi
+
+  exec_time=$((end_time - start_time))
+  echo "$exec_time" >> ./.husky/metrics/pre-commit-exec-times
+  printf "[pre-commit] ⏱️ Total execution time: %.3fs\n" "$exec_time"
+  mean_exec_time=$(awk '{ total += $1 } END { printf "%.3f", total/NR }' ./.husky/metrics/pre-commit-exec-times)
+  echo "[pre-commit] 📊 Average execution time: ${mean_exec_time}s"
+  if (( $(echo "$exec_time > $mean_exec_time" | bc -l) )); then
+    echo -e "\033[33m[pre-commit] ⛔️ Current execution time is above average\033[0m"
+  fi
+}
+
+main () {
+  start_time=$(date +%s)
+  pre_commit
+  end_time=$(date +%s)
+  show_metrics
+}
+
+main "$@"

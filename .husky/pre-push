@@ -61,7 +61,7 @@ show_metrics() {
   mean_exec_time=$(awk '{ total += $1 } END { printf "%.1f", total/NR }' ./.husky/metrics/pre-push-exec-times)
   echo "[pre-push] 📊 Average execution time: ${mean_exec_time}s"
   if (( $(echo "$exec_time > $mean_exec_time" | bc -l) )); then
-    echo -e "\033[33m[pre-push] ⚠️ Current execution time is above average\033[0m"
+    echo -e "\033[33m[pre-push] ⛔️ Current execution time is above average\033[0m"
   fi
 }
 
