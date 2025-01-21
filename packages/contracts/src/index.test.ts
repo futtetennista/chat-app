@@ -3,6 +3,7 @@ import * as E from "fp-ts/Either";
 import {
   anthropicDefaultModel,
   anthropicModels,
+  ChatErrorResponse,
   ChatRequest,
   ChatResponse,
   ChatSuccessResponse,
@@ -14,7 +15,6 @@ import {
   perplexityDefaultModel,
   perplexityModels,
   resolveModel,
-  RFC9457ErrorResponse,
 } from "./index";
 
 describe("ChatRequest", () => {
@@ -165,19 +165,19 @@ describe("ChatRequest", () => {
     });
   });
 
-  describe("RFC9457ErrorResponse", () => {
-    it("should encode and decode RFC9457ErrorResponse correctly", () => {
-      const errorResponse: RFC9457ErrorResponse = {
+  describe("ChatErrorResponse", () => {
+    it("should encode and decode ChatErrorResponse correctly", () => {
+      const errorResponse: ChatErrorResponse = {
         type: "tag:@chat-app:i_am_a_teapot",
         status: "400",
         title: "Bad Request",
         detail: "Invalid input",
       };
-      const encoded = RFC9457ErrorResponse.encode(errorResponse);
-      const decoded = RFC9457ErrorResponse.decode(JSON.parse(encoded));
+      const encoded = ChatErrorResponse.encode(errorResponse);
+      const decoded = ChatErrorResponse.decode(JSON.parse(encoded));
 
       expect(decoded._tag).toBe("Right");
-      expect((decoded as E.Right<RFC9457ErrorResponse>).right).toEqual(
+      expect((decoded as E.Right<ChatErrorResponse>).right).toEqual(
         errorResponse,
       );
     });
@@ -187,7 +187,7 @@ describe("ChatRequest", () => {
     it("should encode and decode ChatResponse correctly for success", () => {
       const chatResponse: ChatResponse = {
         _t: "ok",
-        data: { responses: [{ message: "Success", model: defaultModel }] },
+        responses: [{ message: "Success", model: defaultModel }],
       };
       const encoded = ChatResponse.encode(chatResponse);
       const decoded = ChatResponse.decode(JSON.parse(encoded));
@@ -199,14 +199,11 @@ describe("ChatRequest", () => {
     it("should encode and decode ChatResponse correctly for error", () => {
       const chatResponse: ChatResponse = {
         _t: "ko",
-        errors: [
-          {
-            type: "tag:@chat-app:i_am_a_teapot",
-            status: "400",
-            title: "Bad Request",
-            detail: "Invalid input",
-          },
-        ],
+        type: "tag:@chat-app:i_am_a_teapot",
+        status: "400",
+        title: "Bad Request",
+        detail: "Invalid input",
+        // errors: [],
       };
       const encoded = ChatResponse.encode(chatResponse);
       const decoded = ChatResponse.decode(JSON.parse(encoded));

@@ -1,8 +1,8 @@
 import {
   AnthropicModelD,
+  ChatErrorResponse,
   OpenAIModelD,
   PerplexityModelD,
-  RFC9457ErrorResponse,
 } from "@chat-app/contracts";
 import * as E from "fp-ts/Either";
 import { pipe } from "fp-ts/lib/function";
@@ -56,7 +56,7 @@ export interface MkConfigResult {
 
 export function mkConfig(
   env?: "production" | "dev",
-): E.Either<RFC9457ErrorResponse, MkConfigResult> {
+): E.Either<ChatErrorResponse, MkConfigResult> {
   return pipe(
     E.Do,
     E.bind("configUnparsed", () => {
@@ -97,7 +97,7 @@ export function mkConfig(
       | { _t: "decode"; configParsed: unknown; value: D.DecodeError }
       | { _t: "notFound"; value: string }
       | { _t: "parse"; configUnparsed: string; value: string },
-      RFC9457ErrorResponse,
+      ChatErrorResponse,
       MkConfigResult,
       MkConfigResult
     >(
@@ -105,7 +105,6 @@ export function mkConfig(
         switch (e._t) {
           case "notFound": {
             return {
-              detail: "",
               status: "500",
               title: e.value,
               type: "tag:@chat-app:configuration_not_found_error",

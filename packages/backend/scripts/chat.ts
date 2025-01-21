@@ -62,11 +62,11 @@ const PersistedChat: Codec.Codec<unknown, string, PersistedChat> = Codec.make(
 );
 
 class ChatError extends Error {
-  public readonly errors: ChatErrorResponse;
+  public readonly error: ChatErrorResponse;
 
   constructor(errors: ChatErrorResponse) {
     super();
-    this.errors = errors;
+    this.error = errors;
   }
 }
 
@@ -310,8 +310,11 @@ function _chatLoop({
     }),
     TE.bind("assistantResponse", ({ responseDecoded }) => {
       return responseDecoded._t === "ko"
-        ? TE.left(new ChatError(responseDecoded.errors))
-        : TE.of(responseDecoded.data);
+        ? TE.left(new ChatError(responseDecoded))
+        : TE.of({
+            responses: responseDecoded.responses,
+            errors: responseDecoded.errors,
+          });
     }),
     TE.tap(({ messageHistory, assistantResponse }) => {
       assistantResponse.responses.forEach(({ message: content }) => {

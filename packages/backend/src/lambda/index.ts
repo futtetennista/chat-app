@@ -1,5 +1,5 @@
 import { Logger } from "@aws-lambda-powertools/logger";
-import { ChatResponse } from "@chat-app/contracts";
+import { ChatResponse, isChatErrorResponse } from "@chat-app/contracts";
 import {
   APIGatewayEvent,
   APIGatewayProxyResult,
@@ -121,21 +121,22 @@ export const handler: Handler = async (
     TE.match(
       (e) => {
         return {
-          statusCode: 500,
+          statusCode:
+            isChatErrorResponse(e) && e.status ? parseInt(e.status) : 500,
           headers: commonHeaders,
           body: ChatResponse.encode({
             _t: "ko",
-            errors: Array.isArray(e) ? e : [e],
+            ...e,
           }),
         };
       },
-      ({ response: data }) => {
+      ({ response }) => {
         return {
           statusCode: 200,
           headers: commonHeaders,
           body: ChatResponse.encode({
             _t: "ok",
-            data,
+            ...response,
           }),
         };
       },

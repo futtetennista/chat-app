@@ -7,7 +7,6 @@ import {
   Model,
   modelMap,
   models,
-  RFC9457ErrorResponse,
   VendorSuccessResponse,
 } from "@chat-app/contracts";
 import * as A from "fp-ts/Array";
@@ -50,7 +49,7 @@ interface ChatService {
             },
       ) => void;
     },
-  ) => E.Either<RFC9457ErrorResponse, ChatRequest>;
+  ) => E.Either<ChatErrorResponse, ChatRequest>;
 
   chatTE: (
     data: ChatRequest,
@@ -72,7 +71,6 @@ export function mkService(
 ): E.Either<ChatErrorResponse, ChatService> {
   return pipe(
     plugins.registerPlugins(config),
-    E.mapLeft((error) => [error]),
     E.map(() => ({
       chatTE,
       validateBody,
@@ -97,7 +95,7 @@ function chatTE(
         return chatPerplexity(data, headers, callback);
       }
       default: {
-        return TE.left<RFC9457ErrorResponse>({
+        return TE.left<ChatErrorResponse>({
           detail: `'${model}' is not one of the supported models: ${models.join(", ")}`,
           status: "400",
           title: "Unsupported model",
@@ -110,11 +108,19 @@ function chatTE(
   return pipe(
     // TE.sequenceArray(
     // A.sequence(T.ApplicativePar)(
-    // A.wilt(T.ApplicativePar)<Model, RFC9457ErrorResponse, SimpleSuccessResponse>(
+    // A.wilt(T.ApplicativePar)<Model, ChatErrorResponse, SimpleSuccessResponse>(
     A.wilt(T.ApplicativePar)(toTaskEither)([...data.models]),
     T.map((x) => {
       return x.right.length === 0
-        ? E.left(x.left)
+        ? E.left<ChatErrorResponse>({
+            type: "tag:@chat-app:composite_error",
+            title: `Composite error of: ${x.left.map(({ title }) => title).join(", ")}`,
+            status: x.left.some(({ status }) => status === "400")
+              ? "400"
+              : "500",
+            detail: "Look at the 'errors' property for more details",
+            errors: x.left,
+          })
         : E.right({
             responses: x.right,
             errors: x.left,
@@ -127,14 +133,13 @@ function chatPerplexity(
   data: ChatRequest,
   headers: Record<string, string | undefined>,
   callback?: ChatCallback,
-): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
+): TE.TaskEither<ChatErrorResponse, VendorSuccessResponse> {
   return pipe(
     TE.fromOption(() => undefined)(plugins.getPlugin("perplexity")),
     TE.matchE(
       () => {
         callback?.onMissingConfig("perplexity");
-        return TE.left<RFC9457ErrorResponse>({
-          detail: "",
+        return TE.left<ChatErrorResponse>({
           status: "501",
           title: "Perplexity not configured",
           type: "tag:@chat-app:perplexity_not_configured",
@@ -155,7 +160,7 @@ function chatOpenAI(
     plugin?: { client: OpenAI; model: Model; stream: boolean };
     callback?: ChatCallback;
   },
-): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
+): TE.TaskEither<ChatErrorResponse, VendorSuccessResponse> {
   function _chatOpenAI({
     client,
     model,
@@ -164,7 +169,7 @@ function chatOpenAI(
     client: OpenAI;
     model: Model;
     stream: boolean;
-  }): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
+  }): TE.TaskEither<ChatErrorResponse, VendorSuccessResponse> {
     return pipe(
       TE.Do,
       TE.tapIO(() => {
@@ -172,9 +177,8 @@ function chatOpenAI(
       }),
       TE.map(() => {
         return stream
-          ? TE.left<{ error: RFC9457ErrorResponse }>({
+          ? TE.left<{ error: ChatErrorResponse }>({
               error: {
-                detail: "",
                 status: "501",
                 title: "Streaming not implemented",
                 type: "tag:@chat-app:streaming_not_implemented",
@@ -183,10 +187,7 @@ function chatOpenAI(
           : TE.right(undefined);
       }),
       TE.bind("response", () =>
-        TE.tryCatch<
-          RFC9457ErrorResponse,
-          OpenAI.Chat.Completions.ChatCompletion
-        >(
+        TE.tryCatch<ChatErrorResponse, OpenAI.Chat.Completions.ChatCompletion>(
           () => {
             return client.chat.completions.create(
               {
@@ -225,7 +226,7 @@ function chatOpenAI(
           !response.choices[0].message.content
         ) {
           callback?.onError({ _t: "api", data: JSON.stringify(response) });
-          return TE.left<RFC9457ErrorResponse>({
+          return TE.left<ChatErrorResponse>({
             detail: `OpenAI response: ${JSON.stringify(response)}`,
             status: "500",
             title: "Invalid response from OpenAI",
@@ -254,8 +255,7 @@ function chatOpenAI(
     ),
     TE.matchE(() => {
       callback?.onMissingConfig("openai");
-      return TE.left<RFC9457ErrorResponse>({
-        detail: "",
+      return TE.left<ChatErrorResponse>({
         status: "501",
         title: "OpenAI not configured",
         type: "tag:@chat-app:provider_not_configured",
@@ -266,19 +266,14 @@ function chatOpenAI(
 
 function chatAnthropic(
   data: ChatRequest,
-  callback?: ChatCallback,
-): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
+  _callback?: ChatCallback,
+): TE.TaskEither<ChatErrorResponse, VendorSuccessResponse> {
   function _chatAnthropic(
     client: Anthropic,
     model: string,
-    {
-      stream,
-    }: {
-      stream: boolean;
-    },
-  ): TE.TaskEither<RFC9457ErrorResponse, VendorSuccessResponse> {
+  ): TE.TaskEither<ChatErrorResponse, VendorSuccessResponse> {
     return pipe(
-      TE.tryCatch<RFC9457ErrorResponse, Anthropic.Message>(
+      TE.tryCatch<ChatErrorResponse, Anthropic.Message>(
         () =>
           client.messages.create({
             max_tokens: 1024,
@@ -287,11 +282,10 @@ function chatAnthropic(
               { role: "user", content: data.message },
             ],
             model,
-            stream,
+            stream: false,
           }) as Promise<Anthropic.Message>,
         (e) => {
           if (e instanceof Anthropic.APIError) {
-            // callback?.onError({ _t: "api", data: e });
             return {
               detail: e.message,
               status: e.status?.toString() ?? "500",
@@ -299,9 +293,7 @@ function chatAnthropic(
               type: "tag:@chat-app:anthropic_api_error",
             };
           } else {
-            // callback?.onError({ _t: "network", data: e });
             return {
-              detail: "", // e.message,
               status: "400",
               title: `Anthropic API uncaught error`,
               type: "tag:@chat-app:anthropic_other_error",
@@ -309,24 +301,7 @@ function chatAnthropic(
           }
         },
       ),
-      // TE.tapIO((response) => {
-      //   callback?.afterResponse(response);
-      //   return TE.right(response);
-      // }),
       TE.flatMap((response) => {
-        if (!("id" in response)) {
-          // callback?.onError({
-          //   _t: "unsupported",
-          //   message: "Streaming not supported",
-          // });
-          return TE.left<RFC9457ErrorResponse>({
-            detail: "", // e.message,
-            status: "501",
-            title: `Anthropic API uncaught error`,
-            type: "tag:@chat-app:streaming_not_implemented",
-          });
-        }
-
         return response.stop_reason === "end_turn"
           ? TE.right({
               model: response.model as Model,
@@ -349,15 +324,13 @@ function chatAnthropic(
     TE.fromOption(() => undefined)(plugins.getPlugin("anthropic")),
     TE.matchE(
       () => {
-        callback?.onMissingConfig("anthropic");
-        return TE.left<RFC9457ErrorResponse>({
-          detail: "",
+        return TE.left<ChatErrorResponse>({
           status: "501",
           title: "Anthropic not configured",
           type: "tag:@chat-app:provider_not_configured",
         });
       },
-      ({ client, model, stream }) => _chatAnthropic(client, model, { stream }),
+      ({ client, model }) => _chatAnthropic(client, model),
     ),
   );
 }
@@ -376,9 +349,9 @@ function validateBody(
         ) => void;
       }
     | undefined,
-): E.Either<RFC9457ErrorResponse, ChatRequest> {
+): E.Either<ChatErrorResponse, ChatRequest> {
   if (!x) {
-    return E.left<RFC9457ErrorResponse>({
+    return E.left<ChatErrorResponse>({
       detail: `Request body must be an instance of ChatRequest. Example:
 {
   "model": ${defaultModel},
@@ -415,15 +388,14 @@ function validateBody(
       (error) => {
         switch (error._t) {
           case "parse": {
-            return E.left<RFC9457ErrorResponse>({
-              detail: "",
+            return E.left<ChatErrorResponse>({
               status: "400",
               title: "Invalid JSON in request body",
               type: "tag:@chat-app:invalid_json",
             });
           }
           case "decode": {
-            return E.left<RFC9457ErrorResponse>({
+            return E.left<ChatErrorResponse>({
               detail: D.draw(error.error),
               status: "400",
               title: "Invalid request format",

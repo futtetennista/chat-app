@@ -1,8 +1,8 @@
 import {
+  ChatErrorResponse,
   ChatRequest,
   ChatResponse,
   defaultModel,
-  RFC9457ErrorResponse,
 } from "@chat-app/contracts";
 // import * as Console from "fp-ts/Console";
 import * as E from "fp-ts/Either";
@@ -28,7 +28,6 @@ const handlers = [
             type: "tag:@chat-app:empty_request_body",
             title: "Empty request body",
             status: "400",
-            detail: "",
           }),
         ),
         // TE.tapIO((requestBody) => process.env.NODE_ENV === 'test' ? IO. of(void 0) : Console.log({ requestBody })),
@@ -38,20 +37,17 @@ const handlers = [
         TE.match(
           (error) => {
             return pipe(
-              RFC9457ErrorResponse.decode(error),
+              ChatErrorResponse.decode(error),
               E.match(
                 (error) =>
                   HttpResponse.json<ChatResponse>(
                     {
                       _t: "ko",
-                      errors: [
-                        {
-                          type: "tag:@chat-app:invalid_request_format",
-                          title: "Invalid request format",
-                          status: "400",
-                          detail: D.draw(error),
-                        },
-                      ],
+                      type: "tag:@chat-app:invalid_request_format",
+                      title: "Invalid request format",
+                      status: "400",
+                      detail: D.draw(error),
+                      errors: [],
                     },
                     { status: 400 },
                   ),
@@ -59,7 +55,7 @@ const handlers = [
                   HttpResponse.json<ChatResponse>(
                     {
                       _t: "ko",
-                      errors: [error],
+                      ...error,
                     },
                     {
                       status: Number(error.status),
@@ -73,14 +69,11 @@ const handlers = [
               return HttpResponse.json<ChatResponse>(
                 {
                   _t: "ko",
-                  errors: [
-                    {
-                      type: "tag:@chat-app:i_am_a_teapot",
-                      title: "I'm a teapot",
-                      status: "418",
-                      detail: "This is a test error",
-                    },
-                  ],
+                  type: "tag:@chat-app:i_am_a_teapot",
+                  title: "I'm a teapot",
+                  status: "418",
+                  detail: "This is a test error",
+                  errors: [],
                 },
                 {
                   status: 418,
@@ -92,20 +85,18 @@ const handlers = [
               return HttpResponse.json<ChatResponse>(
                 {
                   _t: "ok",
-                  data: {
-                    responses: data.models.map((model) => ({
-                      model: defaultModel,
-                      message: `Your message to ${model}: "${data.message}"`,
-                    })),
-                    errors: [
-                      {
-                        type: "tag:@chat-app:i_am_a_teapot",
-                        title: "I'm a teapot",
-                        status: "418",
-                        detail: "This is a test error",
-                      },
-                    ],
-                  },
+                  responses: data.models.map((model) => ({
+                    model: defaultModel,
+                    message: `Your message to ${model}: "${data.message}"`,
+                  })),
+                  errors: [
+                    {
+                      type: "tag:@chat-app:i_am_a_teapot",
+                      title: "I'm a teapot",
+                      status: "418",
+                      detail: "This is a test error",
+                    },
+                  ],
                 },
                 {
                   status: 200,
@@ -115,12 +106,10 @@ const handlers = [
 
             return HttpResponse.json<ChatResponse>({
               _t: "ok",
-              data: {
-                responses: data.models.map((model) => ({
-                  model: defaultModel,
-                  message: `Your message to ${model}: "${data.message}"`,
-                })),
-              },
+              responses: data.models.map((model) => ({
+                model: defaultModel,
+                message: `Your message to ${model}: "${data.message}"`,
+              })),
             });
           },
         ),
