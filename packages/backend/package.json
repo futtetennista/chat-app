@@ -28,7 +28,7 @@
     "@aws-lambda-powertools/logger": "^2.10.0",
     "@chat-app/contracts": "workspace:*",
     "aws-lambda": "^1.0.7",
-    "openai": "^4.71.1"
+    "openai": "^4.80.1"
   },
   "devDependencies": {
     "@actions/core": "^1.11.1",
