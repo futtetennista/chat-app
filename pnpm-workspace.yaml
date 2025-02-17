@@ -6,7 +6,7 @@ catalog:
   "@anthropic-ai/sdk": ^0.32.1
   fp-ts: ^2.16.9
   io-ts: ^2.2.21
-  knip: ^5.36.3
+  knip: ^5.44.1
   msw: ^2.6.0
   openai: ^4.71.1
   tsx: ^4.19.2
