@@ -42,7 +42,7 @@
     "@types/node": "catalog:typescript-node20",
     "commander": "^12.1.0",
     "concurrently": "^9.1.0",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.25.1",
     "fp-ts": "catalog:",
     "inquirer": "^12.1.0",
     "io-ts": "catalog:",
