@@ -1,8 +1,15 @@
 # shellcheck disable=SC2148
 
-pre_commit () {
+pre_commit() {
   pnpm exec lint-staged
+  git stash --keep-index
+  run_tests
+  check_newline
+  check_shellscripts
+  git stash pop > /dev/null 2>&1
+}
 
+run_tests() {
   changed_packages=$(git diff --cached --name-only --diff-filter=d | grep -E '\.[jt]sx?$' | cut -d'/' -f2 | sort -u)
   if [ -z "$changed_packages" ]; then
     echo "[pre-commit] Changed packages: none"
@@ -31,6 +38,9 @@ pre_commit () {
     fi
   done
 
+}
+
+check_newline() {
   git diff --cached --name-only --diff-filter=d | while read -r file; do
     if [ -f "$file" ]; then
       # Ensure files have ending newline
@@ -39,12 +49,20 @@ pre_commit () {
         echo "" >> "$file"
       fi
 
-      # Remove trailing whitespace and add back to staging
+      # Remove trailing whitespace
       sed -i 's/\s*$//' "$file"
-      git add "$file"
+
+      # Check for trailing spaces
+      if grep -q "[[:space:]]$" "$file"; then
+        echo "[pre-commit] ❌ Error: Found trailing spaces in $file"
+        echo "[pre-commit] Please remove trailing spaces before committing"
+        exit 1
+      fi
     fi
   done
+}
 
+check_shellscripts() {
   changed_scripts=$(git diff --cached --name-only --diff-filter=d | grep -E '(.husky|\.sh$)' | sort -u)
   if [ -z "$changed_scripts" ]; then
     echo "[pre-commit] Changed scripts: none"
@@ -54,6 +72,7 @@ pre_commit () {
     echo "${changed_scripts[@]}" | xargs shellcheck -x
     echo "[pre-commit] ✅ Shellcheck did end."
   fi
+
 }
 
 show_metrics() {

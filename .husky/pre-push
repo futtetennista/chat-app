@@ -18,7 +18,7 @@ pre_push () {
   # The resulting list includes files with the following extensions: .js, .jsx, .ts, .tsx.
   # Sorting is not strictly necessary, it's a workaround to swallow non-zero codes that grep
   # returns if no match is found so that the command always returns a zero code.
-  changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=d | sort -u)
+  changed_files=$(git diff HEAD "$remote_branch" --name-only --diff-filter=adr | sort -u)
   changed_files_ts=$(echo "$changed_files" | grep -E '\.(j|t)sx?$' | sort -u)
 
   if [ -z "$changed_files_ts" ]; then
